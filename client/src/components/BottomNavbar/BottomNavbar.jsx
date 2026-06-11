@@ -1,8 +1,21 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
-import { Check, X } from "lucide-react";
+import {
+  Check,
+  X,
+  Home,
+  Gift,
+  Landmark,
+  UserCircle,
+  CircleDollarSign,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSelector } from "react-redux";
+
 import { useLanguage } from "../../Context/LanguageProvider";
+import { selectIsAuth } from "../../features/auth/authSelectors";
+import RegisterModal from "../RegisterModal/RegisterModal";
+import LoginModal from "../LoginModal/LoginModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -11,47 +24,116 @@ const flagUrl = {
 
 const BottomNavbar = () => {
   const { language, changeLanguage, isBangla } = useLanguage();
+  const isAuth = useSelector(selectIsAuth);
+
   const [openLangModal, setOpenLangModal] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
+  const [openLogin, setOpenLogin] = useState(false);
 
   const languages = [
     { key: "Bangla", label: "বাংলা", flag: flagUrl.Bangla },
     { key: "English", label: "English", flag: flagUrl.English },
   ];
 
+  const authMenus = [
+    {
+      label: isBangla ? "হোম" : "Home",
+      path: "/",
+      icon: Home,
+      badge: "",
+    },
+    {
+      label: isBangla ? "প্রোমোশন" : "Promotions",
+      path: "/promotions",
+      icon: Gift,
+      badge: "0",
+    },
+    {
+      label: isBangla ? "ডিপোজিট" : "Deposit",
+      path: "/deposit",
+      icon: Landmark,
+      badge: "",
+    },
+    {
+      label: isBangla ? "আমার একাউন্ট" : "My Account",
+      path: "/profile",
+      icon: UserCircle,
+      badge: "0",
+    },
+  ];
+
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[50px] border-t border-[#c9c9c9] bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.12)] md:hidden">
-        <button
-          onClick={() => setOpenLangModal(true)}
-          className="flex w-[100px] items-center justify-center gap-2 bg-[#dce8f2]"
-        >
-          <img
-            src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
-            alt={language}
-            className="h-[25px] w-[25px] rounded-full object-cover"
-          />
-          <div className="text-left leading-[15px]">
-            <p className="text-[13px] font-bold text-[#0b3554]">BDT</p>
-            <p className="text-[12px] font-semibold text-[#111]">
-              {isBangla ? "বাংলা" : "English"}
-            </p>
-          </div>
-        </button>
+      {!isAuth ? (
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[50px] border-t border-[#c9c9c9] bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.12)] md:hidden">
+          <button
+            type="button"
+            onClick={() => setOpenLangModal(true)}
+            className="flex w-[100px] cursor-pointer items-center justify-center gap-2 bg-[#dce8f2]"
+          >
+            <img
+              src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
+              alt={language}
+              className="h-[25px] w-[25px] rounded-full object-cover"
+            />
 
-        <Link
-          to="/register"
-          className="flex flex-1 items-center justify-center bg-white text-[15px] font-bold text-[#111]"
-        >
-          {isBangla ? "সাইন আপ" : "Sign Up"}
-        </Link>
+            <div className="text-left leading-[15px]">
+              <p className="text-[13px] font-bold text-[#0b3554]">BDT</p>
+              <p className="text-[12px] font-semibold text-[#111]">
+                {isBangla ? "বাংলা" : "English"}
+              </p>
+            </div>
+          </button>
 
-        <Link
-          to="/login"
-          className="flex flex-1 items-center justify-center bg-[#0b66a8] text-[15px] font-bold text-white"
-        >
-          {isBangla ? "লগইন" : "Login"}
-        </Link>
-      </div>
+          <button
+            type="button"
+            onClick={() => setOpenRegister(true)}
+            className="flex flex-1 cursor-pointer items-center justify-center bg-white text-[15px] font-bold text-[#111]"
+          >
+            {isBangla ? "সাইন আপ" : "Sign Up"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOpenLogin(true)}
+            className="flex flex-1 cursor-pointer items-center justify-center bg-[#0b66a8] text-[15px] font-bold text-white"
+          >
+            {isBangla ? "লগইন" : "Login"}
+          </button>
+        </div>
+      ) : (
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[52px] bg-[#111111] shadow-[0_-2px_8px_rgba(0,0,0,0.22)] md:hidden">
+          {authMenus.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="relative flex flex-1 flex-col items-center justify-center gap-[2px] text-white"
+              >
+                <div className="relative flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#303030]">
+                  <Icon size={17} className="text-white" />
+
+                  {item.badge !== "" && (
+                    <span className="absolute -right-[5px] -top-[3px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-[#e0182d] px-[3px] text-[9px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+
+                  {item.label === "Deposit" || item.label === "ডিপোজিট" ? (
+                    <span className="absolute -right-[5px] -top-[3px] h-[8px] w-[8px] rounded-full bg-[#e0182d]" />
+                  ) : null}
+                </div>
+
+                <span className="text-[11px] font-semibold leading-none">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <AnimatePresence>
         {openLangModal && (
@@ -77,8 +159,9 @@ const BottomNavbar = () => {
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => setOpenLangModal(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white"
                   >
                     <X size={18} />
                   </button>
@@ -92,12 +175,13 @@ const BottomNavbar = () => {
 
                     return (
                       <button
+                        type="button"
                         key={item.key}
                         onClick={() => {
                           changeLanguage(item.key);
                           setOpenLangModal(false);
                         }}
-                        className={`mb-1 flex h-[52px] w-full items-center justify-between rounded-lg px-3 transition last:mb-0 ${
+                        className={`mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0 ${
                           active
                             ? "bg-[#0b66a8] text-white shadow-md"
                             : "bg-white text-[#111]"
@@ -131,6 +215,24 @@ const BottomNavbar = () => {
             </motion.div>
           </div>
         )}
+
+        <RegisterModal
+          open={openRegister}
+          onClose={() => setOpenRegister(false)}
+          onLoginClick={() => {
+            setOpenRegister(false);
+            setOpenLogin(true);
+          }}
+        />
+
+        <LoginModal
+          open={openLogin}
+          onClose={() => setOpenLogin(false)}
+          onRegisterClick={() => {
+            setOpenLogin(false);
+            setOpenRegister(true);
+          }}
+        />
       </AnimatePresence>
     </>
   );

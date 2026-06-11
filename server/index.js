@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+
 
 dotenv.config();
 
@@ -22,7 +24,13 @@ app.get("/", (req, res) => {
   });
 });
 
+
+
 app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
+
+
+
 
 app.use((req, res) => {
   res.status(404).json({

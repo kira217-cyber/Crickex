@@ -1,69 +1,69 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-/**
- * 👇 Demo user (same as Context)
- */
-const DEMO_USER = {
-  name: "Demo User",
-  email: "demo@example.com",
-  password: "demo123",
-  phone: "01700000000",
+const getSavedUser = () => {
+  try {
+    const user = localStorage.getItem("user_data");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
 };
 
+const getSavedToken = () => localStorage.getItem("user_token") || null;
+
 const initialState = {
-  user: null,
-  token: "demo-token",
-  loading: true,
+  user: getSavedUser(),
+  token: getSavedToken(),
+  isAuth: Boolean(getSavedToken()),
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    /**
-     * 🔁 Context useEffect equivalent
-     */
     rehydrateAuth: (state) => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        const storedToken = localStorage.getItem("token");
+      const user = getSavedUser();
+      const token = getSavedToken();
 
-        if (storedUser && storedToken) {
-          state.user = JSON.parse(storedUser);
-          state.token = storedToken;
-        }
-      } catch (err) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-      } finally {
-        state.loading = false;
+      state.user = user;
+      state.token = token;
+      state.isAuth = Boolean(user && token);
+    },
+
+    setCredentials: (state, action) => {
+      const { user, token } = action.payload || {};
+
+      state.user = user || null;
+      state.token = token || null;
+      state.isAuth = Boolean(user && token);
+
+      if (user && token) {
+        localStorage.setItem("user_data", JSON.stringify(user));
+        localStorage.setItem("user_token", token);
       }
     },
 
-    /**
-     * ✅ Demo Login
-     */
-    demoLogin: (state) => {
-      state.user = DEMO_USER;
-      state.token = "demo-token";
-
-      localStorage.setItem("user", JSON.stringify(DEMO_USER));
-      localStorage.setItem("token", "demo-token");
-    },
-
-    /**
-     * ❌ Logout
-     */
     logout: (state) => {
       state.user = null;
       state.token = null;
-      state.loading = false;
+      state.isAuth = false;
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("user_token");
+    },
+
+    updateUser: (state, action) => {
+      state.user = {
+        ...(state.user || {}),
+        ...(action.payload || {}),
+      };
+
+      localStorage.setItem("user_data", JSON.stringify(state.user));
     },
   },
 });
 
-export const { rehydrateAuth, demoLogin, logout } = authSlice.actions;
+export const { rehydrateAuth, setCredentials, logout, updateUser } =
+  authSlice.actions;
+
 export default authSlice.reducer;

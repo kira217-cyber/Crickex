@@ -5,15 +5,17 @@ import Categories from "../../components/Categories/Categories";
 import Favourites from "../../components/Favourites/Favourites";
 import PopularGames from "../../components/PopularGames/PopularGames";
 import Footer from "../../components/Footer/Footer";
+import BalanceSection from "../../components/BalanceSection/BalanceSection";
 
 const Home = () => {
   return (
     <div>
       <Slider />
       <Notice />
+      <BalanceSection />
       <Categories />
       <Favourites />
-      <PopularGames />  
+      <PopularGames />
       <Footer />
     </div>
   );

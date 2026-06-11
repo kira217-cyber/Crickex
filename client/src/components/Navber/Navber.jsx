@@ -1,8 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import { Menu, X, Check } from "lucide-react";
+import {
+  Menu,
+  X,
+  Check,
+  WalletCards,
+  RefreshCw,
+  UserCircle,
+  CircleDollarSign,
+  Gift,
+  Trophy,
+  LogOut,
+  Landmark,
+  BadgeDollarSign,
+  Clock,
+  History,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
+import { logout } from "../../features/auth/authSlice";
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
 
@@ -12,23 +30,111 @@ const flagUrl = {
 };
 
 const Navber = ({ setOpen }) => {
+  const dispatch = useDispatch();
   const { language, changeLanguage, isBangla } = useLanguage();
+
+  const isAuth = useSelector(selectIsAuth);
+  const user = useSelector(selectUser);
+
   const [openRegister, setOpenRegister] = useState(false);
   const [openLangModal, setOpenLangModal] = useState(false);
   const [openLogin, setOpenLogin] = useState(false);
+  const [openProfileMenu, setOpenProfileMenu] = useState(false);
+
+  const profileRef = useRef(null);
 
   const texts = {
     signup: isBangla ? "সাইন আপ" : "Sign Up",
     login: isBangla ? "লগইন" : "Login",
+    deposit: isBangla ? "ডিপোজিট" : "Deposit",
+    mainWallet: isBangla ? "মেইন ওয়ালেট" : "Main Wallet",
     language: isBangla ? "ভাষা নির্বাচন করুন" : "Choose Language",
     subtitle: isBangla
       ? "আপনার পছন্দের ভাষা বেছে নিন"
       : "Select your preferred language",
+    vipPoints: isBangla ? "ভিআইপি পয়েন্ট" : "VIP Points",
+    bonusWallet: isBangla ? "বোনাস ওয়ালেট" : "Bonus Wallet",
+    withdrawal: isBangla ? "উইথড্রয়াল" : "Withdrawal",
+    freeSpin: isBangla ? "ফ্রি স্পিন" : "Free Spin",
+    realTimeBonus: isBangla ? "রিয়েল-টাইম বোনাস" : "Real-Time Bonus",
+    referBonus: isBangla ? "রেফার বোনাস" : "Refer Bonus",
+    winnerBoard: isBangla ? "উইনার বোর্ড" : "Winner Board",
+    dailyStreak: isBangla
+      ? "ডেইলি স্ট্রিক চ্যালেঞ্জ"
+      : "Daily Streak Challenge",
+    bettingRecords: isBangla ? "বেটিং রেকর্ডস" : "Betting Records",
+    logout: isBangla ? "লগআউট" : "Logout",
   };
 
   const languages = [
     { key: "Bangla", label: "বাংলা", flag: flagUrl.Bangla },
     { key: "English", label: "English", flag: flagUrl.English },
+  ];
+
+  const balance = Number(user?.balance || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setOpenProfileMenu(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setOpenProfileMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const menuItems = [
+    {
+      label: texts.deposit,
+      path: "/deposit",
+      icon: Landmark,
+    },
+    {
+      label: texts.withdrawal,
+      path: "/withdrawal",
+      icon: BadgeDollarSign,
+    },
+    {
+      label: texts.bonusWallet,
+      path: "/bonus-wallet",
+      icon: Gift,
+      badge: "0",
+    },
+    {
+      label: texts.freeSpin,
+      path: "/free-spin",
+      icon: CircleDollarSign,
+    },
+    {
+      label: `${texts.realTimeBonus}\n${texts.referBonus}`,
+      path: "/refer-bonus",
+      icon: Gift,
+    },
+    {
+      label: texts.winnerBoard,
+      path: "/winner-board",
+      icon: Trophy,
+    },
+    {
+      label: texts.dailyStreak,
+      path: "/daily-streak",
+      icon: Trophy,
+      alert: true,
+    },
+    {
+      label: texts.bettingRecords,
+      path: "/betting-records",
+      icon: History,
+    },
   ];
 
   return (
@@ -52,21 +158,130 @@ const Navber = ({ setOpen }) => {
           </Link>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <button
-              type="button"
-              onClick={() => setOpenRegister(true)}
-              className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
-            >
-              {texts.signup}
-            </button>
+            {!isAuth ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setOpenRegister(true)}
+                  className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
+                >
+                  {texts.signup}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setOpenLogin(true)}
-              className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
-            >
-              {texts.login}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenLogin(true)}
+                  className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
+                >
+                  {texts.login}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/deposit"
+                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] bg-[#247ccf] px-3 text-[13px] font-medium text-white transition hover:bg-[#1f72c0]"
+                >
+                  <WalletCards size={18} className="fill-white/20" />
+                  <span>{texts.deposit}</span>
+                </Link>
+
+                <Link
+                  to="/wallet"
+                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[5px] bg-[#5ed51d] px-3 text-[13px] font-bold text-white transition hover:bg-[#52c719]"
+                >
+                  <RefreshCw size={16} />
+                  <span>{texts.mainWallet}</span>
+                  <span>৳{balance}</span>
+                </Link>
+
+                <div ref={profileRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenProfileMenu((prev) => !prev)}
+                    className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-full bg-white text-[#0b66a8] transition hover:scale-105"
+                  >
+                    <UserCircle size={25} />
+                  </button>
+
+                  <AnimatePresence>
+                    {openProfileMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.16 }}
+                        className="absolute right-0 top-[43px] w-[215px] overflow-hidden rounded-[2px] bg-white text-[#333] shadow-xl"
+                      >
+                        <div className="border-b border-[#f0f0f0] px-4 py-3">
+                          <div className="text-[14px] text-[#333]">
+                            {texts.vipPoints}
+                          </div>
+                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold text-[#005eb8]">
+                            <span>0</span>
+                            <RefreshCw size={13} />
+                          </div>
+
+                          <div className="mt-3 text-[14px] text-[#333]">
+                            {texts.bonusWallet}
+                          </div>
+                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold text-[#005eb8]">
+                            <span>৳ 0</span>
+                            <RefreshCw size={13} />
+                          </div>
+                        </div>
+
+                        <div className="py-2">
+                          {menuItems.map((item) => {
+                            const Icon = item.icon;
+
+                            return (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                onClick={() => setOpenProfileMenu(false)}
+                                className="flex min-h-[47px] items-center gap-3 px-4 text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                              >
+                                <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                  <Icon size={13} />
+                                </span>
+
+                                <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                  {item.label}
+                                </span>
+
+                                {item.badge && (
+                                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#cc4c5b] px-1 text-[12px] font-bold text-white">
+                                    {item.badge}
+                                  </span>
+                                )}
+
+                                {item.alert && (
+                                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#cc4c5b] px-1 text-[12px] font-bold text-white">
+                                    !
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#d93636] transition hover:bg-[#fff3f3]"
+                          >
+                            <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[#d93636] text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                              <LogOut size={13} />
+                            </span>
+                            <span>{texts.logout}</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            )}
 
             <button
               type="button"
@@ -172,6 +387,7 @@ const Navber = ({ setOpen }) => {
             </motion.div>
           </div>
         )}
+
         <RegisterModal
           open={openRegister}
           onClose={() => setOpenRegister(false)}
@@ -180,6 +396,7 @@ const Navber = ({ setOpen }) => {
             setOpenLogin(true);
           }}
         />
+
         <LoginModal
           open={openLogin}
           onClose={() => setOpenLogin(false)}
