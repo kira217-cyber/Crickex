@@ -3,6 +3,8 @@ import { Link } from "react-router";
 import { Menu, X, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "../../Context/LanguageProvider";
+import RegisterModal from "../RegisterModal/RegisterModal";
+import LoginModal from "../LoginModal/LoginModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -11,7 +13,9 @@ const flagUrl = {
 
 const Navber = ({ setOpen }) => {
   const { language, changeLanguage, isBangla } = useLanguage();
+  const [openRegister, setOpenRegister] = useState(false);
   const [openLangModal, setOpenLangModal] = useState(false);
+  const [openLogin, setOpenLogin] = useState(false);
 
   const texts = {
     signup: isBangla ? "সাইন আপ" : "Sign Up",
@@ -48,19 +52,21 @@ const Navber = ({ setOpen }) => {
           </Link>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <Link
-              to="/register"
+            <button
+              type="button"
+              onClick={() => setOpenRegister(true)}
               className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
             >
               {texts.signup}
-            </Link>
+            </button>
 
-            <Link
-              to="/login"
+            <button
+              type="button"
+              onClick={() => setOpenLogin(true)}
               className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
             >
               {texts.login}
-            </Link>
+            </button>
 
             <button
               type="button"
@@ -166,6 +172,22 @@ const Navber = ({ setOpen }) => {
             </motion.div>
           </div>
         )}
+        <RegisterModal
+          open={openRegister}
+          onClose={() => setOpenRegister(false)}
+          onLoginClick={() => {
+            setOpenRegister(false);
+            setOpenLogin(true);
+          }}
+        />
+        <LoginModal
+          open={openLogin}
+          onClose={() => setOpenLogin(false)}
+          onRegisterClick={() => {
+            setOpenLogin(false);
+            setOpenRegister(true);
+          }}
+        />
       </AnimatePresence>
     </>
   );
