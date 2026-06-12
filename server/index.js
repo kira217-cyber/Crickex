@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-
+import affiliateRoutes from "./routes/affiliateRoutes.js";
+import affiliateProfileRoutes from "./routes/affiliateProfileRoutes.js";
 
 dotenv.config();
 
@@ -24,13 +25,10 @@ app.get("/", (req, res) => {
   });
 });
 
-
-
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
-
-
-
+app.use("/api/affiliate", affiliateRoutes);
+app.use("/api/profile", affiliateProfileRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

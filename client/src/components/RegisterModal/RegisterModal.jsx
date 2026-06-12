@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Eye, EyeOff, Search, X, CheckCircle } from "lucide-react";
+import { useLocation } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
 
 import { useDispatch } from "react-redux";
@@ -20,9 +21,21 @@ const logoUrl =
 
 const slides = [slide1, slide2, slide3, slide4];
 
+const getRefFromSearch = (search = "") => {
+  const params = new URLSearchParams(search);
+  const ref = params.get("ref") || params.get("referCode") || "";
+
+  return String(ref)
+    .toUpperCase()
+    .replace(/\s/g, "")
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+};
+
 const RegisterModal = ({ open, onClose, onLoginClick }) => {
   const { isBangla } = useLanguage();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const [showPassword, setShowPassword] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
@@ -97,12 +110,27 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     success: isBangla ? "রেজিস্ট্রেশন সফল হয়েছে" : "Registration successful",
   };
 
+  useEffect(() => {
+    const queryRef = getRefFromSearch(location.search);
+
+    if (queryRef) {
+      setRefCode(queryRef);
+    }
+  }, [location.search]);
+
   const resetForm = () => {
     setUsername("");
     setPassword("");
     setPhone("");
-    setRefCode("");
+    setRefCode(getRefFromSearch(location.search));
     setShowPassword(false);
+    setCurrencyOpen(false);
+    setCountryOpen(false);
+    setSearch("");
+  };
+
+  const handleClose = () => {
+    onClose?.();
     setCurrencyOpen(false);
     setCountryOpen(false);
     setSearch("");
@@ -212,8 +240,11 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
       }
 
       toast.success(res?.message || text.success);
-      resetForm();
-      onClose?.();
+      handleClose();
+
+      setTimeout(() => {
+        resetForm();
+      }, 250);
     },
 
     onError: (error) => {
@@ -304,7 +335,7 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={registerMutation.isPending}
                 className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white disabled:cursor-not-allowed disabled:opacity-60"
               >

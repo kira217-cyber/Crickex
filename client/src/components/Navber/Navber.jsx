@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import {
   Menu,
   X,
@@ -13,7 +13,6 @@ import {
   LogOut,
   Landmark,
   BadgeDollarSign,
-  Clock,
   History,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -31,6 +30,7 @@ const flagUrl = {
 
 const Navber = ({ setOpen }) => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { language, changeLanguage, isBangla } = useLanguage();
 
   const isAuth = useSelector(selectIsAuth);
@@ -42,6 +42,16 @@ const Navber = ({ setOpen }) => {
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
 
   const profileRef = useRef(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get("ref") || params.get("referCode");
+
+    if (ref && !isAuth) {
+      setOpenLogin(false);
+      setOpenRegister(true);
+    }
+  }, [location.search, isAuth]);
 
   const texts = {
     signup: isBangla ? "সাইন আপ" : "Sign Up",
@@ -93,48 +103,23 @@ const Navber = ({ setOpen }) => {
   }, []);
 
   const menuItems = [
-    {
-      label: texts.deposit,
-      path: "/deposit",
-      icon: Landmark,
-    },
-    {
-      label: texts.withdrawal,
-      path: "/withdrawal",
-      icon: BadgeDollarSign,
-    },
-    {
-      label: texts.bonusWallet,
-      path: "/bonus-wallet",
-      icon: Gift,
-      badge: "0",
-    },
-    {
-      label: texts.freeSpin,
-      path: "/free-spin",
-      icon: CircleDollarSign,
-    },
+    { label: texts.deposit, path: "/deposit", icon: Landmark },
+    { label: texts.withdrawal, path: "/withdrawal", icon: BadgeDollarSign },
+    { label: texts.bonusWallet, path: "/bonus-wallet", icon: Gift, badge: "0" },
+    { label: texts.freeSpin, path: "/free-spin", icon: CircleDollarSign },
     {
       label: `${texts.realTimeBonus}\n${texts.referBonus}`,
       path: "/refer-bonus",
       icon: Gift,
     },
-    {
-      label: texts.winnerBoard,
-      path: "/winner-board",
-      icon: Trophy,
-    },
+    { label: texts.winnerBoard, path: "/winner-board", icon: Trophy },
     {
       label: texts.dailyStreak,
       path: "/daily-streak",
       icon: Trophy,
       alert: true,
     },
-    {
-      label: texts.bettingRecords,
-      path: "/betting-records",
-      icon: History,
-    },
+    { label: texts.bettingRecords, path: "/betting-records", icon: History },
   ];
 
   return (
@@ -162,7 +147,10 @@ const Navber = ({ setOpen }) => {
               <>
                 <button
                   type="button"
-                  onClick={() => setOpenRegister(true)}
+                  onClick={() => {
+                    setOpenLogin(false);
+                    setOpenRegister(true);
+                  }}
                   className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
                 >
                   {texts.signup}
@@ -170,7 +158,10 @@ const Navber = ({ setOpen }) => {
 
                 <button
                   type="button"
-                  onClick={() => setOpenLogin(true)}
+                  onClick={() => {
+                    setOpenRegister(false);
+                    setOpenLogin(true);
+                  }}
                   className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
                 >
                   {texts.login}
@@ -387,25 +378,25 @@ const Navber = ({ setOpen }) => {
             </motion.div>
           </div>
         )}
-
-        <RegisterModal
-          open={openRegister}
-          onClose={() => setOpenRegister(false)}
-          onLoginClick={() => {
-            setOpenRegister(false);
-            setOpenLogin(true);
-          }}
-        />
-
-        <LoginModal
-          open={openLogin}
-          onClose={() => setOpenLogin(false)}
-          onRegisterClick={() => {
-            setOpenLogin(false);
-            setOpenRegister(true);
-          }}
-        />
       </AnimatePresence>
+
+      <RegisterModal
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+        onLoginClick={() => {
+          setOpenRegister(false);
+          setOpenLogin(true);
+        }}
+      />
+
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+        onRegisterClick={() => {
+          setOpenLogin(false);
+          setOpenRegister(true);
+        }}
+      />
     </>
   );
 };

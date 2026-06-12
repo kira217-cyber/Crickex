@@ -1,69 +1,80 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-/**
- * 👇 Demo user (same as Context)
- */
-const DEMO_USER = {
-  name: "Demo User",
-  email: "demo@example.com",
-  password: "demo123",
-  phone: "01700000000",
+const getSavedUser = () => {
+  try {
+    const user = localStorage.getItem("affiliate_user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
 };
 
+const getSavedToken = () => localStorage.getItem("affiliate_token") || null;
+
 const initialState = {
-  user: null,
-  token: "demo-token",
-  loading: true,
+  user: getSavedUser(),
+  token: getSavedToken(),
+  loading: false,
+  isAuthenticated: Boolean(getSavedUser() && getSavedToken()),
 };
 
 const authSlice = createSlice({
-  name: "auth",
+  name: "affiliateAuth",
   initialState,
   reducers: {
-    /**
-     * 🔁 Context useEffect equivalent
-     */
     rehydrateAuth: (state) => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        const storedToken = localStorage.getItem("token");
+      const user = getSavedUser();
+      const token = getSavedToken();
 
-        if (storedUser && storedToken) {
-          state.user = JSON.parse(storedUser);
-          state.token = storedToken;
-        }
-      } catch (err) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-      } finally {
-        state.loading = false;
+      state.user = user;
+      state.token = token;
+      state.isAuthenticated = Boolean(user && token);
+    },
+
+    setCredentials: (state, action) => {
+      const { user, token } = action.payload || {};
+
+      state.user = user || null;
+      state.token = token || null;
+      state.isAuthenticated = Boolean(user && token);
+
+      if (user && token) {
+        localStorage.setItem("affiliate_user", JSON.stringify(user));
+        localStorage.setItem("affiliate_token", token);
       }
     },
 
-    /**
-     * ✅ Demo Login
-     */
-    demoLogin: (state) => {
-      state.user = DEMO_USER;
-      state.token = "demo-token";
+    updateAffiliateUser: (state, action) => {
+      state.user = {
+        ...(state.user || {}),
+        ...(action.payload || {}),
+      };
 
-      localStorage.setItem("user", JSON.stringify(DEMO_USER));
-      localStorage.setItem("token", "demo-token");
+      localStorage.setItem("affiliate_user", JSON.stringify(state.user));
     },
 
-    /**
-     * ❌ Logout
-     */
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.loading = false;
+      state.isAuthenticated = false;
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+      localStorage.removeItem("affiliate_user");
+      localStorage.removeItem("affiliate_token");
+    },
+
+    setAuthLoading: (state, action) => {
+      state.loading = Boolean(action.payload);
     },
   },
 });
 
-export const { rehydrateAuth, demoLogin, logout } = authSlice.actions;
+export const {
+  rehydrateAuth,
+  setCredentials,
+  updateAffiliateUser,
+  logout,
+  setAuthLoading,
+} = authSlice.actions;
+
 export default authSlice.reducer;

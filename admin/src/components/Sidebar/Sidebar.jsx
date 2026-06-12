@@ -13,14 +13,29 @@ import {
   FaGamepad,
   FaWallet,
   FaMoneyBillWave,
+  FaPlusCircle,
+  FaClipboardList,
+  FaHistory,
+  FaLayerGroup,
+  FaServer,
+  FaPalette,
+  FaSlidersH,
+  FaGlobe,
+  FaHandshake,
+  FaUserFriends,
+  FaUserShield,
 } from "react-icons/fa";
+import {
+  MdCategory,
+  MdGames,
+  MdOutlineAccountBalanceWallet,
+} from "react-icons/md";
 import { GrUserAdmin } from "react-icons/gr";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
 import { selectAdmin } from "../../features/auth/authSelectors";
-
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -29,7 +44,12 @@ const Sidebar = () => {
   const admin = useSelector(selectAdmin);
 
   const [open, setOpen] = useState(false);
-  const [walletOpen, setWalletOpen] = useState(false);
+  const [usersOpen, setUsersOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [gameOpen, setGameOpen] = useState(false);
+  const [clientOpen, setClientOpen] = useState(false);
+  const [affiliateOpen, setAffiliateOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   const adminRole = admin?.role === "mother" ? "mother" : "sub";
@@ -75,19 +95,145 @@ const Sidebar = () => {
     [],
   );
 
-  const walletItems = useMemo(
+  const userItems = useMemo(
     () => [
       {
-        key: "deposit",
-        to: "/deposit",
-        icon: <FaWallet />,
-        text: "Deposit",
+        key: "all-users",
+        to: "/all-users",
+        icon: <FaUsers />,
+        text: "Users",
       },
       {
-        key: "withdraw",
-        to: "/withdraw",
-        icon: <FaMoneyBillWave />,
-        text: "Withdraw",
+        key: "affiliates",
+        to: "/all-affiliate-users",
+        icon: <FaUserFriends />,
+        text: "Affiliates",
+      },
+    ],
+    [],
+  );
+
+  const depositItems = useMemo(
+    () => [
+      {
+        key: "add-deposit",
+        to: "/add-deposit",
+        icon: <FaPlusCircle />,
+        text: "Add Deposit",
+      },
+      {
+        key: "deposit-request",
+        to: "/deposit-request",
+        icon: <FaClipboardList />,
+        text: "Deposit Request",
+      },
+      {
+        key: "deposit-history",
+        to: "/deposit-history",
+        icon: <FaHistory />,
+        text: "Deposit History",
+      },
+    ],
+    [],
+  );
+
+  const withdrawItems = useMemo(
+    () => [
+      {
+        key: "add-withdraw",
+        to: "/add-withdraw",
+        icon: <MdOutlineAccountBalanceWallet />,
+        text: "Add Withdraw",
+      },
+      {
+        key: "withdraw-request",
+        to: "/withdraw-request",
+        icon: <FaClipboardList />,
+        text: "Withdraw Request",
+      },
+      {
+        key: "withdraw-history",
+        to: "/withdraw-history",
+        icon: <FaHistory />,
+        text: "Withdraw History",
+      },
+    ],
+    [],
+  );
+
+  const gameItems = useMemo(
+    () => [
+      {
+        key: "add-category",
+        to: "/add-category",
+        icon: <MdCategory />,
+        text: "Add Category",
+      },
+      {
+        key: "add-provider",
+        to: "/add-provider",
+        icon: <FaServer />,
+        text: "Add Provider",
+      },
+      {
+        key: "add-game",
+        to: "/add-game",
+        icon: <MdGames />,
+        text: "Add Game",
+      },
+      {
+        key: "all-game-history",
+        to: "/all-game-history",
+        icon: <FaHistory />,
+        text: "All Game History",
+      },
+    ],
+    [],
+  );
+
+  const clientSiteItems = useMemo(
+    () => [
+      {
+        key: "client-site-identify",
+        to: "/client-site-identify",
+        icon: <FaGlobe />,
+        text: "Site Identify",
+      },
+      {
+        key: "client-color-control",
+        to: "/client-color-control",
+        icon: <FaPalette />,
+        text: "Color Control",
+      },
+      {
+        key: "client-slider-control",
+        to: "/client-slider-control",
+        icon: <FaSlidersH />,
+        text: "Slider Control",
+      },
+    ],
+    [],
+  );
+
+  const affiliateSiteItems = useMemo(
+    () => [
+      {
+        key: "affiliate-site-identify",
+        to: "/affiliate-site-identify",
+        icon: <FaHandshake />,
+        text: "Site Identify",
+      },
+      {
+        key: "affiliate-color-control",
+        to: "/affiliate-color-control",
+        icon: <FaPalette />,
+        text: "Color Control",
+      },
+      {
+        key: "affiliate-slider-control",
+        to: "/affiliate-slider-control",
+        icon: <FaSlidersH />,
+        text: "Slider Control",
       },
     ],
     [],
@@ -100,16 +246,51 @@ const Sidebar = () => {
     });
   }, [menuItems, isMother, permissions]);
 
-  const visibleWalletItems = useMemo(
-    () => walletItems.filter((item) => canAccess(item.key)),
-    [walletItems, permissions, isMother],
+  const visibleUserItems = useMemo(
+    () => userItems.filter((item) => canAccess(item.key)),
+    [userItems, permissions, isMother],
   );
 
-  const showWallet = visibleWalletItems.length > 0;
+  const visibleDepositItems = useMemo(
+    () => depositItems.filter((item) => canAccess(item.key)),
+    [depositItems, permissions, isMother],
+  );
+
+  const visibleWithdrawItems = useMemo(
+    () => withdrawItems.filter((item) => canAccess(item.key)),
+    [withdrawItems, permissions, isMother],
+  );
+
+  const visibleGameItems = useMemo(
+    () => gameItems.filter((item) => canAccess(item.key)),
+    [gameItems, permissions, isMother],
+  );
+
+  const visibleClientSiteItems = useMemo(
+    () => clientSiteItems.filter((item) => canAccess(item.key)),
+    [clientSiteItems, permissions, isMother],
+  );
+
+  const visibleAffiliateSiteItems = useMemo(
+    () => affiliateSiteItems.filter((item) => canAccess(item.key)),
+    [affiliateSiteItems, permissions, isMother],
+  );
 
   useEffect(() => {
-    if (!showWallet) setWalletOpen(false);
-  }, [showWallet]);
+    if (!visibleUserItems.length) setUsersOpen(false);
+    if (!visibleDepositItems.length) setDepositOpen(false);
+    if (!visibleWithdrawItems.length) setWithdrawOpen(false);
+    if (!visibleGameItems.length) setGameOpen(false);
+    if (!visibleClientSiteItems.length) setClientOpen(false);
+    if (!visibleAffiliateSiteItems.length) setAffiliateOpen(false);
+  }, [
+    visibleUserItems.length,
+    visibleDepositItems.length,
+    visibleWithdrawItems.length,
+    visibleGameItems.length,
+    visibleClientSiteItems.length,
+    visibleAffiliateSiteItems.length,
+  ]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -135,7 +316,7 @@ const Sidebar = () => {
 
       {open && !isDesktop && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden cursor-pointer"
           onClick={() => setOpen(false)}
         />
       )}
@@ -182,7 +363,7 @@ const Sidebar = () => {
                   end={item.end}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-4 px-5 py-3.5 rounded-xl mb-1.5 text-base font-semibold transition-all duration-200 group ${
+                    `flex items-center gap-4 px-5 py-3.5 rounded-xl mb-1.5 text-base font-semibold transition-all duration-200 group cursor-pointer ${
                       isActive
                         ? "bg-gradient-to-r from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] text-white shadow-lg shadow-[#1A79D3]/30"
                         : "text-slate-200 hover:bg-[#1A79D3]/15 hover:text-white"
@@ -196,13 +377,68 @@ const Sidebar = () => {
                 </NavLink>
               ))}
 
-              {showWallet && (
+              {visibleUserItems.length > 0 && (
                 <DropdownSection
-                  title="Wallet"
+                  title="Users"
+                  icon={<FaUserShield />}
+                  open={usersOpen}
+                  setOpen={setUsersOpen}
+                  items={visibleUserItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleDepositItems.length > 0 && (
+                <DropdownSection
+                  title="Deposit"
                   icon={<FaWallet />}
-                  open={walletOpen}
-                  setOpen={setWalletOpen}
-                  items={visibleWalletItems}
+                  open={depositOpen}
+                  setOpen={setDepositOpen}
+                  items={visibleDepositItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleWithdrawItems.length > 0 && (
+                <DropdownSection
+                  title="Withdraw"
+                  icon={<FaMoneyBillWave />}
+                  open={withdrawOpen}
+                  setOpen={setWithdrawOpen}
+                  items={visibleWithdrawItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleGameItems.length > 0 && (
+                <DropdownSection
+                  title="Game"
+                  icon={<FaGamepad />}
+                  open={gameOpen}
+                  setOpen={setGameOpen}
+                  items={visibleGameItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleClientSiteItems.length > 0 && (
+                <DropdownSection
+                  title="Client Site Controller"
+                  icon={<FaLayerGroup />}
+                  open={clientOpen}
+                  setOpen={setClientOpen}
+                  items={visibleClientSiteItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleAffiliateSiteItems.length > 0 && (
+                <DropdownSection
+                  title="Affiliate Controller"
+                  icon={<FaHandshake />}
+                  open={affiliateOpen}
+                  setOpen={setAffiliateOpen}
+                  items={visibleAffiliateSiteItems}
                   onClose={() => setOpen(false)}
                 />
               )}
@@ -241,7 +477,7 @@ const Sidebar = () => {
 
               <NavLink
                 to="/profile"
-                className="p-1 hover:bg-[#1A79D3]/15 rounded-full transition-colors"
+                className="p-1 hover:bg-[#1A79D3]/15 rounded-full transition-colors cursor-pointer"
               >
                 <FaUserCircle className="text-3xl text-[#3ea0ff]" />
               </NavLink>
@@ -282,7 +518,7 @@ const DropdownSection = ({ title, icon, open, setOpen, items, onClose }) => {
               to={sub.to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-5 py-3 rounded-lg text-sm transition-all duration-200 ${
+                `flex items-center gap-3 px-5 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-gradient-to-r from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] text-white font-bold shadow-md shadow-[#1A79D3]/30"
                     : "text-slate-300 hover:text-white hover:bg-[#1A79D3]/15"

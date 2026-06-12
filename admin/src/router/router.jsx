@@ -8,6 +8,10 @@ import Login from "../pages/Login/Login";
 import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
 import Profile from "../pages/Profile/Profile";
 import CreateAdmin from "../pages/CreateAdmin/CreateAdmin";
+import AllAffiliateUser from "../pages/AllAffiliateUser/AllAffiliateUser";
+import SingleAffiliateDetails from "../pages/SingleAffiliateDetails/SingleAffiliateDetails";
+import AllUser from "../pages/AllUser/AllUser";
+import SingleUserDetails from "../pages/SingleUserDetails/SingleUserDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -40,6 +44,38 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="create-admin">
             <CreateAdmin />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "all-affiliate-users",
+        element: (
+          <PrivateRoute permKey="all-affiliate-users">
+            <AllAffiliateUser />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "single-affiliate-details/:id",
+        element: (
+          <PrivateRoute permKey="single-affiliate-details">
+            <SingleAffiliateDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "all-users",
+        element: (
+          <PrivateRoute permKey="all-users">
+            <AllUser />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "single-user-details/:id",
+        element: (
+          <PrivateRoute permKey="single-user-details">
+            <SingleUserDetails />
           </PrivateRoute>
         ),
       },

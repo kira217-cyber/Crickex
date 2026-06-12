@@ -7,6 +7,13 @@ import Register from "../pages/Register/Register";
 import Withdraw from "../pages/Withdraw/Withdraw";
 import Deposit from "../pages/Deposit/Deposit";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
+import AffiliateLayout from "../AffiliateLayout/AffiliateLayout";
+import Dashboard from "../components/Dashboard/Dashboard";
+import MyUsers from "../pages/MyUsers/MyUsers";
+import Profile from "../pages/Profile/Profile";
+import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
+import WithdrawHistoryDetails from "../pages/WithdrawHistoryDetails/WithdrawHistoryDetails";
+import CommissionStatus from "../pages/CommissionStatus/CommissionStatus";
 
 export const routes = createBrowserRouter([
   {
@@ -19,29 +26,55 @@ export const routes = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "withdraw",
-        element: (
-          <PrivateRoute>
-            {" "}
-            <Withdraw />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "deposit",
-        element: (
-          <PrivateRoute>
-            <Deposit />
-          </PrivateRoute>
-        ),
-      },
-      {
         path: "login",
         element: <Login />,
       },
       {
         path: "register",
         element: <Register />,
+      },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <PrivateRoute allowedRoles={["aff-user"]}>
+        <AffiliateLayout />
+      </PrivateRoute>
+    ),
+    errorElement: <NotFoundPage />,
+    children: [
+      {
+        index: true,
+        element: <Dashboard />,
+      },
+      {
+        path: "deposit",
+        element: <Deposit />,
+      },
+      {
+        path: "withdraw",
+        element: <Withdraw />,
+      },
+      {
+        path: "withdraw-history",
+        element: <WithdrawHistory />,
+      },
+      {
+        path: "withdraw-history/:id",
+        element: <WithdrawHistoryDetails />,
+      },
+       {
+        path: "commission-status",
+        element: <CommissionStatus />,
+      },
+      {
+        path: "my-users",
+        element: <MyUsers />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },
