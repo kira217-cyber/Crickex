@@ -12,6 +12,10 @@ import AllAffiliateUser from "../pages/AllAffiliateUser/AllAffiliateUser";
 import SingleAffiliateDetails from "../pages/SingleAffiliateDetails/SingleAffiliateDetails";
 import AllUser from "../pages/AllUser/AllUser";
 import SingleUserDetails from "../pages/SingleUserDetails/SingleUserDetails";
+import AddAffWithdrawMethod from "../pages/AddAffWithdrawMethod/AddAffWithdrawMethod";
+import BulkAdjustment from "../pages/BulkAdjustment/BulkAdjustment";
+import AffWithdrawRequests from "../pages/AffWithdrawRequests/AffWithdrawRequests";
+import AffWithdrawRequestDetails from "../pages/AffWithdrawRequestDetails/AffWithdrawRequestDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -55,7 +59,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "single-affiliate-details/:id",
         element: (
           <PrivateRoute permKey="single-affiliate-details">
@@ -76,6 +80,38 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="single-user-details">
             <SingleUserDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-aff-withdraw-method",
+        element: (
+          <PrivateRoute permKey="add-aff-withdraw-method">
+            <AddAffWithdrawMethod />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "bulk-adjustment",
+        element: (
+          <PrivateRoute permKey="bulk-adjustment">
+            <BulkAdjustment />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "aff-withdraw-requests",
+        element: (
+          <PrivateRoute permKey="aff-withdraw-requests">
+            <AffWithdrawRequests />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "aff-withdraw-requests-details/:id",
+        element: (
+          <PrivateRoute permKey="aff-withdraw-requests-details">
+            <AffWithdrawRequestDetails />
           </PrivateRoute>
         ),
       },

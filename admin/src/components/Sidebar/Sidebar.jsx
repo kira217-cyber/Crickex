@@ -109,6 +109,12 @@ const Sidebar = () => {
         icon: <FaUserFriends />,
         text: "Affiliates",
       },
+      {
+        key: "bulk-adjustment",
+        to: "/bulk-adjustment",
+        icon: <FaUserFriends />,
+        text: "Bulk Adjustment",
+      },
     ],
     [],
   );
@@ -140,16 +146,16 @@ const Sidebar = () => {
   const withdrawItems = useMemo(
     () => [
       {
-        key: "add-withdraw",
-        to: "/add-withdraw",
+        key: "add-aff-withdraw-method",
+        to: "/add-aff-withdraw-method",
         icon: <MdOutlineAccountBalanceWallet />,
-        text: "Add Withdraw",
+        text: "Add Aff Withdraw",
       },
       {
-        key: "withdraw-request",
-        to: "/withdraw-request",
+        key: "aff-withdraw-requests",
+        to: "/aff-withdraw-requests",
         icon: <FaClipboardList />,
-        text: "Withdraw Request",
+        text: "Aff Withdraw Request",
       },
       {
         key: "withdraw-history",

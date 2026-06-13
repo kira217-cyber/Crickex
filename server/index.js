@@ -6,6 +6,9 @@ import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import affiliateRoutes from "./routes/affiliateRoutes.js";
 import affiliateProfileRoutes from "./routes/affiliateProfileRoutes.js";
+import affWithdrawRoutes from "./routes/affWithdrawRoutes.js";
+import bulkAdjustmentRoutes from "./routes/bulkAdjustmentRoutes.js";
+import affWithdrawRequestRoutes from "./routes/affWithdrawRequestRoutes.js";
 
 dotenv.config();
 
@@ -29,6 +32,9 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/affiliate", affiliateRoutes);
 app.use("/api/profile", affiliateProfileRoutes);
+app.use("/api", affWithdrawRoutes);
+app.use("/api", bulkAdjustmentRoutes);
+app.use("/api", affWithdrawRequestRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
