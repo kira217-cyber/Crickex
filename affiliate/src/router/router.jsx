@@ -61,7 +61,7 @@ export const routes = createBrowserRouter([
         element: <WithdrawHistory />,
       },
       {
-        path: "withdraw-history/:id",
+        path: "withdraw-history-details/:id",
         element: <WithdrawHistoryDetails />,
       },
        {

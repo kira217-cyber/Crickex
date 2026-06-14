@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import {
   Check,
   X,
@@ -7,7 +7,7 @@ import {
   Gift,
   Landmark,
   UserCircle,
-  CircleDollarSign,
+  Sparkles,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSelector } from "react-redux";
@@ -16,6 +16,10 @@ import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth } from "../../features/auth/authSelectors";
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
+import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
+import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
+import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
+import PromotionModal from "../PromotionModal/PromotionModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -23,6 +27,7 @@ const flagUrl = {
 };
 
 const BottomNavbar = () => {
+  const location = useLocation();
   const { language, changeLanguage, isBangla } = useLanguage();
   const isAuth = useSelector(selectIsAuth);
 
@@ -30,37 +35,71 @@ const BottomNavbar = () => {
   const [openRegister, setOpenRegister] = useState(false);
   const [openLogin, setOpenLogin] = useState(false);
 
+  const [openPromotion, setOpenPromotion] = useState(false);
+  const [openDepositFunds, setOpenDepositFunds] = useState(false);
+  const [openDepositConfirm, setOpenDepositConfirm] = useState(false);
+  const [openDepositHistory, setOpenDepositHistory] = useState(false);
+  const [depositData, setDepositData] = useState(null);
+
   const languages = [
     { key: "Bangla", label: "বাংলা", flag: flagUrl.Bangla },
     { key: "English", label: "English", flag: flagUrl.English },
   ];
+
+  const closeDepositFlow = () => {
+    setOpenDepositFunds(false);
+    setOpenDepositConfirm(false);
+    setOpenDepositHistory(false);
+  };
 
   const authMenus = [
     {
       label: isBangla ? "হোম" : "Home",
       path: "/",
       icon: Home,
-      badge: "",
+      type: "link",
     },
     {
       label: isBangla ? "প্রোমোশন" : "Promotions",
-      path: "/promotions",
+      path: "__promotion_modal__",
       icon: Gift,
+      type: "button",
       badge: "0",
     },
     {
       label: isBangla ? "ডিপোজিট" : "Deposit",
-      path: "/deposit",
+      path: "__deposit_modal__",
       icon: Landmark,
-      badge: "",
+      type: "button",
+      highlight: true,
     },
     {
       label: isBangla ? "আমার একাউন্ট" : "My Account",
       path: "/profile",
       icon: UserCircle,
-      badge: "0",
+      type: "link",
     },
   ];
+
+  const handleMenuClick = (item) => {
+    if (item.path === "__promotion_modal__") {
+      closeDepositFlow();
+      setOpenPromotion(true);
+      return;
+    }
+
+    if (item.path === "__deposit_modal__") {
+      setOpenPromotion(false);
+      closeDepositFlow();
+      setOpenDepositFunds(true);
+    }
+  };
+
+  const isActivePath = (path) => {
+    if (!path || path.startsWith("__")) return false;
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>
@@ -102,36 +141,73 @@ const BottomNavbar = () => {
           </button>
         </div>
       ) : (
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[52px] bg-[#111111] shadow-[0_-2px_8px_rgba(0,0,0,0.22)] md:hidden">
-          {authMenus.map((item) => {
-            const Icon = item.icon;
+        <div className="fixed bottom-2 left-0 right-0 z-40 border-t border-white/10 md:hidden">
+          <div className="flex h-[58px] items-center justify-between rounded-[18px] border border-white/10 bg-white/5 px-1 backdrop-blur-md  bg-gradient-to-r from-[#051b2e] via-[#082f50] to-[#051b2e] px-2 pb-[3px] pt-[5px] shadow-[0_-8px_24px_rgba(0,0,0,0.35)]">
+            {authMenus.map((item) => {
+              const Icon = item.icon;
+              const active = isActivePath(item.path);
+              const isDeposit = item.path === "__deposit_modal__";
 
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="relative flex flex-1 flex-col items-center justify-center gap-[2px] text-white"
-              >
-                <div className="relative flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#303030]">
-                  <Icon size={17} className="text-white" />
+              const content = (
+                <>
+                  <div
+                    className={`relative flex h-[30px] w-[30px] items-center justify-center rounded-full transition  ${
+                      isDeposit
+                        ? "bg-gradient-to-br from-[#2e9bf3] to-[#0865a9] text-white shadow-lg shadow-blue-900/30"
+                        : active
+                          ? "bg-[#2e9bf3] text-white"
+                          : "bg-white/10 text-white/85"
+                    }`}
+                  >
+                    <Icon size={17} />
 
-                  {item.badge !== "" && (
-                    <span className="absolute -right-[5px] -top-[3px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-[#e0182d] px-[3px] text-[9px] font-bold text-white">
-                      {item.badge}
-                    </span>
-                  )}
+                    {/* {item.badge !== undefined && (
+                      <span className="absolute -right-[6px] -top-[4px] flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#e0182d] px-[3px] text-[9px] font-bold text-white">
+                        {item.badge}
+                      </span>
+                    )} */}
 
-                  {item.label === "Deposit" || item.label === "ডিপোজিট" ? (
-                    <span className="absolute -right-[5px] -top-[3px] h-[8px] w-[8px] rounded-full bg-[#e0182d]" />
-                  ) : null}
-                </div>
+                    {isDeposit && (
+                      <span className="absolute -right-[3px] -top-[3px] flex h-[13px] w-[13px] items-center justify-center rounded-full bg-[#5ed51d] text-white">
+                        <Sparkles size={8} />
+                      </span>
+                    )}
+                  </div>
 
-                <span className="text-[11px] font-semibold leading-none">
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+                  <span
+                    className={`mt-[3px] text-[10.5px] font-bold leading-none ${
+                      active || isDeposit ? "text-white" : "text-white/75"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </>
+              );
+
+              if (item.type === "link") {
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="relative flex h-full flex-1 cursor-pointer flex-col items-center justify-center"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => handleMenuClick(item)}
+                  className="relative flex h-full flex-1 cursor-pointer flex-col items-center justify-center"
+                >
+                  {content}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -234,6 +310,44 @@ const BottomNavbar = () => {
           }}
         />
       </AnimatePresence>
+
+      <PromotionModal
+        open={openPromotion}
+        onClose={() => setOpenPromotion(false)}
+      />
+
+      <DepositFundsModal
+        open={openDepositFunds}
+        onClose={() => setOpenDepositFunds(false)}
+        onNext={(payload) => {
+          setDepositData(payload);
+          setOpenDepositFunds(false);
+          setOpenDepositConfirm(true);
+        }}
+      />
+
+      <DepositConfirmModal
+        open={openDepositConfirm}
+        depositData={depositData}
+        onClose={() => setOpenDepositConfirm(false)}
+        onBack={() => {
+          setOpenDepositConfirm(false);
+          setOpenDepositFunds(true);
+        }}
+        onSuccess={() => {
+          setOpenDepositConfirm(false);
+          setOpenDepositHistory(true);
+        }}
+      />
+
+      <DepositHistoryModal
+        open={openDepositHistory}
+        onClose={() => setOpenDepositHistory(false)}
+        onBackToDeposit={() => {
+          setOpenDepositHistory(false);
+          setOpenDepositFunds(true);
+        }}
+      />
     </>
   );
 };

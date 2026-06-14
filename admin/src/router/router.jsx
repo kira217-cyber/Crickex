@@ -17,6 +17,18 @@ import BulkAdjustment from "../pages/BulkAdjustment/BulkAdjustment";
 import AffWithdrawRequests from "../pages/AffWithdrawRequests/AffWithdrawRequests";
 import AffWithdrawRequestDetails from "../pages/AffWithdrawRequestDetails/AffWithdrawRequestDetails";
 
+import AddDepositMethod from "../pages/AddDepositMethod/AddDepositMethod";
+import AddDepositField from "../pages/AddDepositField/AddDepositField";
+import AddDepositBonusTurnover from "../pages/AddDepositBonusTurnover/AddDepositBonusTurnover";
+import ManualDeposit from "../pages/ManualDeposit/ManualDeposit";
+import DepositRequests from "../pages/DepositRequests/DepositRequests";
+import DepositRequestDetails from "../pages/DepositRequestDetails/DepositRequestDetails";
+import AutoDepositSettings from "../pages/AutoDepositSettings/AutoDepositSettings";
+import AutoDepositHistory from "../pages/AutoDepositHistory/AutoDepositHistory";
+import AddWithdraw from "../pages/AddWithdraw/AddWithdraw";
+import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
+import WithdrawRequestDetails from "../pages/WithdrawRequestDetails/WithdrawRequestDetails";
+
 export const routes = createBrowserRouter([
   {
     path: "/",
@@ -116,19 +128,90 @@ export const routes = createBrowserRouter([
         ),
       },
       {
-        path: "deposit",
+        path: "add-deposit-method",
         element: (
-          <PrivateRoute permKey="deposit">
-            <Deposit />
+          <PrivateRoute permKey="add-deposit-method">
+            <AddDepositMethod />
           </PrivateRoute>
         ),
       },
-
       {
-        path: "withdraw",
+        path: "add-deposit-field",
         element: (
-          <PrivateRoute permKey="withdraw">
-            <Withdraw />
+          <PrivateRoute permKey="add-deposit-field">
+            <AddDepositField />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-deposit-bonus-turnover",
+        element: (
+          <PrivateRoute permKey="add-deposit-bonus-turnover">
+            <AddDepositBonusTurnover />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "manual-deposit",
+        element: (
+          <PrivateRoute permKey="manual-deposit">
+            <ManualDeposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "deposit-requests",
+        element: (
+          <PrivateRoute permKey="deposit-requests">
+            <DepositRequests />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "deposit-request-details/:id",
+        element: (
+          <PrivateRoute permKey="deposit-request-details">
+            <DepositRequestDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "auto-deposit-settings",
+        element: (
+          <PrivateRoute permKey="auto-deposit-settings">
+            <AutoDepositSettings />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "auto-deposit-history",
+        element: (
+          <PrivateRoute permKey="auto-deposit-history">
+            <AutoDepositHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-withdraw",
+        element: (
+          <PrivateRoute permKey="add-withdraw">
+            <AddWithdraw />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "withdraw-requests",
+        element: (
+          <PrivateRoute permKey="withdraw-requests">
+            <WithdrawRequest />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "withdraw-request-details/:id",
+        element: (
+          <PrivateRoute permKey="withdraw-requests">
+            <WithdrawRequestDetails />
           </PrivateRoute>
         ),
       },

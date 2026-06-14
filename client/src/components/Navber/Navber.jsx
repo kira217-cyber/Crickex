@@ -7,21 +7,30 @@ import {
   WalletCards,
   RefreshCw,
   UserCircle,
-  CircleDollarSign,
   Gift,
-  Trophy,
   LogOut,
   Landmark,
   BadgeDollarSign,
-  History,
+  ReceiptText,
+  UserRound,
+  LockKeyhole,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
-import { logout } from "../../features/auth/authSlice";
+import { logout, updateUser } from "../../features/auth/authSlice";
+import api from "../../api/axios";
+
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
+import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
+import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
+import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
+import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
+import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
+import WithdrawModal from "../WithdrawModal/WithdrawModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -41,6 +50,16 @@ const Navber = ({ setOpen }) => {
   const [openLogin, setOpenLogin] = useState(false);
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
 
+  const [openDepositFunds, setOpenDepositFunds] = useState(false);
+  const [openDepositConfirm, setOpenDepositConfirm] = useState(false);
+  const [openDepositHistory, setOpenDepositHistory] = useState(false);
+  const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
+  const [openPasswordChange, setOpenPasswordChange] = useState(false);
+
+  const [depositData, setDepositData] = useState(null);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [refreshingBalance, setRefreshingBalance] = useState(false);
+
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -52,6 +71,83 @@ const Navber = ({ setOpen }) => {
       setOpenRegister(true);
     }
   }, [location.search, isAuth]);
+
+  const closeAllModals = () => {
+    setOpenRegister(false);
+    setOpenLogin(false);
+    setOpenLangModal(false);
+    setOpenDepositFunds(false);
+    setOpenDepositConfirm(false);
+    setOpenDepositHistory(false);
+    setOpenPersonalInfo(false);
+    setOpenPasswordChange(false);
+    setOpenWithdraw(false);
+  };
+
+  const openDeposit = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenDepositFunds(true);
+  };
+
+  const openTransaction = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenDepositHistory(true);
+  };
+
+  const openUserInfo = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenPersonalInfo(true);
+  };
+
+  const openChangePassword = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenPasswordChange(true);
+  };
+
+  const openWithdrawModal = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenWithdraw(true);
+  };
 
   const texts = {
     signup: isBangla ? "সাইন আপ" : "Sign Up",
@@ -65,15 +161,15 @@ const Navber = ({ setOpen }) => {
     vipPoints: isBangla ? "ভিআইপি পয়েন্ট" : "VIP Points",
     bonusWallet: isBangla ? "বোনাস ওয়ালেট" : "Bonus Wallet",
     withdrawal: isBangla ? "উইথড্রয়াল" : "Withdrawal",
-    freeSpin: isBangla ? "ফ্রি স্পিন" : "Free Spin",
-    realTimeBonus: isBangla ? "রিয়েল-টাইম বোনাস" : "Real-Time Bonus",
     referBonus: isBangla ? "রেফার বোনাস" : "Refer Bonus",
-    winnerBoard: isBangla ? "উইনার বোর্ড" : "Winner Board",
-    dailyStreak: isBangla
-      ? "ডেইলি স্ট্রিক চ্যালেঞ্জ"
-      : "Daily Streak Challenge",
-    bettingRecords: isBangla ? "বেটিং রেকর্ডস" : "Betting Records",
+    transaction: isBangla ? "ট্রানজেকশন রেকর্ডস" : "Transaction Records",
+    personalInfo: isBangla ? "পার্সোনাল ইনফো" : "Personal Info",
+    changePassword: isBangla ? "পাসওয়ার্ড পরিবর্তন" : "Change Password",
     logout: isBangla ? "লগআউট" : "Logout",
+    refreshSuccess: isBangla ? "ব্যালেন্স আপডেট হয়েছে" : "Balance updated",
+    refreshFailed: isBangla
+      ? "ব্যালেন্স আপডেট করা যায়নি"
+      : "Failed to refresh balance",
   };
 
   const languages = [
@@ -82,13 +178,51 @@ const Navber = ({ setOpen }) => {
   ];
 
   const balance = Number(user?.balance || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const handleRefreshBalance = async () => {
+    if (refreshingBalance) return;
+
+    try {
+      setRefreshingBalance(true);
+
+      const res = await api.get("/api/user-info/balance");
+      const data = res?.data?.data || {};
+
+      dispatch(
+        updateUser({
+          balance: Number(data.balance || 0),
+          currency: data.currency || "BDT",
+          commissionBalance: Number(data.commissionBalance || 0),
+          gameLossCommissionBalance: Number(
+            data.gameLossCommissionBalance || 0,
+          ),
+          depositCommissionBalance: Number(data.depositCommissionBalance || 0),
+          referCommissionBalance: Number(data.referCommissionBalance || 0),
+          gameWinCommissionBalance: Number(data.gameWinCommissionBalance || 0),
+        }),
+      );
+
+      toast.success(res?.data?.message || texts.refreshSuccess);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || texts.refreshFailed);
+    } finally {
+      setRefreshingBalance(false);
+    }
+  };
 
   const handleLogout = () => {
     dispatch(logout());
     setOpenProfileMenu(false);
+    setOpenDepositFunds(false);
+    setOpenDepositConfirm(false);
+    setOpenDepositHistory(false);
+    setOpenPersonalInfo(false);
+    setOpenPasswordChange(false);
+    setDepositData(null);
+    setOpenWithdraw(false);
   };
 
   useEffect(() => {
@@ -103,23 +237,28 @@ const Navber = ({ setOpen }) => {
   }, []);
 
   const menuItems = [
-    { label: texts.deposit, path: "/deposit", icon: Landmark },
-    { label: texts.withdrawal, path: "/withdrawal", icon: BadgeDollarSign },
-    { label: texts.bonusWallet, path: "/bonus-wallet", icon: Gift, badge: "0" },
-    { label: texts.freeSpin, path: "/free-spin", icon: CircleDollarSign },
+    { label: texts.deposit, path: "__deposit_modal__", icon: Landmark },
     {
-      label: `${texts.realTimeBonus}\n${texts.referBonus}`,
-      path: "/refer-bonus",
-      icon: Gift,
+      label: texts.withdrawal,
+      path: "__withdraw_modal__",
+      icon: BadgeDollarSign,
     },
-    { label: texts.winnerBoard, path: "/winner-board", icon: Trophy },
+    { label: texts.referBonus, path: "/refer-bonus", icon: Gift },
     {
-      label: texts.dailyStreak,
-      path: "/daily-streak",
-      icon: Trophy,
-      alert: true,
+      label: texts.transaction,
+      path: "__transaction_modal__",
+      icon: ReceiptText,
     },
-    { label: texts.bettingRecords, path: "/betting-records", icon: History },
+    {
+      label: texts.personalInfo,
+      path: "__personal_info_modal__",
+      icon: UserRound,
+    },
+    {
+      label: texts.changePassword,
+      path: "__password_change_modal__",
+      icon: LockKeyhole,
+    },
   ];
 
   return (
@@ -134,7 +273,7 @@ const Navber = ({ setOpen }) => {
             <Menu size={25} />
           </button>
 
-          <Link to="/" className="flex items-center lg:flex-1">
+          <Link to="/" className="flex cursor-pointer items-center lg:flex-1">
             <img
               src="https://img.c88rx.com/cx/h5/assets/images/logo.png?v=1779771685731"
               alt="logo"
@@ -148,7 +287,7 @@ const Navber = ({ setOpen }) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setOpenLogin(false);
+                    closeAllModals();
                     setOpenRegister(true);
                   }}
                   className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
@@ -159,7 +298,7 @@ const Navber = ({ setOpen }) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setOpenRegister(false);
+                    closeAllModals();
                     setOpenLogin(true);
                   }}
                   className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
@@ -169,22 +308,28 @@ const Navber = ({ setOpen }) => {
               </>
             ) : (
               <>
-                <Link
-                  to="/deposit"
+                <button
+                  type="button"
+                  onClick={openDeposit}
                   className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] bg-[#247ccf] px-3 text-[13px] font-medium text-white transition hover:bg-[#1f72c0]"
                 >
                   <WalletCards size={18} className="fill-white/20" />
                   <span>{texts.deposit}</span>
-                </Link>
+                </button>
 
-                <Link
-                  to="/wallet"
-                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[5px] bg-[#5ed51d] px-3 text-[13px] font-bold text-white transition hover:bg-[#52c719]"
+                <button
+                  type="button"
+                  onClick={handleRefreshBalance}
+                  disabled={refreshingBalance}
+                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[5px] bg-[#5ed51d] px-3 text-[13px] font-bold text-white transition hover:bg-[#52c719] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <RefreshCw size={16} />
+                  <RefreshCw
+                    size={16}
+                    className={refreshingBalance ? "animate-spin" : ""}
+                  />
                   <span>{texts.mainWallet}</span>
                   <span>৳{balance}</span>
-                </Link>
+                </button>
 
                 <div ref={profileRef} className="relative">
                   <button
@@ -226,12 +371,107 @@ const Navber = ({ setOpen }) => {
                           {menuItems.map((item) => {
                             const Icon = item.icon;
 
+                            if (item.path === "__deposit_modal__") {
+                              return (
+                                <button
+                                  key={item.path}
+                                  type="button"
+                                  onClick={openDeposit}
+                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                >
+                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                    <Icon size={13} />
+                                  </span>
+
+                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+
+                            if (item.path === "__transaction_modal__") {
+                              return (
+                                <button
+                                  key={item.path}
+                                  type="button"
+                                  onClick={openTransaction}
+                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                >
+                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                    <Icon size={13} />
+                                  </span>
+
+                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+
+                            if (item.path === "__withdraw_modal__") {
+                              return (
+                                <button
+                                  key={item.path}
+                                  type="button"
+                                  onClick={openWithdrawModal}
+                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                >
+                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                    <Icon size={13} />
+                                  </span>
+
+                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+
+                            if (item.path === "__personal_info_modal__") {
+                              return (
+                                <button
+                                  key={item.path}
+                                  type="button"
+                                  onClick={openUserInfo}
+                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                >
+                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                    <Icon size={13} />
+                                  </span>
+
+                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+
+                            if (item.path === "__password_change_modal__") {
+                              return (
+                                <button
+                                  key={item.path}
+                                  type="button"
+                                  onClick={openChangePassword}
+                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                >
+                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                    <Icon size={13} />
+                                  </span>
+
+                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+
                             return (
                               <Link
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setOpenProfileMenu(false)}
-                                className="flex min-h-[47px] items-center gap-3 px-4 text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                className="flex min-h-[47px] cursor-pointer items-center gap-3 px-4 text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
                               >
                                 <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
                                   <Icon size={13} />
@@ -240,18 +480,6 @@ const Navber = ({ setOpen }) => {
                                 <span className="flex-1 whitespace-pre-line leading-[16px]">
                                   {item.label}
                                 </span>
-
-                                {item.badge && (
-                                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#cc4c5b] px-1 text-[12px] font-bold text-white">
-                                    {item.badge}
-                                  </span>
-                                )}
-
-                                {item.alert && (
-                                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#cc4c5b] px-1 text-[12px] font-bold text-white">
-                                    !
-                                  </span>
-                                )}
                               </Link>
                             );
                           })}
@@ -276,7 +504,10 @@ const Navber = ({ setOpen }) => {
 
             <button
               type="button"
-              onClick={() => setOpenLangModal(true)}
+              onClick={() => {
+                closeAllModals();
+                setOpenLangModal(true);
+              }}
               className="ml-1 flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105"
             >
               <img
@@ -289,7 +520,10 @@ const Navber = ({ setOpen }) => {
 
           <button
             type="button"
-            onClick={() => setOpenLangModal(true)}
+            onClick={() => {
+              closeAllModals();
+              setOpenLangModal(true);
+            }}
             className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105 lg:hidden"
           >
             <img
@@ -395,6 +629,62 @@ const Navber = ({ setOpen }) => {
         onRegisterClick={() => {
           setOpenLogin(false);
           setOpenRegister(true);
+
+        }}
+      />
+
+      <PersonalInfoModal
+        open={openPersonalInfo}
+        onClose={() => setOpenPersonalInfo(false)}
+        onUpdated={(updatedUser) => {
+          dispatch(updateUser(updatedUser));
+        }}
+      />
+
+      <PasswordChangeModal
+        open={openPasswordChange}
+        onClose={() => setOpenPasswordChange(false)}
+      />
+
+      <DepositFundsModal
+        open={openDepositFunds}
+        onClose={() => setOpenDepositFunds(false)}
+        onNext={(payload) => {
+          setDepositData(payload);
+          setOpenDepositFunds(false);
+          setOpenDepositConfirm(true);
+        }}
+      />
+
+      <DepositConfirmModal
+        open={openDepositConfirm}
+        depositData={depositData}
+        onClose={() => setOpenDepositConfirm(false)}
+        onBack={() => {
+          setOpenDepositConfirm(false);
+          setOpenDepositFunds(true);
+        }}
+        onSuccess={() => {
+          setOpenDepositConfirm(false);
+          setOpenDepositHistory(true);
+        }}
+      />
+
+      <DepositHistoryModal
+        open={openDepositHistory}
+        onClose={() => setOpenDepositHistory(false)}
+        onBackToDeposit={() => {
+          setOpenDepositHistory(false);
+          setOpenDepositFunds(true);
+        }}
+      />
+
+      <WithdrawModal
+        open={openWithdraw}
+        onClose={() => setOpenWithdraw(false)}
+        onDepositClick={() => {
+          setOpenWithdraw(false);
+          setOpenDepositFunds(true);
         }}
       />
     </>

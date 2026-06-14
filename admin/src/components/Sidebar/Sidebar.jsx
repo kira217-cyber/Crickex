@@ -24,6 +24,7 @@ import {
   FaHandshake,
   FaUserFriends,
   FaUserShield,
+  FaReceipt,
 } from "react-icons/fa";
 import {
   MdCategory,
@@ -122,22 +123,46 @@ const Sidebar = () => {
   const depositItems = useMemo(
     () => [
       {
-        key: "add-deposit",
-        to: "/add-deposit",
+        key: "add-deposit-method",
+        to: "/add-deposit-method",
         icon: <FaPlusCircle />,
-        text: "Add Deposit",
+        text: "Add Deposit Method",
       },
       {
-        key: "deposit-request",
-        to: "/deposit-request",
+        key: "add-deposit-field",
+        to: "/add-deposit-field",
         icon: <FaClipboardList />,
-        text: "Deposit Request",
+        text: "Deposit Field",
       },
       {
-        key: "deposit-history",
-        to: "/deposit-history",
-        icon: <FaHistory />,
-        text: "Deposit History",
+        key: "add-deposit-bonus-turnover",
+        to: "/add-deposit-bonus-turnover",
+        icon: <FaLayerGroup />,
+        text: "Bonus & Turnover",
+      },
+      {
+        key: "manual-deposit",
+        to: "/manual-deposit",
+        icon: <FaMoneyBillWave />,
+        text: "Manual Deposit",
+      },
+      {
+        key: "deposit-requests",
+        to: "/deposit-requests",
+        icon: <FaClipboardList />,
+        text: "Deposit Requests",
+      },
+      {
+        key: "auto-deposit-settings",
+        to: "/auto-deposit-settings",
+        icon: <FaMoneyBillWave />,
+        text: "Auto Deposit",
+      },
+      {
+        key: "auto-deposit-history",
+        to: "/auto-deposit-history",
+        icon: <FaReceipt />,
+        text: "Auto Deposit History",
       },
     ],
     [],
@@ -145,6 +170,18 @@ const Sidebar = () => {
 
   const withdrawItems = useMemo(
     () => [
+      {
+        key: "add-withdraw",
+        to: "/add-withdraw",
+        icon: <FaMoneyBillWave />,
+        text: "Add Withdraw",
+      },
+      {
+        key: "withdraw-requests",
+        to: "/withdraw-requests",
+        icon: <FaWallet />,
+        text: "Withdraw Requests",
+      },
       {
         key: "add-aff-withdraw-method",
         to: "/add-aff-withdraw-method",

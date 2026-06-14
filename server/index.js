@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import affiliateRoutes from "./routes/affiliateRoutes.js";
@@ -9,6 +10,19 @@ import affiliateProfileRoutes from "./routes/affiliateProfileRoutes.js";
 import affWithdrawRoutes from "./routes/affWithdrawRoutes.js";
 import bulkAdjustmentRoutes from "./routes/bulkAdjustmentRoutes.js";
 import affWithdrawRequestRoutes from "./routes/affWithdrawRequestRoutes.js";
+
+/* ✅ Deposit System Routes */
+import depositMethodRoutes from "./routes/depositMethodRoutes.js";
+import depositFieldRoutes from "./routes/depositFieldRoutes.js";
+import depositBonusTurnoverRoutes from "./routes/depositBonusTurnoverRoutes.js";
+import turnoverRoutes from "./routes/turnoverRoutes.js";
+import depositRequestRoutes from "./routes/depositRequestRoutes.js";
+import adminManualDepositRoutes from "./routes/adminManualDepositRoutes.js";
+import userInfoRoutes from "./routes/userInfoRoutes.js";
+import autoDepositRoutes from "./routes/autoDepositRoutes.js";
+import eWalletRoutes from "./routes/eWalletRoutes.js";
+import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
+import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
 
 dotenv.config();
 
@@ -28,6 +42,7 @@ app.get("/", (req, res) => {
   });
 });
 
+/* Existing Routes */
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/affiliate", affiliateRoutes);
@@ -35,6 +50,21 @@ app.use("/api/profile", affiliateProfileRoutes);
 app.use("/api", affWithdrawRoutes);
 app.use("/api", bulkAdjustmentRoutes);
 app.use("/api", affWithdrawRequestRoutes);
+
+/* ✅ Deposit System Routes */
+app.use("/api/deposit-methods", depositMethodRoutes);
+app.use("/api/deposit-fields", depositFieldRoutes);
+app.use("/api/deposit-bonus-turnover", depositBonusTurnoverRoutes);
+app.use("/api/turnovers", turnoverRoutes);
+app.use("/api/deposit-requests", depositRequestRoutes);
+app.use("/api/admin/manual-deposits", adminManualDepositRoutes);
+app.use("/api/user-info", userInfoRoutes);
+app.use("/api/auto-deposit", autoDepositRoutes);
+app.use("/api/e-wallets", eWalletRoutes);
+app.use("/api/withdraw-methods", withdrawMethodRoutes);
+app.use("/api", withdrawRequestRoutes);
+
+
 
 app.use((req, res) => {
   res.status(404).json({

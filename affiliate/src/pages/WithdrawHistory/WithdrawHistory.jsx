@@ -7,10 +7,10 @@ import {
   RefreshCw,
   Sparkles,
   Wallet,
-  X,
   XCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { api } from "../../api/axios";
@@ -61,93 +61,16 @@ const statusIcon = (status) => {
   return <Clock size={15} />;
 };
 
-const DetailsModal = ({ open, row, currency, onClose }) => {
-  if (!open || !row) return null;
-
-  const fields = row?.fields || {};
-
-  return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        className={`${cardCls} w-full max-w-xl p-6`}
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-black text-white">Withdraw Details</h3>
-            <p className="mt-1 text-sm text-slate-400">
-              Request ID: {row?._id || "—"}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer rounded-xl p-2 text-slate-300 hover:bg-white/10 hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          <InfoRow
-            label="Method"
-            value={String(row?.methodId || "—").toUpperCase()}
-          />
-          <InfoRow label="Amount" value={money(row?.amount || 0, currency)} />
-          <InfoRow
-            label="Status"
-            value={String(row?.status || "pending").toUpperCase()}
-          />
-          <InfoRow
-            label="Balance Before"
-            value={money(row?.balanceBefore || 0, currency)}
-          />
-          <InfoRow
-            label="Balance After"
-            value={money(row?.balanceAfter || 0, currency)}
-          />
-          <InfoRow
-            label="Created At"
-            value={
-              row?.createdAt ? new Date(row.createdAt).toLocaleString() : "—"
-            }
-          />
-
-          {row?.adminNote && (
-            <InfoRow label="Admin Note" value={row.adminNote} />
-          )}
-
-          {Object.keys(fields).length > 0 && (
-            <div className="mt-5 rounded-3xl border border-white/10 bg-black/30 p-4">
-              <h4 className="mb-3 text-sm font-black text-[#6fb5f4]">
-                Submitted Information
-              </h4>
-
-              <div className="space-y-2">
-                {Object.entries(fields).map(([key, value]) => (
-                  <InfoRow key={key} label={key} value={String(value || "—")} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-const InfoRow = ({ label, value }) => (
-  <div className="flex items-start justify-between gap-4 border-b border-white/10 py-2.5 last:border-b-0">
-    <span className="text-xs font-bold text-slate-400">{label}</span>
-    <span className="text-right text-xs font-black text-white break-all">
-      {value}
-    </span>
+const StatCard = ({ label, value, color = "text-[#6fb5f4]" }) => (
+  <div className="rounded-3xl border border-white/10 bg-black/30 p-4">
+    <p className="text-xs font-bold text-slate-400">{label}</p>
+    <h3 className={`mt-1 text-xl font-black ${color}`}>{value}</h3>
   </div>
 );
 
 const WithdrawHistory = () => {
+  const navigate = useNavigate();
+
   const token = useSelector(selectAffiliateToken);
   const user = useSelector(selectAffiliateUser);
   const currency = user?.currency || "BDT";
@@ -155,7 +78,6 @@ const WithdrawHistory = () => {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("all");
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(null);
 
   const [meta, setMeta] = useState({
     page: 1,
@@ -175,19 +97,20 @@ const WithdrawHistory = () => {
       (sum, item) => sum + Number(item?.amount || 0),
       0,
     );
-    const pending = items.filter((item) => item?.status === "pending").length;
-    const approved = items.filter((item) => item?.status === "approved").length;
-    const rejected = items.filter((item) => item?.status === "rejected").length;
 
     return {
       totalAmount,
-      pending,
-      approved,
-      rejected,
+      pending: items.filter((item) => item?.status === "pending").length,
+      approved: items.filter((item) => item?.status === "approved").length,
+      rejected: items.filter((item) => item?.status === "rejected").length,
     };
   }, [items]);
 
-  const fetchData = async (page = 1, nextStatus = status) => {
+  const fetchData = async (
+    page = 1,
+    nextStatus = status,
+    nextLimit = meta.limit,
+  ) => {
     if (!token) {
       setItems([]);
       setMeta((prev) => ({
@@ -203,7 +126,7 @@ const WithdrawHistory = () => {
 
       const params = {
         page,
-        limit: meta.limit,
+        limit: nextLimit,
       };
 
       if (nextStatus !== "all") {
@@ -221,7 +144,7 @@ const WithdrawHistory = () => {
       setMeta((prev) => ({
         ...prev,
         page: data?.meta?.page || page,
-        limit: data?.meta?.limit || prev.limit,
+        limit: data?.meta?.limit || nextLimit,
         total: data?.meta?.total ?? rows.length,
       }));
     } catch (error) {
@@ -242,7 +165,7 @@ const WithdrawHistory = () => {
   const onStatusChange = (e) => {
     const next = e.target.value;
     setStatus(next);
-    fetchData(1, next);
+    fetchData(1, next, meta.limit);
   };
 
   const onLimitChange = (e) => {
@@ -253,9 +176,12 @@ const WithdrawHistory = () => {
       limit: nextLimit,
     }));
 
-    setTimeout(() => {
-      fetchData(1, status);
-    }, 0);
+    fetchData(1, status, nextLimit);
+  };
+
+  const goDetails = (id) => {
+    if (!id) return;
+    navigate(`/dashboard/withdraw-history-details/${id}`);
   };
 
   return (
@@ -292,7 +218,7 @@ const WithdrawHistory = () => {
 
               <button
                 type="button"
-                onClick={() => fetchData(meta.page, status)}
+                onClick={() => fetchData(meta.page, status, meta.limit)}
                 disabled={loading}
                 className={btnGhost}
               >
@@ -449,7 +375,7 @@ const WithdrawHistory = () => {
                           <td className="px-6 py-5 text-right">
                             <button
                               type="button"
-                              onClick={() => setSelected(row)}
+                              onClick={() => goDetails(row._id)}
                               className={btnGhost}
                             >
                               <Eye size={16} />
@@ -502,7 +428,7 @@ const WithdrawHistory = () => {
 
                       <button
                         type="button"
-                        onClick={() => setSelected(row)}
+                        onClick={() => goDetails(row._id)}
                         className={`${btnGhost} mt-4 w-full`}
                       >
                         <Eye size={16} />
@@ -526,7 +452,7 @@ const WithdrawHistory = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      fetchData(Math.max(1, meta.page - 1), status)
+                      fetchData(Math.max(1, meta.page - 1), status, meta.limit)
                     }
                     disabled={meta.page <= 1 || loading}
                     className={btnGhost}
@@ -541,7 +467,11 @@ const WithdrawHistory = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      fetchData(Math.min(pageCount, meta.page + 1), status)
+                      fetchData(
+                        Math.min(pageCount, meta.page + 1),
+                        status,
+                        meta.limit,
+                      )
                     }
                     disabled={meta.page >= pageCount || loading}
                     className={btnGhost}
@@ -554,22 +484,8 @@ const WithdrawHistory = () => {
           )}
         </motion.div>
       </div>
-
-      <DetailsModal
-        open={!!selected}
-        row={selected}
-        currency={currency}
-        onClose={() => setSelected(null)}
-      />
     </div>
   );
 };
-
-const StatCard = ({ label, value, color = "text-[#6fb5f4]" }) => (
-  <div className="rounded-3xl border border-white/10 bg-black/30 p-4">
-    <p className="text-xs font-bold text-slate-400">{label}</p>
-    <h3 className={`mt-1 text-xl font-black ${color}`}>{value}</h3>
-  </div>
-);
 
 export default WithdrawHistory;
