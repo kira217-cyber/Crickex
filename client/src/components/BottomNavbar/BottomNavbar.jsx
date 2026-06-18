@@ -10,16 +10,22 @@ import {
   Sparkles,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth } from "../../features/auth/authSelectors";
+import { updateUser } from "../../features/auth/authSlice";
+
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
 import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
 import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
 import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
 import PromotionModal from "../PromotionModal/PromotionModal";
+import AccountModal from "../AccountModal/AccountModal";
+import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
+import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
+import WithdrawModal from "../WithdrawModal/WithdrawModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -27,6 +33,7 @@ const flagUrl = {
 };
 
 const BottomNavbar = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const { language, changeLanguage, isBangla } = useLanguage();
   const isAuth = useSelector(selectIsAuth);
@@ -36,9 +43,15 @@ const BottomNavbar = () => {
   const [openLogin, setOpenLogin] = useState(false);
 
   const [openPromotion, setOpenPromotion] = useState(false);
+  const [openAccount, setOpenAccount] = useState(false);
+
   const [openDepositFunds, setOpenDepositFunds] = useState(false);
   const [openDepositConfirm, setOpenDepositConfirm] = useState(false);
   const [openDepositHistory, setOpenDepositHistory] = useState(false);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
+  const [openPasswordChange, setOpenPasswordChange] = useState(false);
+
   const [depositData, setDepositData] = useState(null);
 
   const languages = [
@@ -46,10 +59,59 @@ const BottomNavbar = () => {
     { key: "English", label: "English", flag: flagUrl.English },
   ];
 
-  const closeDepositFlow = () => {
+  const closeChildModals = () => {
+    setOpenLangModal(false);
+    setOpenRegister(false);
+    setOpenLogin(false);
+    setOpenPromotion(false);
     setOpenDepositFunds(false);
     setOpenDepositConfirm(false);
     setOpenDepositHistory(false);
+    setOpenWithdraw(false);
+    setOpenPersonalInfo(false);
+    setOpenPasswordChange(false);
+  };
+
+  const closeAllModals = () => {
+    closeChildModals();
+    setOpenAccount(false);
+  };
+
+  const requireAuthOrLogin = () => {
+    if (isAuth) return true;
+    closeAllModals();
+    setOpenLogin(true);
+    return false;
+  };
+
+  const openDepositModal = () => {
+    if (!requireAuthOrLogin()) return;
+    closeChildModals();
+    setOpenDepositFunds(true);
+  };
+
+  const openWithdrawModal = () => {
+    if (!requireAuthOrLogin()) return;
+    closeChildModals();
+    setOpenWithdraw(true);
+  };
+
+  const openTransactionModal = () => {
+    if (!requireAuthOrLogin()) return;
+    closeChildModals();
+    setOpenDepositHistory(true);
+  };
+
+  const openPersonalInfoModal = () => {
+    if (!requireAuthOrLogin()) return;
+    closeChildModals();
+    setOpenPersonalInfo(true);
+  };
+
+  const openPasswordChangeModal = () => {
+    if (!requireAuthOrLogin()) return;
+    closeChildModals();
+    setOpenPasswordChange(true);
   };
 
   const authMenus = [
@@ -64,7 +126,6 @@ const BottomNavbar = () => {
       path: "__promotion_modal__",
       icon: Gift,
       type: "button",
-      badge: "0",
     },
     {
       label: isBangla ? "ডিপোজিট" : "Deposit",
@@ -75,23 +136,28 @@ const BottomNavbar = () => {
     },
     {
       label: isBangla ? "আমার একাউন্ট" : "My Account",
-      path: "/profile",
+      path: "__account_modal__",
       icon: UserCircle,
-      type: "link",
+      type: "button",
     },
   ];
 
   const handleMenuClick = (item) => {
     if (item.path === "__promotion_modal__") {
-      closeDepositFlow();
+      closeChildModals();
       setOpenPromotion(true);
       return;
     }
 
     if (item.path === "__deposit_modal__") {
-      setOpenPromotion(false);
-      closeDepositFlow();
-      setOpenDepositFunds(true);
+      openDepositModal();
+      return;
+    }
+
+    if (item.path === "__account_modal__") {
+      if (!requireAuthOrLogin()) return;
+      closeChildModals();
+      setOpenAccount(true);
     }
   };
 
@@ -107,7 +173,10 @@ const BottomNavbar = () => {
         <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[50px] border-t border-[#c9c9c9] bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.12)] md:hidden">
           <button
             type="button"
-            onClick={() => setOpenLangModal(true)}
+            onClick={() => {
+              closeAllModals();
+              setOpenLangModal(true);
+            }}
             className="flex w-[100px] cursor-pointer items-center justify-center gap-2 bg-[#dce8f2]"
           >
             <img
@@ -126,7 +195,10 @@ const BottomNavbar = () => {
 
           <button
             type="button"
-            onClick={() => setOpenRegister(true)}
+            onClick={() => {
+              closeAllModals();
+              setOpenRegister(true);
+            }}
             className="flex flex-1 cursor-pointer items-center justify-center bg-white text-[15px] font-bold text-[#111]"
           >
             {isBangla ? "সাইন আপ" : "Sign Up"}
@@ -134,7 +206,10 @@ const BottomNavbar = () => {
 
           <button
             type="button"
-            onClick={() => setOpenLogin(true)}
+            onClick={() => {
+              closeAllModals();
+              setOpenLogin(true);
+            }}
             className="flex flex-1 cursor-pointer items-center justify-center bg-[#0b66a8] text-[15px] font-bold text-white"
           >
             {isBangla ? "লগইন" : "Login"}
@@ -142,7 +217,7 @@ const BottomNavbar = () => {
         </div>
       ) : (
         <div className="fixed bottom-2 left-0 right-0 z-40 border-t border-white/10 md:hidden">
-          <div className="flex h-[58px] items-center justify-between rounded-[18px] border border-white/10 bg-white/5 px-1 backdrop-blur-md  bg-gradient-to-r from-[#051b2e] via-[#082f50] to-[#051b2e] px-2 pb-[3px] pt-[5px] shadow-[0_-8px_24px_rgba(0,0,0,0.35)]">
+          <div className="flex h-[58px] items-center justify-between rounded-[18px] border border-white/10 bg-gradient-to-r from-[#051b2e] via-[#082f50] to-[#051b2e] px-2 pb-[3px] pt-[5px] shadow-[0_-8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
             {authMenus.map((item) => {
               const Icon = item.icon;
               const active = isActivePath(item.path);
@@ -151,7 +226,7 @@ const BottomNavbar = () => {
               const content = (
                 <>
                   <div
-                    className={`relative flex h-[30px] w-[30px] items-center justify-center rounded-full transition  ${
+                    className={`relative flex h-[30px] w-[30px] items-center justify-center rounded-full transition ${
                       isDeposit
                         ? "bg-gradient-to-br from-[#2e9bf3] to-[#0865a9] text-white shadow-lg shadow-blue-900/30"
                         : active
@@ -160,12 +235,6 @@ const BottomNavbar = () => {
                     }`}
                   >
                     <Icon size={17} />
-
-                    {/* {item.badge !== undefined && (
-                      <span className="absolute -right-[6px] -top-[4px] flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#e0182d] px-[3px] text-[9px] font-bold text-white">
-                        {item.badge}
-                      </span>
-                    )} */}
 
                     {isDeposit && (
                       <span className="absolute -right-[3px] -top-[3px] flex h-[13px] w-[13px] items-center justify-center rounded-full bg-[#5ed51d] text-white">
@@ -189,6 +258,7 @@ const BottomNavbar = () => {
                   <Link
                     key={item.path}
                     to={item.path}
+                    onClick={closeChildModals}
                     className="relative flex h-full flex-1 cursor-pointer flex-col items-center justify-center"
                   >
                     {content}
@@ -237,7 +307,7 @@ const BottomNavbar = () => {
                   <button
                     type="button"
                     onClick={() => setOpenLangModal(false)}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
                   >
                     <X size={18} />
                   </button>
@@ -260,7 +330,7 @@ const BottomNavbar = () => {
                         className={`mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0 ${
                           active
                             ? "bg-[#0b66a8] text-white shadow-md"
-                            : "bg-white text-[#111]"
+                            : "bg-white text-[#111] hover:bg-[#f8fbff]"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -291,29 +361,40 @@ const BottomNavbar = () => {
             </motion.div>
           </div>
         )}
-
-        <RegisterModal
-          open={openRegister}
-          onClose={() => setOpenRegister(false)}
-          onLoginClick={() => {
-            setOpenRegister(false);
-            setOpenLogin(true);
-          }}
-        />
-
-        <LoginModal
-          open={openLogin}
-          onClose={() => setOpenLogin(false)}
-          onRegisterClick={() => {
-            setOpenLogin(false);
-            setOpenRegister(true);
-          }}
-        />
       </AnimatePresence>
+
+      <RegisterModal
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+        onLoginClick={() => {
+          closeAllModals();
+          setOpenLogin(true);
+        }}
+      />
+
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+        onRegisterClick={() => {
+          closeAllModals();
+          setOpenRegister(true);
+        }}
+      />
 
       <PromotionModal
         open={openPromotion}
         onClose={() => setOpenPromotion(false)}
+      />
+
+      <AccountModal
+        open={openAccount}
+        onClose={() => setOpenAccount(false)}
+        onDepositClick={openDepositModal}
+        onWithdrawClick={openWithdrawModal}
+        onTransactionClick={openTransactionModal}
+        onPersonalInfoClick={openPersonalInfoModal}
+        onPasswordChangeClick={openPasswordChangeModal}
+        onLogoutDone={closeAllModals}
       />
 
       <DepositFundsModal
@@ -321,7 +402,7 @@ const BottomNavbar = () => {
         onClose={() => setOpenDepositFunds(false)}
         onNext={(payload) => {
           setDepositData(payload);
-          setOpenDepositFunds(false);
+          closeChildModals();
           setOpenDepositConfirm(true);
         }}
       />
@@ -331,11 +412,11 @@ const BottomNavbar = () => {
         depositData={depositData}
         onClose={() => setOpenDepositConfirm(false)}
         onBack={() => {
-          setOpenDepositConfirm(false);
+          closeChildModals();
           setOpenDepositFunds(true);
         }}
         onSuccess={() => {
-          setOpenDepositConfirm(false);
+          closeChildModals();
           setOpenDepositHistory(true);
         }}
       />
@@ -344,9 +425,31 @@ const BottomNavbar = () => {
         open={openDepositHistory}
         onClose={() => setOpenDepositHistory(false)}
         onBackToDeposit={() => {
-          setOpenDepositHistory(false);
+          closeChildModals();
           setOpenDepositFunds(true);
         }}
+      />
+
+      <WithdrawModal
+        open={openWithdraw}
+        onClose={() => setOpenWithdraw(false)}
+        onDepositClick={() => {
+          closeChildModals();
+          setOpenDepositFunds(true);
+        }}
+      />
+
+      <PersonalInfoModal
+        open={openPersonalInfo}
+        onClose={() => setOpenPersonalInfo(false)}
+        onUpdated={(updatedUser) => {
+          dispatch(updateUser(updatedUser));
+        }}
+      />
+
+      <PasswordChangeModal
+        open={openPasswordChange}
+        onClose={() => setOpenPasswordChange(false)}
       />
     </>
   );

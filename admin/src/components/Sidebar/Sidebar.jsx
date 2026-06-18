@@ -225,6 +225,12 @@ const Sidebar = () => {
         text: "Add Game",
       },
       {
+        key: "add-sport-game",
+        to: "/add-sport-game",
+        icon: <MdGames />,
+        text: "Add Sport Game",
+      },
+      {
         key: "all-game-history",
         to: "/all-game-history",
         icon: <FaHistory />,

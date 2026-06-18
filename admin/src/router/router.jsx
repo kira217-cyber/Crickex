@@ -28,6 +28,10 @@ import AutoDepositHistory from "../pages/AutoDepositHistory/AutoDepositHistory";
 import AddWithdraw from "../pages/AddWithdraw/AddWithdraw";
 import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
 import WithdrawRequestDetails from "../pages/WithdrawRequestDetails/WithdrawRequestDetails";
+import GameCategory from "../pages/GameCategory/GameCategory";
+import GameProvider from "../pages/GameProvider/GameProvider";
+import Game from "../pages/Game/Game";
+import Sport from "../pages/Sport/Sport";
 
 export const routes = createBrowserRouter([
   {
@@ -212,6 +216,39 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="withdraw-requests">
             <WithdrawRequestDetails />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "add-category",
+        element: (
+          <PrivateRoute permKey="add-category">
+            <GameCategory />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-provider",
+        element: (
+          <PrivateRoute permKey="add-provider">
+            <GameProvider />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-game",
+        element: (
+          <PrivateRoute permKey="add-game">
+            <Game />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-sport-game",
+        element: (
+          <PrivateRoute permKey="add-sport-game">
+            <Sport />
           </PrivateRoute>
         ),
       },

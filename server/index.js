@@ -23,6 +23,10 @@ import autoDepositRoutes from "./routes/autoDepositRoutes.js";
 import eWalletRoutes from "./routes/eWalletRoutes.js";
 import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
 import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
+import gameCategoryRoutes from "./routes/gameCategoryRoutes.js";
+import gameProviderRoutes from "./routes/gameProviderRoutes.js";
+import gameRoutes from "./routes/gameRoutes.js";
+import sportRoutes from "./routes/sportRoutes.js";
 
 dotenv.config();
 
@@ -63,6 +67,12 @@ app.use("/api/auto-deposit", autoDepositRoutes);
 app.use("/api/e-wallets", eWalletRoutes);
 app.use("/api/withdraw-methods", withdrawMethodRoutes);
 app.use("/api", withdrawRequestRoutes);
+
+/* ✅ Game System Routes */
+app.use("/api/game-categories", gameCategoryRoutes);
+app.use("/api/game-providers", gameProviderRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/sports", sportRoutes);
 
 
 
