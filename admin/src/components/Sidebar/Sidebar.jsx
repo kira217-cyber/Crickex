@@ -28,10 +28,13 @@ import {
 } from "react-icons/fa";
 import {
   MdCategory,
+  MdFavorite,
   MdGames,
   MdOutlineAccountBalanceWallet,
 } from "react-icons/md";
+import { FaNotesMedical } from "react-icons/fa6";
 import { GrUserAdmin } from "react-icons/gr";
+import { GrAnnounce } from "react-icons/gr";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -91,6 +94,12 @@ const Sidebar = () => {
         to: "/create-admin",
         icon: <GrUserAdmin />,
         text: "Create Admin",
+      },
+      {
+        key: "add-promotion",
+        to: "/add-promotion",
+        icon: <GrAnnounce />,
+        text: "Add Promotion",
       },
     ],
     [],
@@ -194,12 +203,12 @@ const Sidebar = () => {
         icon: <FaClipboardList />,
         text: "Aff Withdraw Request",
       },
-      {
-        key: "withdraw-history",
-        to: "/withdraw-history",
-        icon: <FaHistory />,
-        text: "Withdraw History",
-      },
+      // {
+      //   key: "withdraw-history",
+      //   to: "/withdraw-history",
+      //   icon: <FaHistory />,
+      //   text: "Withdraw History",
+      // },
     ],
     [],
   );
@@ -231,6 +240,12 @@ const Sidebar = () => {
         text: "Add Sport Game",
       },
       {
+        key: "add-popular-game",
+        to: "/add-popular-game",
+        icon: <MdGames />,
+        text: "Add Popular Game",
+      },
+      {
         key: "all-game-history",
         to: "/all-game-history",
         icon: <FaHistory />,
@@ -249,16 +264,22 @@ const Sidebar = () => {
         text: "Site Identify",
       },
       {
-        key: "client-color-control",
-        to: "/client-color-control",
-        icon: <FaPalette />,
-        text: "Color Control",
-      },
-      {
         key: "client-slider-control",
         to: "/client-slider-control",
         icon: <FaSlidersH />,
         text: "Slider Control",
+      },
+      {
+        key: "add-favorite-banner",
+        to: "/add-favorite-banner",
+        icon: <MdFavorite />,
+        text: "Add Favourite Control",
+      },
+      {
+        key: "add-notice-control",
+        to: "/add-notice-control",
+        icon: <FaNotesMedical />,
+        text: "Add Notice Control",
       },
     ],
     [],
@@ -267,23 +288,23 @@ const Sidebar = () => {
   const affiliateSiteItems = useMemo(
     () => [
       {
-        key: "affiliate-site-identify",
-        to: "/affiliate-site-identify",
+        key: "client-aff-site-identify",
+        to: "/client-aff-site-identify",
         icon: <FaHandshake />,
-        text: "Site Identify",
+        text: "Aff Site Identify",
       },
-      {
-        key: "affiliate-color-control",
-        to: "/affiliate-color-control",
-        icon: <FaPalette />,
-        text: "Color Control",
-      },
-      {
-        key: "affiliate-slider-control",
-        to: "/affiliate-slider-control",
-        icon: <FaSlidersH />,
-        text: "Slider Control",
-      },
+      // {
+      //   key: "affiliate-color-control",
+      //   to: "/affiliate-color-control",
+      //   icon: <FaPalette />,
+      //   text: "Color Control",
+      // },
+      // {
+      //   key: "affiliate-slider-control",
+      //   to: "/affiliate-slider-control",
+      //   icon: <FaSlidersH />,
+      //   text: "Slider Control",
+      // },
     ],
     [],
   );

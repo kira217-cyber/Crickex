@@ -32,6 +32,14 @@ import GameCategory from "../pages/GameCategory/GameCategory";
 import GameProvider from "../pages/GameProvider/GameProvider";
 import Game from "../pages/Game/Game";
 import Sport from "../pages/Sport/Sport";
+import AddPopularGame from "../pages/AddPopularGame/AddPopularGame";
+import AllGameHistory from "../pages/AllGameHistory/AllGameHistory";
+import AddPromotion from "../pages/AddPromotion/AddPromotion";
+import AddFavouriteBanner from "../pages/AddFavouriteBanner/AddFavouriteBanner";
+import AddSlider from "../pages/AddSlider/AddSlider";
+import AddNotice from "../pages/AddNotice/AddNotice";
+import SiteIdentify from "../pages/SiteIdentify/SiteIdentify";
+import AffSiteIdentify from "../pages/AffSiteIdentify/AffSiteIdentify";
 
 export const routes = createBrowserRouter([
   {
@@ -249,6 +257,70 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="add-sport-game">
             <Sport />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-popular-game",
+        element: (
+          <PrivateRoute permKey="add-popular-game">
+            <AddPopularGame />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "all-game-history",
+        element: (
+          <PrivateRoute permKey="add-game-history">
+            <AllGameHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-promotion",
+        element: (
+          <PrivateRoute permKey="add-promotion">
+            <AddPromotion />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "add-favorite-banner",
+        element: (
+          <PrivateRoute permKey="add-favorite-banner">
+            <AddFavouriteBanner />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "client-slider-control",
+        element: (
+          <PrivateRoute permKey="client-slider-control">
+            <AddSlider />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-notice-control",
+        element: (
+          <PrivateRoute permKey="add-notice-control">
+            <AddNotice />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "client-site-identify",
+        element: (
+          <PrivateRoute permKey="client-site-identify">
+            <SiteIdentify />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "client-aff-site-identify",
+        element: (
+          <PrivateRoute permKey="client-aff-site-identify">
+            <AffSiteIdentify />
           </PrivateRoute>
         ),
       },
