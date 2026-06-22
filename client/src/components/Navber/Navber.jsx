@@ -21,6 +21,11 @@ import { toast } from "react-toastify";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
 import { logout, updateUser } from "../../features/auth/authSlice";
+import {
+  selectSiteIdentify,
+  selectGlobalLoading,
+  selectGlobalLoaded,
+} from "../../features/global/globalSelectors";
 import api from "../../api/axios";
 
 import RegisterModal from "../RegisterModal/RegisterModal";
@@ -31,6 +36,14 @@ import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
 import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
 import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const makeImageUrl = (path = "") => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${API_URL}/${path.replace(/^\/+/, "")}`;
+};
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -44,6 +57,13 @@ const Navber = ({ setOpen }) => {
 
   const isAuth = useSelector(selectIsAuth);
   const user = useSelector(selectUser);
+
+  const siteIdentify = useSelector(selectSiteIdentify);
+  const globalLoading = useSelector(selectGlobalLoading);
+  const globalLoaded = useSelector(selectGlobalLoaded);
+
+  const logoUrl = makeImageUrl(siteIdentify?.logoImage);
+  const logoLoading = globalLoading || !globalLoaded;
 
   const [openRegister, setOpenRegister] = useState(false);
   const [openLangModal, setOpenLangModal] = useState(false);
@@ -274,11 +294,15 @@ const Navber = ({ setOpen }) => {
           </button>
 
           <Link to="/" className="flex cursor-pointer items-center lg:flex-1">
-            <img
-              src="https://img.c88rx.com/cx/h5/assets/images/logo.png?v=1779771685731"
-              alt="logo"
-              className="h-[24px] object-contain lg:h-[28px]"
-            />
+            {logoLoading ? (
+              <div className="h-[24px] w-[105px] animate-pulse rounded bg-white/30 lg:h-[28px] lg:w-[125px]" />
+            ) : (
+              <img
+                src={logoUrl}
+                alt="logo"
+                className="h-[24px] object-contain lg:h-[28px]"
+              />
+            )}
           </Link>
 
           <div className="hidden items-center gap-3 lg:flex">
@@ -371,21 +395,29 @@ const Navber = ({ setOpen }) => {
                           {menuItems.map((item) => {
                             const Icon = item.icon;
 
+                            const commonButtonClass =
+                              "flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]";
+
+                            const content = (
+                              <>
+                                <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                  <Icon size={13} />
+                                </span>
+                                <span className="flex-1 whitespace-pre-line leading-[16px]">
+                                  {item.label}
+                                </span>
+                              </>
+                            );
+
                             if (item.path === "__deposit_modal__") {
                               return (
                                 <button
                                   key={item.path}
                                   type="button"
                                   onClick={openDeposit}
-                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                  className={commonButtonClass}
                                 >
-                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                    <Icon size={13} />
-                                  </span>
-
-                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                    {item.label}
-                                  </span>
+                                  {content}
                                 </button>
                               );
                             }
@@ -396,15 +428,9 @@ const Navber = ({ setOpen }) => {
                                   key={item.path}
                                   type="button"
                                   onClick={openTransaction}
-                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                  className={commonButtonClass}
                                 >
-                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                    <Icon size={13} />
-                                  </span>
-
-                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                    {item.label}
-                                  </span>
+                                  {content}
                                 </button>
                               );
                             }
@@ -415,15 +441,9 @@ const Navber = ({ setOpen }) => {
                                   key={item.path}
                                   type="button"
                                   onClick={openWithdrawModal}
-                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                  className={commonButtonClass}
                                 >
-                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                    <Icon size={13} />
-                                  </span>
-
-                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                    {item.label}
-                                  </span>
+                                  {content}
                                 </button>
                               );
                             }
@@ -434,15 +454,9 @@ const Navber = ({ setOpen }) => {
                                   key={item.path}
                                   type="button"
                                   onClick={openUserInfo}
-                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                  className={commonButtonClass}
                                 >
-                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                    <Icon size={13} />
-                                  </span>
-
-                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                    {item.label}
-                                  </span>
+                                  {content}
                                 </button>
                               );
                             }
@@ -453,15 +467,9 @@ const Navber = ({ setOpen }) => {
                                   key={item.path}
                                   type="button"
                                   onClick={openChangePassword}
-                                  className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                  className={commonButtonClass}
                                 >
-                                  <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                    <Icon size={13} />
-                                  </span>
-
-                                  <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                    {item.label}
-                                  </span>
+                                  {content}
                                 </button>
                               );
                             }
@@ -473,13 +481,7 @@ const Navber = ({ setOpen }) => {
                                 onClick={() => setOpenProfileMenu(false)}
                                 className="flex min-h-[47px] cursor-pointer items-center gap-3 px-4 text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
                               >
-                                <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
-                                  <Icon size={13} />
-                                </span>
-
-                                <span className="flex-1 whitespace-pre-line leading-[16px]">
-                                  {item.label}
-                                </span>
+                                {content}
                               </Link>
                             );
                           })}
@@ -629,7 +631,6 @@ const Navber = ({ setOpen }) => {
         onRegisterClick={() => {
           setOpenLogin(false);
           setOpenRegister(true);
-
         }}
       />
 

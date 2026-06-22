@@ -34,7 +34,7 @@ import sliderRoutes from "./routes/sliderRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
 import siteIdentifyRoutes from "./routes/siteIdentifyRoutes.js";
 import affSiteIdentifyRoutes from "./routes/affSiteIdentifyRoutes.js";
-
+import globalClientRoutes from "./routes/globalClientRoutes.js";
 
 dotenv.config();
 
@@ -89,7 +89,12 @@ app.use("/api/favourite-banners", favouriteBannerRoutes);
 app.use("/api/sliders", sliderRoutes);
 app.use("/api/notice", noticeRoutes);
 app.use("/api/site-identify", siteIdentifyRoutes);
+
+// Affiliate Site Controller
 app.use("/api/aff-site-identify", affSiteIdentifyRoutes);
+
+// global client site Routes
+app.use("/api/global/client", globalClientRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

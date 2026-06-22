@@ -1,13 +1,23 @@
 import React from "react";
 import { Volume2 } from "lucide-react";
+import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
+import {
+  selectNotice,
+  selectGlobalLoading,
+  selectGlobalLoaded,
+} from "../../features/global/globalSelectors";
 
 const Notice = () => {
   const { isBangla } = useLanguage();
 
-  const noticeText = isBangla
-    ? "বাংলাদেশের সবচেয়ে বিশ্বস্ত ক্রিকেট বেটিং ও অনলাইন ক্যাসিনো প্ল্যাটফর্মে আপনাকে স্বাগতম! স্মার্ট ভাবে খেলুন, নিরাপদে খেলুন এবং প্রতিটি রেফারেল থেকে ৩ স্তর পর্যন্ত আনলিমিটেড রিবেট উপভোগ করুন।"
-    : "Welcome to Bangladesh's most trusted cricket betting and online casino platform! Play smart, play safe and enjoy unlimited rebate rewards from every referral up to 3 levels.";
+  const notice = useSelector(selectNotice);
+  const loading = useSelector(selectGlobalLoading);
+  const loaded = useSelector(selectGlobalLoaded);
+
+  const noticeText = isBangla ? notice?.text?.bn : notice?.text?.en;
+
+  const showSkeleton = loading || !loaded;
 
   return (
     <section className="w-full bg-[#0B66A8] py-1 md:bg-transparent">
@@ -20,11 +30,15 @@ const Notice = () => {
 
           {/* Marquee Area */}
           <div className="relative flex-1 overflow-hidden">
-            <div className="notice-track">
-              <span className="text-[14px] text-white md:text-[16px] font-medium md:text-[#444]">
-                {noticeText}
-              </span>
-            </div>
+            {showSkeleton ? (
+              <div className="h-[14px] w-full animate-pulse rounded bg-white/40 md:bg-gray-300" />
+            ) : (
+              <div className="notice-track">
+                <span className="text-[14px] text-white md:text-[16px] font-medium md:text-[#444]">
+                  {noticeText || ""}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
