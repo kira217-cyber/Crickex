@@ -20,6 +20,7 @@ const initialState = {
   notice: null,
   sliders: [],
   favouriteBanners: [],
+  footerSetting: null,
   loading: false,
   loaded: false,
   error: null,
@@ -42,6 +43,7 @@ const globalSlice = createSlice({
         state.notice = action.payload?.notice || null;
         state.sliders = action.payload?.sliders || [];
         state.favouriteBanners = action.payload?.favouriteBanners || [];
+        state.footerSetting = action.payload?.footerSetting || null;
       })
       .addCase(fetchGlobalClientData.rejected, (state, action) => {
         state.loading = false;

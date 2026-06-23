@@ -41,6 +41,7 @@ import AddNotice from "../pages/AddNotice/AddNotice";
 import SiteIdentify from "../pages/SiteIdentify/SiteIdentify";
 import AffSiteIdentify from "../pages/AffSiteIdentify/AffSiteIdentify";
 import AddHotGame from "../pages/AddHotGame/AddHotGame";
+import FooterSetting from "../pages/FooterSetting/FooterSetting";
 
 export const routes = createBrowserRouter([
   {
@@ -306,6 +307,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="client-slider-control">
             <AddSlider />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "footer-setting",
+        element: (
+          <PrivateRoute permKey="footer-setting">
+            <FooterSetting />
           </PrivateRoute>
         ),
       },

@@ -4,7 +4,6 @@ import Slider from "../../components/Slider/Slider";
 import Categories from "../../components/Categories/Categories";
 import Favourites from "../../components/Favourites/Favourites";
 import PopularGames from "../../components/PopularGames/PopularGames";
-import Footer from "../../components/Footer/Footer";
 import BalanceSection from "../../components/BalanceSection/BalanceSection";
 
 const Home = () => {
@@ -16,7 +15,6 @@ const Home = () => {
       <Categories />
       <Favourites />
       <PopularGames />
-      
     </div>
   );
 };

@@ -40,6 +40,7 @@ import globalGameClientRoutes from "./routes/globalGameClientRoutes.js";
 import playGameRoutes from "./routes/playGameRoutes.js";
 import callbackRoutes from "./routes/callbackRoutes.js";
 import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
+import footerSettingRoutes from "./routes/footerSettingRoutes.js";
 
 dotenv.config();
 
@@ -100,6 +101,7 @@ app.use("/api/favourite-banners", favouriteBannerRoutes);
 app.use("/api/sliders", sliderRoutes);
 app.use("/api/notice", noticeRoutes);
 app.use("/api/site-identify", siteIdentifyRoutes);
+app.use("/api/footer-settings", footerSettingRoutes);
 
 // Affiliate Site Controller
 app.use("/api/aff-site-identify", affSiteIdentifyRoutes);

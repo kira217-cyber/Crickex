@@ -27,6 +27,7 @@ import {
   FaReceipt,
   FaHotjar,
 } from "react-icons/fa";
+import { IoFootstepsOutline } from "react-icons/io5";
 import {
   MdCategory,
   MdFavorite,
@@ -288,6 +289,13 @@ const Sidebar = () => {
         icon: <FaNotesMedical />,
         text: "Add Notice Control",
       },
+      {
+        key: "footer-setting",
+        to: "/footer-setting",
+        icon: <IoFootstepsOutline />,
+        text: "Footer Setting",
+      },
+
     ],
     [],
   );

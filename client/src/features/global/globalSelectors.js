@@ -10,4 +10,4 @@ export const selectSliders = (state) => state.global.sliders;
 
 export const selectFavouriteBanners = (state) => state.global.favouriteBanners;
 
-
+export const selectFooterSetting = (state) => state.global.footerSetting;
