@@ -263,7 +263,7 @@ const Navber = ({ setOpen }) => {
       path: "__withdraw_modal__",
       icon: BadgeDollarSign,
     },
-    { label: texts.referBonus, path: "/refer-bonus", icon: Gift },
+    { label: texts.referBonus, path: "/", icon: Gift },
     {
       label: texts.transaction,
       path: "__transaction_modal__",

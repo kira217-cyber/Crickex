@@ -40,6 +40,7 @@ import AddSlider from "../pages/AddSlider/AddSlider";
 import AddNotice from "../pages/AddNotice/AddNotice";
 import SiteIdentify from "../pages/SiteIdentify/SiteIdentify";
 import AffSiteIdentify from "../pages/AffSiteIdentify/AffSiteIdentify";
+import AddHotGame from "../pages/AddHotGame/AddHotGame";
 
 export const routes = createBrowserRouter([
   {
@@ -265,6 +266,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="add-popular-game">
             <AddPopularGame />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "add-hot-game",
+        element: (
+          <PrivateRoute permKey="add-hot-game">
+            <AddHotGame />
           </PrivateRoute>
         ),
       },

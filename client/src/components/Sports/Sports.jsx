@@ -1,58 +1,29 @@
 import React from "react";
+import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
-
-const sportsItems = [
-  {
-    id: 1,
-    name: { bn: "ক্রিকেট", en: "CRICKET" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/icon-set/sports-icon/icon-exchange.png?v=1779771685731",
-  },
-  {
-    id: 2,
-    name: { bn: "সাবা", en: "SABA" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/brand/black/provider-saba.png?v=1779771685731",
-  },
-  {
-    id: 3,
-    name: { bn: "বিটিআই", en: "BTi" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/brand/black/provider-sbtech.png?v=1779771685731",
-  },
-  {
-    id: 4,
-    name: { bn: "এসবিও", en: "SBO" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/brand/black/provider-sbov2.png?v=1779771685731",
-  },
-  {
-    id: 5,
-    name: { bn: "হর্স", en: "HORSE" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/icon-set/sports-icon/icon-horsebook.png?v=1779771685731",
-  },
-  {
-    id: 6,
-    name: { bn: "সিএমডি", en: "CMD" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/brand/black/provider-cmd.png?v=1779771685731",
-  },
-  {
-    id: 7,
-    name: { bn: "পিনাকল", en: "PINNACLE" },
-    image:
-      "https://img.c88rx.com/cx/h5/assets/images/brand/black/provider-awcv2_pinnacle.png?v=1779771685731",
-  },
-  {
-    id: 8,
-    name: { bn: "", en: "" },
-    image: "",
-  },
-];
+import {
+  selectSports,
+  selectGlobalGameLoading,
+  selectGlobalGameLoaded,
+} from "../../features/globalGame/globalGameSelectors";
 
 const Sports = () => {
+  const navigate = useNavigate();
   const { isBangla } = useLanguage();
+
+  const sports = useSelector(selectSports);
+  const loading = useSelector(selectGlobalGameLoading);
+  const loaded = useSelector(selectGlobalGameLoaded);
+
+  const showSkeleton = loading || !loaded;
+
+  const handleSportClick = (item) => {
+    const gameId = item?.gameId || "";
+    if (!gameId) return;
+
+    navigate(`/play-game/${gameId}?uid=${gameId}`);
+  };
 
   return (
     <section className="w-full  pb-2">
@@ -65,25 +36,47 @@ const Sports = () => {
         </div>
 
         <div className="grid grid-cols-4 gap-[6px] md:gap-[10px] px-[6px] md:grid-cols-8">
-          {sportsItems.map((item) => (
-            <button
-              key={item.id}
-              className="flex h-[78px] flex-col items-center justify-center overflow-hidden bg-white px-1 transition hover:shadow-sm"
-            >
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={isBangla ? item.name.bn : item.name.en}
-                  className="mb-[5px] h-[38px] w-[58px] object-contain"
-                  draggable="false"
-                />
-              )}
+          {showSkeleton
+            ? Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex h-[78px] flex-col items-center justify-center overflow-hidden bg-white px-1"
+                >
+                  <div className="mb-[5px] h-[38px] w-[58px] animate-pulse rounded bg-gray-200" />
+                  <div className="h-[12px] w-[70%] animate-pulse rounded bg-gray-200" />
+                </div>
+              ))
+            : Array.isArray(sports) && sports.length > 0
+              ? sports.map((item, index) => {
+                  const name = isBangla
+                    ? item?.name?.bn || item?.name?.en || ""
+                    : item?.name?.en || item?.name?.bn || "";
 
-              <p className="w-full truncate text-center text-[12px] leading-none text-[#111] md:text-[14px]">
-                {isBangla ? item.name.bn : item.name.en}
-              </p>
-            </button>
-          ))}
+                  const image = item?.iconImageUrl || "";
+
+                  return (
+                    <button
+                      key={item?._id || item?.id || item?.gameId || index}
+                      type="button"
+                      onClick={() => handleSportClick(item)}
+                      className="flex h-[78px] cursor-pointer flex-col items-center justify-center overflow-hidden bg-white px-1 transition hover:shadow-sm"
+                    >
+                      {image && (
+                        <img
+                          src={image}
+                          alt={name}
+                          className="mb-[5px] h-[38px] w-[58px] object-contain"
+                          draggable="false"
+                        />
+                      )}
+
+                      <p className="w-full truncate text-center text-[12px] leading-none text-[#111] md:text-[14px]">
+                        {name}
+                      </p>
+                    </button>
+                  );
+                })
+              : null}
         </div>
       </div>
     </section>

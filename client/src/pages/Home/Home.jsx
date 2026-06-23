@@ -16,7 +16,7 @@ const Home = () => {
       <Categories />
       <Favourites />
       <PopularGames />
-      <Footer />
+      
     </div>
   );
 };

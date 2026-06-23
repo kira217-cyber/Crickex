@@ -7,6 +7,8 @@ import Register from "../pages/Register/Register";
 import Withdraw from "../pages/Withdraw/Withdraw";
 import Deposit from "../pages/Deposit/Deposit";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
+import Games from "../pages/Games/Games";
+import PlayGame from "../pages/PlayGame/PlayGame";
 
 export const routes = createBrowserRouter([
   {
@@ -17,6 +19,14 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "games",
+        element: <Games />,
+      },
+      {
+        path: "/play-game/:gameId",
+        element: <PlayGame />,
       },
       {
         path: "withdraw",

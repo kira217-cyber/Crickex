@@ -25,6 +25,7 @@ import {
   FaUserFriends,
   FaUserShield,
   FaReceipt,
+  FaHotjar,
 } from "react-icons/fa";
 import {
   MdCategory,
@@ -244,6 +245,12 @@ const Sidebar = () => {
         to: "/add-popular-game",
         icon: <MdGames />,
         text: "Add Popular Game",
+      },
+      {
+        key: "add-hot-game",
+        to: "/add-hot-game",
+        icon: <FaHotjar />,
+        text: "Add Hot Game",
       },
       {
         key: "all-game-history",

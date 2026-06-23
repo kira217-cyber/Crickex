@@ -2,13 +2,15 @@ import React, { useMemo, useState } from "react";
 import {
   Clock3,
   CheckCircle2,
+  XCircle,
   Receipt,
   Wallet,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Target,
+  Gamepad2,
   TrendingUp,
+  Hash,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -39,56 +41,36 @@ const formatDate = (value) => {
   });
 };
 
-const sourceText = (sourceType = "", isBangla = false) => {
-  const v = String(sourceType || "").toLowerCase();
-
-  if (v === "deposit") return isBangla ? "ডিপোজিট" : "Deposit";
-  if (v === "auto-deposit") return isBangla ? "অটো ডিপোজিট" : "Auto Deposit";
-  if (v === "auto-personal-deposit")
-    return isBangla ? "অটো পার্সোনাল ডিপোজিট" : "Auto Personal Deposit";
-  if (v === "register-bonus")
-    return isBangla ? "রেজিস্টার বোনাস" : "Register Bonus";
-  if (v === "admin-manual-deposit")
-    return isBangla ? "এডমিন ম্যানুয়াল ডিপোজিট" : "Admin Manual Deposit";
-
-  return sourceType || "—";
-};
-
-const percent = (progress, required) => {
-  const p = Number(progress || 0);
-  const r = Number(required || 0);
-  if (!r || r <= 0) return 0;
-  return Math.min(100, Math.max(0, Math.floor((p / r) * 100)));
-};
-
-const TurnoverHistoryModal = ({ onBackToDeposit }) => {
+const BetHistoryModal = () => {
   const { isBangla } = useLanguage();
 
   const [page, setPage] = useState(1);
+  const [resultType, setResultType] = useState("");
   const limit = 10;
 
   const t = {
-    subtitle: isBangla ? "আপনার টার্নওভার হিস্টোরি" : "Your turnover history",
+    subtitle: isBangla ? "আপনার বেট হিস্টোরি" : "Your bet history",
     loading: isBangla ? "লোড হচ্ছে..." : "Loading...",
-    noData: isBangla
-      ? "কোনো টার্নওভার হিস্টোরি পাওয়া যায়নি"
-      : "No turnover history found",
+    noData: isBangla ? "কোনো বেট হিস্টোরি পাওয়া যায়নি" : "No bet history found",
     total: isBangla ? "মোট" : "Total",
-    source: isBangla ? "সোর্স" : "Source",
-    required: isBangla ? "প্রয়োজনীয়" : "Required",
-    progress: isBangla ? "প্রগ্রেস" : "Progress",
-    creditedAmount: isBangla ? "ক্রেডিট এমাউন্ট" : "Credited Amount",
+    bet: isBangla ? "বেট" : "Bet",
+    win: isBangla ? "উইন" : "Win",
+    net: isBangla ? "নেট" : "Net",
+    game: isBangla ? "গেম" : "Game",
+    round: isBangla ? "রাউন্ড" : "Round",
+    serial: isBangla ? "সিরিয়াল" : "Serial",
     status: isBangla ? "স্ট্যাটাস" : "Status",
     date: isBangla ? "তারিখ" : "Date",
-    completedAt: isBangla ? "সম্পন্ন হয়েছে" : "Completed At",
+    balanceBefore: isBangla ? "আগের ব্যালেন্স" : "Balance Before",
+    balanceAfter: isBangla ? "পরের ব্যালেন্স" : "Balance After",
     page: isBangla ? "পেজ" : "Page",
     of: isBangla ? "এর" : "of",
     prev: isBangla ? "আগের" : "Prev",
     next: isBangla ? "পরের" : "Next",
-    back: isBangla ? "ডিপোজিটে যান" : "Back To Deposit",
-    running: isBangla ? "চলমান" : "Running",
-    completed: isBangla ? "সম্পন্ন" : "Completed",
-    refresh: isBangla ? "রিফ্রেশ" : "Refresh",
+    all: isBangla ? "সব" : "All",
+    won: isBangla ? "জিতেছে" : "Won",
+    lost: isBangla ? "হেরেছে" : "Lost",
+    push: isBangla ? "পুশ" : "Push",
   };
 
   const queryParams = useMemo(() => {
@@ -97,13 +79,17 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
     params.append("page", String(page));
     params.append("limit", String(limit));
 
+    if (resultType) {
+      params.append("resultType", resultType);
+    }
+
     return params.toString();
-  }, [page]);
+  }, [page, resultType]);
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["turnover-history-modal", queryParams],
+    queryKey: ["bet-history-modal", queryParams],
     queryFn: async () => {
-      const res = await api.get(`/api/turnovers/my?${queryParams}`);
+      const res = await api.get(`/api/game-history/my?${queryParams}`);
       return res.data;
     },
     keepPreviousData: true,
@@ -127,19 +113,27 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
     }
   };
 
-  const statusBadge = (statusValue) => {
-    const s = String(statusValue || "running").toLowerCase();
+  const statusBadge = (value) => {
+    const s = String(value || "push").toLowerCase();
 
-    if (s === "completed") {
+    if (s === "win") {
       return {
-        label: t.completed,
+        label: t.won,
         cls: "bg-green-100 text-green-700 border-green-200",
         icon: <CheckCircle2 size={14} />,
       };
     }
 
+    if (s === "loss") {
+      return {
+        label: t.lost,
+        cls: "bg-red-100 text-red-700 border-red-200",
+        icon: <XCircle size={14} />,
+      };
+    }
+
     return {
-      label: t.running,
+      label: t.push,
       cls: "bg-yellow-100 text-yellow-700 border-yellow-200",
       icon: <Clock3 size={14} />,
     };
@@ -177,6 +171,22 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
         </div>
       </div>
 
+      <div className="shrink-0 bg-[#f3f7fb] px-4 py-3">
+        <select
+          value={resultType}
+          onChange={(e) => {
+            setResultType(e.target.value);
+            setPage(1);
+          }}
+          className="h-[36px] w-full rounded-[4px] border border-[#dce8f5] bg-white px-3 text-[13px] text-[#333] outline-none"
+        >
+          <option value="">{t.all}</option>
+          <option value="win">{t.won}</option>
+          <option value="loss">{t.lost}</option>
+          <option value="push">{t.push}</option>
+        </select>
+      </div>
+
       <div className="flex-1 overflow-y-auto bg-[#f3f7fb] px-4 py-4">
         {isLoading ? (
           <div className="rounded-[6px] bg-white p-6 text-center text-[13px] text-[#666] shadow-sm">
@@ -185,8 +195,7 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
         ) : rows.length ? (
           <div className="space-y-3">
             {rows.map((item) => {
-              const statusInfo = statusBadge(item?.status);
-              const progressPercent = percent(item?.progress, item?.required);
+              const statusInfo = statusBadge(item?.resultType);
 
               return (
                 <div
@@ -196,7 +205,7 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-bold text-[#222]">
-                        {sourceText(item?.sourceType, isBangla)}
+                        {t.game}: {item?.game_uid || "—"}
                       </p>
 
                       <p className="mt-1 text-[12px] text-[#777]">
@@ -215,75 +224,81 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
                     <div className="rounded-[4px] bg-[#f4f8ff] p-2">
                       <div className="flex items-center gap-1 text-[#777]">
-                        <Target size={13} />
-                        <span>{t.required}</span>
+                        <Wallet size={13} />
+                        <span>{t.bet}</span>
                       </div>
-
                       <p className="mt-1 font-bold text-[#0865a9]">
-                        {money(item?.required)}
+                        {money(item?.bet_amount)}
                       </p>
                     </div>
 
                     <div className="rounded-[4px] bg-[#f4f8ff] p-2">
                       <div className="flex items-center gap-1 text-[#777]">
                         <TrendingUp size={13} />
-                        <span>{t.progress}</span>
+                        <span>{t.win}</span>
                       </div>
-
                       <p className="mt-1 font-bold text-[#222]">
-                        {money(item?.progress)}
+                        {money(item?.win_amount)}
                       </p>
                     </div>
 
                     <div className="rounded-[4px] bg-[#f4f8ff] p-2">
                       <div className="flex items-center gap-1 text-[#777]">
-                        <Wallet size={13} />
-                        <span>{t.creditedAmount}</span>
+                        <Gamepad2 size={13} />
+                        <span>{t.net}</span>
                       </div>
-
-                      <p className="mt-1 font-bold text-[#222]">
-                        {money(item?.creditedAmount)}
+                      <p
+                        className={`mt-1 font-bold ${
+                          Number(item?.net_amount || 0) > 0
+                            ? "text-green-700"
+                            : Number(item?.net_amount || 0) < 0
+                              ? "text-red-700"
+                              : "text-[#222]"
+                        }`}
+                      >
+                        {money(item?.net_amount)}
                       </p>
                     </div>
 
                     <div className="rounded-[4px] bg-[#f4f8ff] p-2">
                       <div className="flex items-center gap-1 text-[#777]">
-                        <CheckCircle2 size={13} />
+                        <Hash size={13} />
                         <span>{t.status}</span>
                       </div>
-
                       <p className="mt-1 font-bold text-[#222]">
                         {statusInfo.label}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-[4px] bg-[#eef5ff] p-3">
-                    <div className="mb-2 flex items-center justify-between text-[12px] font-bold text-[#0865a9]">
-                      <span>{t.progress}</span>
-                      <span>{progressPercent}%</span>
-                    </div>
+                  <div className="mt-3 rounded-[4px] bg-[#eef5ff] p-3 text-[12px] text-[#555]">
+                    <p className="truncate">
+                      {t.round}:{" "}
+                      <span className="font-bold text-[#222]">
+                        {item?.game_round || "—"}
+                      </span>
+                    </p>
 
-                    <div className="h-[8px] overflow-hidden rounded-full bg-white">
-                      <div
-                        className="h-full rounded-full bg-[#0865a9]"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
+                    <p className="mt-1 truncate">
+                      {t.serial}:{" "}
+                      <span className="font-bold text-[#222]">
+                        {item?.serial_number || "—"}
+                      </span>
+                    </p>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[#777]">
                     <div className="rounded bg-[#fafafa] p-2">
-                      {t.completedAt}:{" "}
+                      {t.balanceBefore}:{" "}
                       <span className="font-bold text-[#222]">
-                        {formatDate(item?.completedAt)}
+                        {money(item?.balance_before)}
                       </span>
                     </div>
 
                     <div className="rounded bg-[#fafafa] p-2 text-right">
-                      ID:{" "}
+                      {t.balanceAfter}:{" "}
                       <span className="font-bold text-[#222]">
-                        {String(item?._id || "").slice(-8)}
+                        {money(item?.balance_after)}
                       </span>
                     </div>
                   </div>
@@ -308,7 +323,7 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
@@ -317,14 +332,6 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
           >
             <ChevronLeft size={16} />
             {t.prev}
-          </button>
-
-          <button
-            type="button"
-            onClick={onBackToDeposit}
-            className="h-[38px] cursor-pointer rounded-[4px] bg-[#0865a9] text-[13px] font-bold text-white"
-          >
-            {t.back}
           </button>
 
           <button
@@ -342,4 +349,4 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
   );
 };
 
-export default TurnoverHistoryModal;
+export default BetHistoryModal;

@@ -20,6 +20,8 @@ import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import AutoDepositModalHistory from "../AutoDepositModalHistory/AutoDepositModalHistory";
 import WithdrawHistoryModal from "../WithdrawHistoryModal/WithdrawHistoryModal";
+import TurnoverHistoryModal from "../TurnoverHistoryModal/TurnoverHistoryModal";
+import BetHistoryModal from "../BetHistoryModal/BetHistoryModal";
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -537,6 +539,15 @@ const DepositHistoryModal = ({ open, onClose, onBackToDeposit }) => {
               <WithdrawHistoryModal
                 onBackToWithdraw={() => {
                   onClose?.();
+                }}
+              />
+            ) : activeTab === "bet" ? (
+              <BetHistoryModal />
+            ) : activeTab === "turnover" ? (
+              <TurnoverHistoryModal
+                onBackToDeposit={() => {
+                  onClose?.();
+                  onBackToDeposit?.();
                 }}
               />
             ) : (

@@ -10,10 +10,22 @@ import SiteIdentity from "../components/SiteIdentity/SiteIdentity";
 import { fetchGlobalClientData } from "../features/global/globalSlice";
 import { selectGlobalLoaded } from "../features/global/globalSelectors";
 
+import { fetchGlobalGameData } from "../features/globalGame/globalGameSlice";
+import { selectGlobalGameLoaded } from "../features/globalGame/globalGameSelectors";
+import Footer from "../components/Footer/Footer";
+
 const RootLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
   const loaded = useSelector(selectGlobalLoaded);
+
+  const gameLoaded = useSelector(selectGlobalGameLoaded);
+
+  useEffect(() => {
+    if (!gameLoaded) {
+      dispatch(fetchGlobalGameData());
+    }
+  }, [dispatch, gameLoaded]);
 
   useEffect(() => {
     if (!loaded) {
@@ -31,7 +43,7 @@ const RootLayout = () => {
       <main className="min-h-screen pt-[56px] lg:pt-[64px]">
         <Outlet />
       </main>
-
+      <Footer />
       <BottomNavbar />
     </div>
   );

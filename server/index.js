@@ -35,6 +35,11 @@ import noticeRoutes from "./routes/noticeRoutes.js";
 import siteIdentifyRoutes from "./routes/siteIdentifyRoutes.js";
 import affSiteIdentifyRoutes from "./routes/affSiteIdentifyRoutes.js";
 import globalClientRoutes from "./routes/globalClientRoutes.js";
+import hotGameRoutes from "./routes/hotGameRoutes.js";
+import globalGameClientRoutes from "./routes/globalGameClientRoutes.js";
+import playGameRoutes from "./routes/playGameRoutes.js";
+import callbackRoutes from "./routes/callbackRoutes.js";
+import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
 
 dotenv.config();
 
@@ -83,6 +88,12 @@ app.use("/api/games", gameRoutes);
 app.use("/api/sports", sportRoutes);
 app.use("/api/popular-games", popularGameRoutes);
 app.use("/api/promotions", promotionRoutes);
+app.use("/api/hot-games", hotGameRoutes);
+
+// game Play system
+app.use("/api/play-game", playGameRoutes);
+app.use("/api/callback", callbackRoutes);
+app.use("/api/game-history", gameHistoryRoutes);
 
 // client site controller
 app.use("/api/favourite-banners", favouriteBannerRoutes);
@@ -95,6 +106,9 @@ app.use("/api/aff-site-identify", affSiteIdentifyRoutes);
 
 // global client site Routes
 app.use("/api/global/client", globalClientRoutes);
+
+// global game routes client site
+app.use("/api/global/client", globalGameClientRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

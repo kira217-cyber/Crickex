@@ -1,45 +1,65 @@
 import React from "react";
-
-import game1 from "../../assets/hotsgame/1.png";
-import game2 from "../../assets/hotsgame/2.png";
-import game3 from "../../assets/hotsgame/3.png";
-import game4 from "../../assets/hotsgame/4.png";
-import game5 from "../../assets/hotsgame/5.png";
-import game6 from "../../assets/hotsgame/6.png";
+import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
-
-const hotGames = [
-  { id: 1, name: "HEYVIP Super Ace", image: game1 },
-  { id: 2, name: "Fortune Gems Legend", image: game2 },
-  { id: 3, name: "Golden Idol", image: game3 },
-  { id: 4, name: "Revolver Hare", image: game4 },
-  { id: 5, name: "HEYVIP Gates of Sun", image: game5 },
-  { id: 6, name: "Fortune Garuda 500", image: game6 },
-
-  { id: 7, name: "Super Ace Deluxe", image: game1 },
-  { id: 8, name: "Boxing King", image: game2 },
-  { id: 9, name: "Fortune Gems 3", image: game3 },
-  { id: 10, name: "Money Coming", image: game4 },
-  { id: 11, name: "HEYVIP Super Element", image: game5 },
-  { id: 12, name: "HEYVIP Pirate Legend", image: game6 },
-
-  { id: 13, name: "Match Odds", image: game1 },
-  { id: 14, name: "Aviator", image: game2 },
-  { id: 15, name: "Crazy Time", image: game3 },
-  { id: 16, name: "Sexy Baccarat", image: game4 },
-  { id: 17, name: "HEYVIP Crash", image: game5 },
-  { id: 18, name: "Wild Bounty Showdown", image: game6 },
-
-  { id: 19, name: "Magic Ace Wild Lock", image: game1 },
-  { id: 20, name: "Aztec Gems", image: game2 },
-  { id: 21, name: "High Flyer", image: game3 },
-  { id: 22, name: "Mega Wheel", image: game4 },
-  { id: 23, name: "Treasure Island", image: game5 },
-  { id: 24, name: "Lucky Dragon", image: game6 },
-];
+import {
+  selectHotGames,
+  selectGlobalGameLoading,
+  selectGlobalGameLoaded,
+} from "../../features/globalGame/globalGameSelectors";
 
 const HotsGame = () => {
-    const { isBangla } = useLanguage();
+  const navigate = useNavigate();
+  const { isBangla } = useLanguage();
+
+  const hotGames = useSelector(selectHotGames);
+  const loading = useSelector(selectGlobalGameLoading);
+  const loaded = useSelector(selectGlobalGameLoaded);
+
+  const showSkeleton = loading || !loaded;
+
+  const getGameId = (item) => {
+    return item?.game?.gameId || item?.gameId || item?._id || "";
+  };
+
+  const getGameUId = (item) => {
+    return item?.game?.gameUId || item?.gameUId || item?.gameId || "";
+  };
+
+  const getGameName = (item) => {
+    return (
+      item?.game?.oracleGame?.name ||
+      item?.game?.name ||
+      item?.game?.gameName ||
+      item?.game?.gameUId ||
+      item?.name ||
+      item?.gameUId ||
+      item?.gameId ||
+      "Game"
+    );
+  };
+
+  const getGameImage = (item) => {
+    return (
+      item?.imageUrl ||
+      item?.game?.imageUrl ||
+      item?.game?.customImageUrl ||
+      item?.game?.oracleImageUrl ||
+      item?.game?.oracleGame?.thumbnail ||
+      item?.game?.oracleGame?.original ||
+      ""
+    );
+  };
+
+  const handleGameClick = (item) => {
+    const gameId = getGameId(item);
+    const gameUId = getGameUId(item);
+
+    if (!gameId) return;
+
+    navigate(`/play-game/${gameId}?uid=${gameUId}`);
+  };
+
   return (
     <section className="w-full pb-2">
       <div className="mx-auto w-full max-w-[480px] md:max-w-[1140px]">
@@ -51,23 +71,46 @@ const HotsGame = () => {
         </div>
 
         <div className="grid grid-cols-4 gap-[6px] md:gap-[10px] px-[6px] md:grid-cols-8">
-          {hotGames.map((game) => (
-            <button
-              key={game.id}
-              className="flex h-[78px] flex-col items-center justify-center overflow-hidden bg-white px-1 transition hover:shadow-sm md:h-[78px]"
-            >
-              <img
-                src={game.image}
-                alt={game.name}
-                className="mb-[5px] h-[38px] w-[52px] object-contain"
-                draggable="false"
-              />
+          {showSkeleton
+            ? Array.from({ length: 24 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex h-[78px] flex-col items-center justify-center overflow-hidden bg-white px-1 md:h-[78px]"
+                >
+                  <div className="mb-[5px] h-[38px] w-[52px] animate-pulse rounded bg-gray-200" />
+                  <div className="h-[12px] w-[70%] animate-pulse rounded bg-gray-200" />
+                </div>
+              ))
+            : Array.isArray(hotGames) && hotGames.length > 0
+              ? hotGames.map((item, index) => {
+                  const gameName = getGameName(item);
+                  const image = getGameImage(item);
 
-              <p className="w-full truncate text-center text-[12px] leading-none text-[#111] md:text-[14px]">
-                {game.name}
-              </p>
-            </button>
-          ))}
+                  return (
+                    <button
+                      key={item?._id || item?.id || item?.gameId || index}
+                      type="button"
+                      onClick={() => handleGameClick(item)}
+                      className="flex h-[78px] cursor-pointer flex-col items-center justify-center overflow-hidden bg-white px-1 transition hover:shadow-sm md:h-[78px]"
+                    >
+                      {image ? (
+                        <img
+                          src={image}
+                          alt={gameName}
+                          className="mb-[5px] h-[38px] w-[52px] object-contain"
+                          draggable="false"
+                        />
+                      ) : (
+                        <div className="mb-[5px] h-[38px] w-[52px]" />
+                      )}
+
+                      <p className="w-full truncate text-center text-[12px] leading-none text-[#111] md:text-[14px]">
+                        {gameName}
+                      </p>
+                    </button>
+                  );
+                })
+              : null}
         </div>
       </div>
     </section>
