@@ -42,6 +42,12 @@ import SiteIdentify from "../pages/SiteIdentify/SiteIdentify";
 import AffSiteIdentify from "../pages/AffSiteIdentify/AffSiteIdentify";
 import AddHotGame from "../pages/AddHotGame/AddHotGame";
 import FooterSetting from "../pages/FooterSetting/FooterSetting";
+import AllTurnOverHistory from "../pages/AllTurnOverHistory/AllTurnOverHistory";
+import NavbarColorSetting from "../pages/NavbarColorSetting/NavbarColorSetting";
+import SidebarColorSetting from "../pages/SidebarColorSetting/SidebarColorSetting";
+import CategorySectionSetting from "../pages/CategorySectionSetting/CategorySectionSetting";
+import RegisterModalSetting from "../pages/RegisterModalSetting/RegisterModalSetting";
+import LoginModalSetting from "../pages/LoginModalSetting/LoginModalSetting";
 
 export const routes = createBrowserRouter([
   {
@@ -270,7 +276,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "add-hot-game",
         element: (
           <PrivateRoute permKey="add-hot-game">
@@ -287,6 +293,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "all-turnover-history",
+        element: (
+          <PrivateRoute permKey="add-turnover-history">
+            <AllTurnOverHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "add-promotion",
         element: (
           <PrivateRoute permKey="add-promotion">
@@ -294,7 +308,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "add-favorite-banner",
         element: (
           <PrivateRoute permKey="add-favorite-banner">
@@ -319,6 +333,46 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "navbar-color-setting",
+        element: (
+          <PrivateRoute permKey="navbar-color-setting">
+            <NavbarColorSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "sidebar-color-setting",
+        element: (
+          <PrivateRoute permKey="sidebar-color-setting">
+            <SidebarColorSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "category-section-setting",
+        element: (
+          <PrivateRoute permKey="category-section-setting">
+            <CategorySectionSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "register-modal-setting",
+        element: (
+          <PrivateRoute permKey="register-modal-setting">
+            <RegisterModalSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "login-modal-setting",
+        element: (
+          <PrivateRoute permKey="login-modal-setting">
+            <LoginModalSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "add-notice-control",
         element: (
           <PrivateRoute permKey="add-notice-control">
@@ -334,7 +388,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "client-aff-site-identify",
         element: (
           <PrivateRoute permKey="client-aff-site-identify">

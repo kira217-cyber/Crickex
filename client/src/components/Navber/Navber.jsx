@@ -25,6 +25,7 @@ import {
   selectSiteIdentify,
   selectGlobalLoading,
   selectGlobalLoaded,
+  selectNavbarColorSetting,
 } from "../../features/global/globalSelectors";
 import api from "../../api/axios";
 
@@ -50,6 +51,39 @@ const flagUrl = {
   English: "https://flagcdn.com/w40/us.png",
 };
 
+const defaultColors = {
+  headerBg: "#0b66a8",
+  signupBg: "#5ed51d",
+  signupText: "#ffffff",
+  signupHoverBg: "#52c719",
+  loginBg: "#247ccf",
+  loginText: "#ffffff",
+  loginHoverBg: "#1f72c0",
+  depositBg: "#247ccf",
+  depositText: "#ffffff",
+  depositHoverBg: "#1f72c0",
+  walletBg: "#5ed51d",
+  walletText: "#ffffff",
+  walletHoverBg: "#52c719",
+  profileIconBg: "#ffffff",
+  profileIconColor: "#0b66a8",
+  dropdownBg: "#ffffff",
+  dropdownText: "#333333",
+  dropdownHoverBg: "#f7f7f7",
+  dropdownIconBg: "#ec4899",
+  dropdownIconText: "#ffffff",
+  logoutText: "#d93636",
+  logoutIconBg: "#d93636",
+  logoutHoverBg: "#fff3f3",
+  languageModalHeaderBg: "#0b66a8",
+  languageModalHeaderText: "#ffffff",
+  languageActiveBg: "#0b66a8",
+  languageActiveText: "#ffffff",
+  languageInactiveBg: "#ffffff",
+  languageInactiveText: "#111111",
+  mobileMenuIconColor: "#ffffff",
+};
+
 const Navber = ({ setOpen }) => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -61,9 +95,18 @@ const Navber = ({ setOpen }) => {
   const siteIdentify = useSelector(selectSiteIdentify);
   const globalLoading = useSelector(selectGlobalLoading);
   const globalLoaded = useSelector(selectGlobalLoaded);
+  const navbarColorSetting = useSelector(selectNavbarColorSetting);
 
-  const logoUrl = makeImageUrl(siteIdentify?.logoImage);
-  const logoLoading = globalLoading || !globalLoaded;
+  const colors = {
+    ...defaultColors,
+    ...(navbarColorSetting || {}),
+  };
+
+  const logoUrl = makeImageUrl(
+    siteIdentify?.logoImage || siteIdentify?.logo || "",
+  );
+
+  const pageLoading = globalLoading || !globalLoaded;
 
   const [openRegister, setOpenRegister] = useState(false);
   const [openLangModal, setOpenLangModal] = useState(false);
@@ -79,6 +122,13 @@ const Navber = ({ setOpen }) => {
   const [depositData, setDepositData] = useState(null);
   const [openWithdraw, setOpenWithdraw] = useState(false);
   const [refreshingBalance, setRefreshingBalance] = useState(false);
+
+  const [signupHover, setSignupHover] = useState(false);
+  const [loginHover, setLoginHover] = useState(false);
+  const [depositHover, setDepositHover] = useState(false);
+  const [walletHover, setWalletHover] = useState(false);
+  const [logoutHover, setLogoutHover] = useState(false);
+  const [hoveredMenu, setHoveredMenu] = useState("");
 
   const profileRef = useRef(null);
 
@@ -281,51 +331,88 @@ const Navber = ({ setOpen }) => {
     },
   ];
 
+  const getMenuClick = (path) => {
+    if (path === "__deposit_modal__") return openDeposit;
+    if (path === "__transaction_modal__") return openTransaction;
+    if (path === "__withdraw_modal__") return openWithdrawModal;
+    if (path === "__personal_info_modal__") return openUserInfo;
+    if (path === "__password_change_modal__") return openChangePassword;
+    return null;
+  };
+
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-30 h-[56px] bg-[#0b66a8] shadow-sm lg:h-[64px]">
+      <header
+        className="fixed left-0 right-0 top-0 z-30 h-[56px] shadow-sm lg:h-[64px]"
+        style={{ backgroundColor: colors.headerBg }}
+      >
         <div className="mx-auto flex h-full max-w-[1230px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="cursor-pointer text-white lg:hidden"
+            className="cursor-pointer lg:hidden"
+            style={{ color: colors.mobileMenuIconColor }}
           >
             <Menu size={25} />
           </button>
 
           <Link to="/" className="flex cursor-pointer items-center lg:flex-1">
-            {logoLoading ? (
+            {pageLoading ? (
               <div className="h-[24px] w-[105px] animate-pulse rounded bg-white/30 lg:h-[28px] lg:w-[125px]" />
-            ) : (
+            ) : logoUrl ? (
               <img
                 src={logoUrl}
                 alt="logo"
                 className="h-[24px] object-contain lg:h-[28px]"
               />
+            ) : (
+              <div className="h-[24px] w-[105px] rounded bg-white/30 lg:h-[28px] lg:w-[125px]" />
             )}
           </Link>
 
           <div className="hidden items-center gap-3 lg:flex">
-            {!isAuth ? (
+            {pageLoading ? (
+              <>
+                <div className="h-[38px] w-[105px] animate-pulse rounded-[5px] bg-white/25" />
+                <div className="h-[38px] w-[105px] animate-pulse rounded-[5px] bg-white/25" />
+                <div className="h-[34px] w-[34px] animate-pulse rounded-full bg-white/25" />
+              </>
+            ) : !isAuth ? (
               <>
                 <button
                   type="button"
+                  onMouseEnter={() => setSignupHover(true)}
+                  onMouseLeave={() => setSignupHover(false)}
                   onClick={() => {
                     closeAllModals();
                     setOpenRegister(true);
                   }}
-                  className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#5ed51d] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#52c719]"
+                  className="min-w-[105px] cursor-pointer rounded-[5px] px-6 py-[10px] text-center text-[13px] font-bold transition"
+                  style={{
+                    backgroundColor: signupHover
+                      ? colors.signupHoverBg
+                      : colors.signupBg,
+                    color: colors.signupText,
+                  }}
                 >
                   {texts.signup}
                 </button>
 
                 <button
                   type="button"
+                  onMouseEnter={() => setLoginHover(true)}
+                  onMouseLeave={() => setLoginHover(false)}
                   onClick={() => {
                     closeAllModals();
                     setOpenLogin(true);
                   }}
-                  className="min-w-[105px] cursor-pointer rounded-[5px] bg-[#247ccf] px-6 py-[10px] text-center text-[13px] font-bold text-white transition hover:bg-[#1f72c0]"
+                  className="min-w-[105px] cursor-pointer rounded-[5px] px-6 py-[10px] text-center text-[13px] font-bold transition"
+                  style={{
+                    backgroundColor: loginHover
+                      ? colors.loginHoverBg
+                      : colors.loginBg,
+                    color: colors.loginText,
+                  }}
                 >
                   {texts.login}
                 </button>
@@ -334,8 +421,16 @@ const Navber = ({ setOpen }) => {
               <>
                 <button
                   type="button"
+                  onMouseEnter={() => setDepositHover(true)}
+                  onMouseLeave={() => setDepositHover(false)}
                   onClick={openDeposit}
-                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] bg-[#247ccf] px-3 text-[13px] font-medium text-white transition hover:bg-[#1f72c0]"
+                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] px-3 text-[13px] font-medium transition"
+                  style={{
+                    backgroundColor: depositHover
+                      ? colors.depositHoverBg
+                      : colors.depositBg,
+                    color: colors.depositText,
+                  }}
                 >
                   <WalletCards size={18} className="fill-white/20" />
                   <span>{texts.deposit}</span>
@@ -343,9 +438,17 @@ const Navber = ({ setOpen }) => {
 
                 <button
                   type="button"
+                  onMouseEnter={() => setWalletHover(true)}
+                  onMouseLeave={() => setWalletHover(false)}
                   onClick={handleRefreshBalance}
                   disabled={refreshingBalance}
-                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[5px] bg-[#5ed51d] px-3 text-[13px] font-bold text-white transition hover:bg-[#52c719] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[5px] px-3 text-[13px] font-bold transition disabled:cursor-not-allowed disabled:opacity-70"
+                  style={{
+                    backgroundColor: walletHover
+                      ? colors.walletHoverBg
+                      : colors.walletBg,
+                    color: colors.walletText,
+                  }}
                 >
                   <RefreshCw
                     size={16}
@@ -359,7 +462,11 @@ const Navber = ({ setOpen }) => {
                   <button
                     type="button"
                     onClick={() => setOpenProfileMenu((prev) => !prev)}
-                    className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-full bg-white text-[#0b66a8] transition hover:scale-105"
+                    className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-full transition hover:scale-105"
+                    style={{
+                      backgroundColor: colors.profileIconBg,
+                      color: colors.profileIconColor,
+                    }}
                   >
                     <UserCircle size={25} />
                   </button>
@@ -371,21 +478,23 @@ const Navber = ({ setOpen }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.16 }}
-                        className="absolute right-0 top-[43px] w-[215px] overflow-hidden rounded-[2px] bg-white text-[#333] shadow-xl"
+                        className="absolute right-0 top-[43px] w-[215px] overflow-hidden rounded-[2px] shadow-xl"
+                        style={{
+                          backgroundColor: colors.dropdownBg,
+                          color: colors.dropdownText,
+                        }}
                       >
-                        <div className="border-b border-[#f0f0f0] px-4 py-3">
-                          <div className="text-[14px] text-[#333]">
-                            {texts.vipPoints}
-                          </div>
-                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold text-[#005eb8]">
+                        <div className="border-b border-black/10 px-4 py-3">
+                          <div className="text-[14px]">{texts.vipPoints}</div>
+                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold">
                             <span>0</span>
                             <RefreshCw size={13} />
                           </div>
 
-                          <div className="mt-3 text-[14px] text-[#333]">
+                          <div className="mt-3 text-[14px]">
                             {texts.bonusWallet}
                           </div>
-                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold text-[#005eb8]">
+                          <div className="mt-1 flex items-center gap-2 text-[18px] font-bold">
                             <span>৳ 0</span>
                             <RefreshCw size={13} />
                           </div>
@@ -394,80 +503,47 @@ const Navber = ({ setOpen }) => {
                         <div className="py-2">
                           {menuItems.map((item) => {
                             const Icon = item.icon;
-
-                            const commonButtonClass =
-                              "flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]";
+                            const modalClick = getMenuClick(item.path);
+                            const isHovered = hoveredMenu === item.path;
 
                             const content = (
                               <>
-                                <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-pink-500 text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                                <span
+                                  className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                                  style={{
+                                    backgroundColor: colors.dropdownIconBg,
+                                    color: colors.dropdownIconText,
+                                  }}
+                                >
                                   <Icon size={13} />
                                 </span>
+
                                 <span className="flex-1 whitespace-pre-line leading-[16px]">
                                   {item.label}
                                 </span>
                               </>
                             );
 
-                            if (item.path === "__deposit_modal__") {
-                              return (
-                                <button
-                                  key={item.path}
-                                  type="button"
-                                  onClick={openDeposit}
-                                  className={commonButtonClass}
-                                >
-                                  {content}
-                                </button>
-                              );
-                            }
+                            const commonStyle = {
+                              backgroundColor: isHovered
+                                ? colors.dropdownHoverBg
+                                : "transparent",
+                              color: colors.dropdownText,
+                            };
 
-                            if (item.path === "__transaction_modal__") {
-                              return (
-                                <button
-                                  key={item.path}
-                                  type="button"
-                                  onClick={openTransaction}
-                                  className={commonButtonClass}
-                                >
-                                  {content}
-                                </button>
-                              );
-                            }
+                            const commonClass =
+                              "flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold transition";
 
-                            if (item.path === "__withdraw_modal__") {
+                            if (modalClick) {
                               return (
                                 <button
                                   key={item.path}
                                   type="button"
-                                  onClick={openWithdrawModal}
-                                  className={commonButtonClass}
-                                >
-                                  {content}
-                                </button>
-                              );
-                            }
-
-                            if (item.path === "__personal_info_modal__") {
-                              return (
-                                <button
-                                  key={item.path}
-                                  type="button"
-                                  onClick={openUserInfo}
-                                  className={commonButtonClass}
-                                >
-                                  {content}
-                                </button>
-                              );
-                            }
-
-                            if (item.path === "__password_change_modal__") {
-                              return (
-                                <button
-                                  key={item.path}
-                                  type="button"
-                                  onClick={openChangePassword}
-                                  className={commonButtonClass}
+                                  onClick={modalClick}
+                                  onMouseEnter={() => setHoveredMenu(item.path)}
+                                  onMouseLeave={() => setHoveredMenu("")}
+                                  className={commonClass}
+                                  style={commonStyle}
                                 >
                                   {content}
                                 </button>
@@ -479,7 +555,10 @@ const Navber = ({ setOpen }) => {
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setOpenProfileMenu(false)}
-                                className="flex min-h-[47px] cursor-pointer items-center gap-3 px-4 text-[16px] font-bold text-[#3d3d3d] transition hover:bg-[#f7f7f7]"
+                                onMouseEnter={() => setHoveredMenu(item.path)}
+                                onMouseLeave={() => setHoveredMenu("")}
+                                className={commonClass}
+                                style={commonStyle}
                               >
                                 {content}
                               </Link>
@@ -489,9 +568,20 @@ const Navber = ({ setOpen }) => {
                           <button
                             type="button"
                             onClick={handleLogout}
-                            className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold text-[#d93636] transition hover:bg-[#fff3f3]"
+                            onMouseEnter={() => setLogoutHover(true)}
+                            onMouseLeave={() => setLogoutHover(false)}
+                            className="flex min-h-[47px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[16px] font-bold transition"
+                            style={{
+                              color: colors.logoutText,
+                              backgroundColor: logoutHover
+                                ? colors.logoutHoverBg
+                                : "transparent",
+                            }}
                           >
-                            <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[#d93636] text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+                            <span
+                              className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                              style={{ backgroundColor: colors.logoutIconBg }}
+                            >
                               <LogOut size={13} />
                             </span>
                             <span>{texts.logout}</span>
@@ -504,13 +594,34 @@ const Navber = ({ setOpen }) => {
               </>
             )}
 
+            {!pageLoading && (
+              <button
+                type="button"
+                onClick={() => {
+                  closeAllModals();
+                  setOpenLangModal(true);
+                }}
+                className="ml-1 flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105"
+              >
+                <img
+                  src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
+                  alt={language}
+                  className="h-[26px] w-[26px] rounded-full object-cover"
+                />
+              </button>
+            )}
+          </div>
+
+          {pageLoading ? (
+            <div className="h-[34px] w-[34px] animate-pulse rounded-full bg-white/25 lg:hidden" />
+          ) : (
             <button
               type="button"
               onClick={() => {
                 closeAllModals();
                 setOpenLangModal(true);
               }}
-              className="ml-1 flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105"
+              className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105 lg:hidden"
             >
               <img
                 src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
@@ -518,22 +629,7 @@ const Navber = ({ setOpen }) => {
                 className="h-[26px] w-[26px] rounded-full object-cover"
               />
             </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              closeAllModals();
-              setOpenLangModal(true);
-            }}
-            className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full transition hover:scale-105 lg:hidden"
-          >
-            <img
-              src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
-              alt={language}
-              className="h-[26px] w-[26px] rounded-full object-cover"
-            />
-          </button>
+          )}
         </div>
       </header>
 
@@ -547,19 +643,24 @@ const Navber = ({ setOpen }) => {
               transition={{ duration: 0.22 }}
               className="w-full max-w-[360px] overflow-hidden rounded-2xl bg-white shadow-2xl"
             >
-              <div className="bg-[#0b66a8] px-5 py-4 text-white">
+              <div
+                className="px-5 py-4"
+                style={{
+                  backgroundColor: colors.languageModalHeaderBg,
+                  color: colors.languageModalHeaderText,
+                }}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold">{texts.language}</h2>
-                    <p className="mt-1 text-xs text-white/80">
-                      {texts.subtitle}
-                    </p>
+                    <p className="mt-1 text-xs opacity-80">{texts.subtitle}</p>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setOpenLangModal(false)}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+                    style={{ color: colors.languageModalHeaderText }}
                   >
                     <X size={18} />
                   </button>
@@ -579,11 +680,18 @@ const Navber = ({ setOpen }) => {
                           changeLanguage(item.key);
                           setOpenLangModal(false);
                         }}
-                        className={`mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0 ${
-                          active
-                            ? "bg-[#0b66a8] text-white shadow-md"
-                            : "bg-white text-[#111] hover:bg-[#f8fbff]"
-                        }`}
+                        className="mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0"
+                        style={{
+                          backgroundColor: active
+                            ? colors.languageActiveBg
+                            : colors.languageInactiveBg,
+                          color: active
+                            ? colors.languageActiveText
+                            : colors.languageInactiveText,
+                          boxShadow: active
+                            ? "0 4px 10px rgba(0,0,0,0.12)"
+                            : "none",
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <img
@@ -598,11 +706,14 @@ const Navber = ({ setOpen }) => {
                         </div>
 
                         <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                            active
-                              ? "border-white bg-white text-[#0b66a8]"
-                              : "border-[#c9dff2] bg-[#eef7ff] text-transparent"
-                          }`}
+                          className="flex h-6 w-6 items-center justify-center rounded-full border"
+                          style={{
+                            borderColor: active ? "#ffffff" : "#c9dff2",
+                            backgroundColor: active ? "#ffffff" : "#eef7ff",
+                            color: active
+                              ? colors.languageActiveBg
+                              : "transparent",
+                          }}
                         >
                           <Check size={15} />
                         </span>

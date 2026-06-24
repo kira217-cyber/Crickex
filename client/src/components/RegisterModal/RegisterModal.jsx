@@ -4,22 +4,60 @@ import { ChevronDown, Eye, EyeOff, Search, X, CheckCircle } from "lucide-react";
 import { useLocation } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
 import api from "../../api/axios";
 import { setCredentials } from "../../features/auth/authSlice";
+import { selectRegisterModalSetting } from "../../features/global/globalSelectors";
 
 import slide1 from "../../assets/register/1.jpg";
 import slide2 from "../../assets/register/2.jpg";
 import slide3 from "../../assets/register/3.jpg";
 import slide4 from "../../assets/register/4.jpg";
 
-const logoUrl =
+const fallbackLogo =
   "https://img.c88rx.com/cx/h5/assets/images/member-logo.png?v=1780386038573";
 
-const slides = [slide1, slide2, slide3, slide4];
+const fallbackSlides = [slide1, slide2, slide3, slide4];
+
+const defaultSetting = {
+  logo: "",
+  logoUrl: "",
+
+  overlayBg: "rgba(0,0,0,0.45)",
+  modalBg: "#ffffff",
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+
+  labelText: "#222222",
+  inputBg: "#eeeeee",
+  inputText: "#111111",
+  inputBorder: "#d7d7d7",
+  placeholderText: "#8c98a3",
+
+  helperText: "#758494",
+  helperIcon: "#8d969b",
+
+  buttonBg: "#0865a9",
+  buttonText: "#ffffff",
+  buttonDisabledBg: "#a6a6a6",
+
+  linkText: "#0069b4",
+  footerText: "#8d969b",
+
+  sliderDotActive: "#0865a9",
+  sliderDotInactive: "#cfd5da",
+  bannerBg: "#0b66a8",
+
+  dropdownBg: "#ffffff",
+  dropdownText: "#111111",
+  dropdownBorder: "#dddddd",
+  dropdownHoverBg: "#f5f5f5",
+
+  sliderImages: [],
+};
 
 const getRefFromSearch = (search = "") => {
   const params = new URLSearchParams(search);
@@ -36,6 +74,27 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
   const { isBangla } = useLanguage();
   const dispatch = useDispatch();
   const location = useLocation();
+
+  const registerModalSetting = useSelector(selectRegisterModalSetting);
+
+  const setting = {
+    ...defaultSetting,
+    ...(registerModalSetting || {}),
+  };
+
+  const logoUrl = setting.logoUrl || setting.logo || fallbackLogo;
+
+  const slides = useMemo(() => {
+    const dbSlides = Array.isArray(setting.sliderImages)
+      ? setting.sliderImages
+          .filter((item) => item?.status !== "inactive")
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+          .map((item) => item?.imageUrl || item?.image)
+          .filter(Boolean)
+      : [];
+
+    return dbSlides.length > 0 ? dbSlides : fallbackSlides;
+  }, [setting.sliderImages]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
@@ -138,13 +197,20 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
 
   useEffect(() => {
     if (!open) return;
+    if (!slides.length) return;
 
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % slides.length);
     }, 2600);
 
     return () => clearInterval(timer);
-  }, [open]);
+  }, [open, slides.length]);
+
+  useEffect(() => {
+    if (activeSlide >= slides.length) {
+      setActiveSlide(0);
+    }
+  }, [activeSlide, slides.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -319,25 +385,43 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     });
   };
 
+  const inputStyle = {
+    backgroundColor: setting.inputBg,
+    color: setting.inputText,
+    borderColor: setting.inputBorder,
+    "--placeholder-color": setting.placeholderText,
+  };
+
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+          style={{ background: setting.overlayBg }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            style={{ backgroundColor: setting.modalBg }}
           >
-            <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+            <div
+              className="relative flex h-[50px] shrink-0 items-center justify-center"
+              style={{
+                backgroundColor: setting.headerBg,
+                color: setting.headerText,
+              }}
+            >
               <h2 className="text-[18px] font-semibold">{text.title}</h2>
 
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={registerMutation.isPending}
-                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ color: setting.headerText }}
               >
                 <X size={24} />
               </button>
@@ -361,7 +445,10 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                 >
                   {slides.map((img, index) => (
                     <div key={index} className="min-w-full px-[21px]">
-                      <div className="h-[104px] overflow-hidden rounded-[4px] bg-[#0b66a8]">
+                      <div
+                        className="h-[104px] overflow-hidden rounded-[4px]"
+                        style={{ backgroundColor: setting.bannerBg }}
+                      >
                         <img
                           src={img}
                           alt={`register-banner-${index + 1}`}
@@ -379,17 +466,23 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                     key={index}
                     type="button"
                     onClick={() => setActiveSlide(index)}
-                    className={`h-[6px] cursor-pointer rounded-full transition-all ${
-                      activeSlide === index
-                        ? "w-[18px] bg-[#0865a9]"
-                        : "w-[6px] bg-[#cfd5da]"
-                    }`}
+                    className="h-[6px] cursor-pointer rounded-full transition-all"
+                    style={{
+                      width: activeSlide === index ? "18px" : "6px",
+                      backgroundColor:
+                        activeSlide === index
+                          ? setting.sliderDotActive
+                          : setting.sliderDotInactive,
+                    }}
                   />
                 ))}
               </div>
 
               <div className="px-[21px] pt-6">
-                <label className="mb-3 block text-[14px] text-[#222]">
+                <label
+                  className="mb-3 block text-[14px]"
+                  style={{ color: setting.labelText }}
+                >
                   {text.chooseCurrency}
                 </label>
 
@@ -397,9 +490,10 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                   <button
                     type="button"
                     onClick={() => setCurrencyOpen((prev) => !prev)}
-                    className="flex h-[45px] w-full cursor-pointer items-center justify-between rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-3"
+                    className="flex h-[45px] w-full cursor-pointer items-center justify-between rounded-[4px] border px-3"
+                    style={inputStyle}
                   >
-                    <span className="flex items-center gap-3 text-[14px] text-[#111]">
+                    <span className="flex items-center gap-3 text-[14px]">
                       <img
                         src="https://flagcdn.com/w40/bd.png"
                         alt="BD"
@@ -408,15 +502,22 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                       BDT
                     </span>
 
-                    <ChevronDown size={17} className="text-[#666]" />
+                    <ChevronDown size={17} />
                   </button>
 
                   {currencyOpen && (
-                    <div className="absolute left-0 top-[49px] z-20 w-full rounded border border-[#ddd] bg-white shadow">
+                    <div
+                      className="absolute left-0 top-[49px] z-20 w-full rounded border shadow"
+                      style={{
+                        backgroundColor: setting.dropdownBg,
+                        color: setting.dropdownText,
+                        borderColor: setting.dropdownBorder,
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => setCurrencyOpen(false)}
-                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-3 text-left text-sm hover:bg-gray-100"
+                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-3 text-left text-sm"
                       >
                         <img
                           src="https://flagcdn.com/w40/bd.png"
@@ -430,7 +531,10 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                 </div>
 
                 <div className="mt-8">
-                  <label className="mb-3 block text-[14px] text-[#222]">
+                  <label
+                    className="mb-3 block text-[14px]"
+                    style={{ color: setting.labelText }}
+                  >
                     {text.username}
                   </label>
 
@@ -447,40 +551,59 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                     }
                     placeholder={text.usernamePh}
                     disabled={registerMutation.isPending}
-                    className="h-[45px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4 text-[13px] outline-none placeholder:text-[#8c98a3] disabled:cursor-not-allowed"
+                    className="register-dynamic-input h-[45px] w-full rounded-[4px] border px-4 text-[13px] outline-none disabled:cursor-not-allowed"
+                    style={inputStyle}
                   />
                 </div>
 
                 <div className="mt-5">
-                  <label className="mb-3 block text-[14px] text-[#222]">
+                  <label
+                    className="mb-3 block text-[14px]"
+                    style={{ color: setting.labelText }}
+                  >
                     {text.password}
                   </label>
 
-                  <div className="flex h-[45px] items-center rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4">
+                  <div
+                    className="flex h-[45px] items-center rounded-[4px] border px-4"
+                    style={inputStyle}
+                  >
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value.slice(0, 20))}
                       placeholder={text.passwordPh}
                       disabled={registerMutation.isPending}
-                      className="h-full min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[#8c98a3] disabled:cursor-not-allowed"
+                      className="register-dynamic-input h-full min-w-0 flex-1 bg-transparent text-[13px] outline-none disabled:cursor-not-allowed"
+                      style={{
+                        color: setting.inputText,
+                        "--placeholder-color": setting.placeholderText,
+                      }}
                     />
 
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="cursor-pointer text-[#999]"
+                      className="cursor-pointer"
+                      style={{ color: setting.placeholderText }}
                     >
                       {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                     </button>
                   </div>
 
-                  <div className="mt-3 space-y-2 text-[14px] leading-[18px] text-[#758494]">
+                  <div
+                    className="mt-3 space-y-2 text-[14px] leading-[18px]"
+                    style={{ color: setting.helperText }}
+                  >
                     {[text.rule1, text.rule2, text.rule3].map((rule) => (
                       <div key={rule} className="flex items-start gap-2">
                         <CheckCircle
                           size={17}
-                          className="mt-[1px] shrink-0 fill-[#8d969b] text-[#8d969b]"
+                          className="mt-[1px] shrink-0"
+                          style={{
+                            fill: setting.helperIcon,
+                            color: setting.helperIcon,
+                          }}
                         />
                         <span>{rule}</span>
                       </div>
@@ -489,12 +612,18 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                 </div>
 
                 <div className="mt-5">
-                  <label className="mb-3 block text-[14px] text-[#222]">
+                  <label
+                    className="mb-3 block text-[14px]"
+                    style={{ color: setting.labelText }}
+                  >
                     {text.phone}
                   </label>
 
                   <div ref={countryRef} className="relative">
-                    <div className="flex h-[45px] items-center rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee]">
+                    <div
+                      className="flex h-[45px] items-center rounded-[4px] border"
+                      style={inputStyle}
+                    >
                       <button
                         type="button"
                         onClick={() => setCountryOpen((prev) => !prev)}
@@ -507,12 +636,15 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                           className="h-[22px] w-[22px] rounded-full object-cover"
                         />
 
-                        <span className="text-[13px] font-semibold text-[#111]">
+                        <span className="text-[13px] font-semibold">
                           {selected.code}
                         </span>
                       </button>
 
-                      <div className="h-[22px] w-px bg-[#d8d8d8]" />
+                      <div
+                        className="h-[22px] w-px"
+                        style={{ backgroundColor: setting.inputBorder }}
+                      />
 
                       <input
                         type="tel"
@@ -524,21 +656,45 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                         }
                         placeholder={text.phonePh}
                         disabled={registerMutation.isPending}
-                        className="h-full min-w-0 flex-1 bg-transparent px-4 text-[13px] outline-none placeholder:text-[#8c98a3] disabled:cursor-not-allowed"
+                        className="register-dynamic-input h-full min-w-0 flex-1 bg-transparent px-4 text-[13px] outline-none disabled:cursor-not-allowed"
+                        style={{
+                          color: setting.inputText,
+                          "--placeholder-color": setting.placeholderText,
+                        }}
                       />
                     </div>
 
                     {countryOpen && (
-                      <div className="absolute left-0 top-[50px] z-30 w-full overflow-hidden rounded-md border border-[#ddd] bg-white shadow-xl">
-                        <div className="border-b border-[#eee] p-2">
-                          <div className="flex h-9 items-center gap-2 rounded border border-[#ddd] px-2">
-                            <Search size={15} className="text-[#777]" />
+                      <div
+                        className="absolute left-0 top-[50px] z-30 w-full overflow-hidden rounded-md border shadow-xl"
+                        style={{
+                          backgroundColor: setting.dropdownBg,
+                          color: setting.dropdownText,
+                          borderColor: setting.dropdownBorder,
+                        }}
+                      >
+                        <div
+                          className="border-b p-2"
+                          style={{ borderColor: setting.dropdownBorder }}
+                        >
+                          <div
+                            className="flex h-9 items-center gap-2 rounded border px-2"
+                            style={{
+                              borderColor: setting.dropdownBorder,
+                              color: setting.dropdownText,
+                            }}
+                          >
+                            <Search size={15} />
 
                             <input
                               value={search}
                               onChange={(e) => setSearch(e.target.value)}
                               placeholder={text.searchCountry}
-                              className="h-full w-full bg-transparent text-sm outline-none"
+                              className="register-dynamic-input h-full w-full bg-transparent text-sm outline-none"
+                              style={{
+                                color: setting.dropdownText,
+                                "--placeholder-color": setting.placeholderText,
+                              }}
                             />
                           </div>
                         </div>
@@ -553,7 +709,19 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                                 setCountryOpen(false);
                                 setSearch("");
                               }}
-                              className="flex w-full cursor-pointer items-center justify-between px-3 py-2 text-left hover:bg-[#f5f5f5]"
+                              className="flex w-full cursor-pointer items-center justify-between px-3 py-2 text-left"
+                              style={{
+                                color: setting.dropdownText,
+                                backgroundColor: setting.dropdownBg,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  setting.dropdownHoverBg;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  setting.dropdownBg;
+                              }}
                             >
                               <span className="flex items-center gap-2">
                                 <img
@@ -576,7 +744,10 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                 </div>
 
                 <div className="mt-5">
-                  <label className="mb-3 block text-[14px] text-[#222]">
+                  <label
+                    className="mb-3 block text-[14px]"
+                    style={{ color: setting.labelText }}
+                  >
                     {text.refCode}
                   </label>
 
@@ -593,7 +764,8 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                     }
                     placeholder={text.refPh}
                     disabled={registerMutation.isPending}
-                    className="h-[45px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4 text-[13px] outline-none placeholder:text-[#8c98a3] disabled:cursor-not-allowed"
+                    className="register-dynamic-input h-[45px] w-full rounded-[4px] border px-4 text-[13px] outline-none disabled:cursor-not-allowed"
+                    style={inputStyle}
                   />
                 </div>
 
@@ -601,28 +773,48 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={!canSubmit || registerMutation.isPending}
-                  className="mt-8 h-[44px] w-full cursor-pointer rounded-[3px] bg-[#0865a9] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                  className="mt-8 h-[44px] w-full cursor-pointer rounded-[3px] text-[14px] font-medium disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor:
+                      !canSubmit || registerMutation.isPending
+                        ? setting.buttonDisabledBg
+                        : setting.buttonBg,
+                    color: setting.buttonText,
+                  }}
                 >
                   {registerMutation.isPending ? text.loading : text.submit}
                 </button>
 
-                <div className="mt-5 text-center text-[14px] text-[#8d969b]">
+                <div
+                  className="mt-5 text-center text-[14px]"
+                  style={{ color: setting.footerText }}
+                >
                   {text.already}{" "}
                   <button
                     type="button"
                     onClick={onLoginClick}
                     disabled={registerMutation.isPending}
-                    className="cursor-pointer text-[#0069b4] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{ color: setting.linkText }}
                   >
                     {text.login}
                   </button>
                 </div>
 
-                <p className="mx-auto mt-5 max-w-[320px] text-center text-[14px] leading-[18px] text-[#8d969b]">
+                <p
+                  className="mx-auto mt-5 max-w-[320px] text-center text-[14px] leading-[18px]"
+                  style={{ color: setting.footerText }}
+                >
                   {text.terms}
                 </p>
               </div>
             </div>
+
+            <style>{`
+              .register-dynamic-input::placeholder {
+                color: var(--placeholder-color);
+              }
+            `}</style>
           </motion.div>
         </div>
       )}

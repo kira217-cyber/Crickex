@@ -88,7 +88,13 @@ router.get("/admin", protectAdmin, async (req, res) => {
       const userIds = users.map((u) => u._id);
 
       filter.$or = [
-        { user: { $in: userIds.length ? userIds : [new mongoose.Types.ObjectId()] } },
+        {
+          user: {
+            $in: userIds.length
+              ? userIds
+              : [new mongoose.Types.ObjectId()],
+          },
+        },
         { userId: { $regex: q, $options: "i" } },
         { userGamePlayName: { $regex: q, $options: "i" } },
         { member_account: { $regex: q, $options: "i" } },
@@ -98,16 +104,43 @@ router.get("/admin", protectAdmin, async (req, res) => {
       ];
     }
 
-    const [items, total] = await Promise.all([
+    const [items, total, summaryAgg] = await Promise.all([
       GameHistory.find(filter)
-        .populate("user", "userId userGamePlayName phone email balance role isActive")
+        .populate(
+          "user",
+          "userId userGamePlayName phone email balance role isActive",
+        )
         .populate("affiliateUser", "userId phone email role")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
+
       GameHistory.countDocuments(filter),
+
+      GameHistory.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: null,
+            totalBetAmount: { $sum: "$bet_amount" },
+            totalWinAmount: { $sum: "$win_amount" },
+            totalNetAmount: { $sum: "$net_amount" },
+            totalWinCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "win"] }, 1, 0] },
+            },
+            totalLossCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "loss"] }, 1, 0] },
+            },
+            totalPushCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "push"] }, 1, 0] },
+            },
+          },
+        },
+      ]),
     ]);
+
+    const summary = summaryAgg?.[0] || {};
 
     return res.json({
       success: true,
@@ -116,6 +149,18 @@ router.get("/admin", protectAdmin, async (req, res) => {
         page,
         limit,
         total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+      summary: {
+        totalBetAmount: summary.totalBetAmount || 0,
+        totalWinAmount: summary.totalWinAmount || 0,
+        totalNetAmount: summary.totalNetAmount || 0,
+        siteProfit: Number(summary.totalNetAmount || 0) * -1,
+        totalTransactions: total,
+        totalWinCount: summary.totalWinCount || 0,
+        totalLossCount: summary.totalLossCount || 0,
+        totalPushCount: summary.totalPushCount || 0,
+        pageRecords: items.length,
       },
     });
   } catch (error) {
@@ -126,24 +171,87 @@ router.get("/admin", protectAdmin, async (req, res) => {
   }
 });
 
-/* ---------------- ADMIN: SINGLE BET HISTORY ---------------- */
-router.get("/admin/:id", protectAdmin, async (req, res) => {
+/* ---------------- ADMIN: SINGLE USER BET HISTORY ---------------- */
+router.get("/admin/user/:userId", protectAdmin, async (req, res) => {
   try {
-    const doc = await GameHistory.findById(req.params.id)
-      .populate("user", "userId userGamePlayName phone email balance role isActive")
-      .populate("affiliateUser", "userId phone email role")
-      .lean();
+    const page = safePage(req.query.page);
+    const limit = safeLimit(req.query.limit);
+    const skip = (page - 1) * limit;
 
-    if (!doc) {
-      return res.status(404).json({
-        success: false,
-        message: "Game history not found",
-      });
+    const q = String(req.query.q || "").trim();
+    const resultType = String(req.query.resultType || "").trim();
+    const { userId } = req.params;
+
+    const filter = {
+      user: new mongoose.Types.ObjectId(userId),
+    };
+
+    if (resultType && ["win", "loss", "push"].includes(resultType)) {
+      filter.resultType = resultType;
     }
+
+    if (q) {
+      filter.$or = [
+        { game_uid: { $regex: q, $options: "i" } },
+        { game_round: { $regex: q, $options: "i" } },
+        { serial_number: { $regex: q, $options: "i" } },
+        { member_account: { $regex: q, $options: "i" } },
+        { userGamePlayName: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const [items, total, summaryAgg] = await Promise.all([
+      GameHistory.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      GameHistory.countDocuments(filter),
+
+      GameHistory.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: null,
+            totalBetAmount: { $sum: "$bet_amount" },
+            totalWinAmount: { $sum: "$win_amount" },
+            totalNetAmount: { $sum: "$net_amount" },
+            totalWinCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "win"] }, 1, 0] },
+            },
+            totalLossCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "loss"] }, 1, 0] },
+            },
+            totalPushCount: {
+              $sum: { $cond: [{ $eq: ["$resultType", "push"] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+    ]);
+
+    const summary = summaryAgg?.[0] || {};
 
     return res.json({
       success: true,
-      data: doc,
+      data: items,
+      summary: {
+        totalBetAmount: summary.totalBetAmount || 0,
+        totalWinAmount: summary.totalWinAmount || 0,
+        totalNetAmount: summary.totalNetAmount || 0,
+        siteProfit: Number(summary.totalNetAmount || 0) * -1,
+        totalWinCount: summary.totalWinCount || 0,
+        totalLossCount: summary.totalLossCount || 0,
+        totalPushCount: summary.totalPushCount || 0,
+        totalRecords: total,
+      },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -152,5 +260,6 @@ router.get("/admin/:id", protectAdmin, async (req, res) => {
     });
   }
 });
+
 
 export default router;

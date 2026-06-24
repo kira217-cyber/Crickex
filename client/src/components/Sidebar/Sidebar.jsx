@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 import { useLanguage } from "../../Context/LanguageProvider";
-import SidebarItem from "./SidebarItem";
+import PromotionModal from "./../PromotionModal/PromotionModal";
 
 import {
   selectGameCategories,
@@ -31,7 +31,51 @@ import {
   selectHotGames,
 } from "../../features/globalGame/globalGameSelectors";
 
+import { selectSidebarColorSetting } from "../../features/global/globalSelectors";
+
 const AFFILIATE_URL = import.meta.env.VITE_AFFILIATE_URL || "/";
+
+const defaultColors = {
+  desktopBg: "#0b66a8",
+  desktopToggleBg: "#075893",
+  desktopToggleText: "#ffffff",
+  desktopToggleHoverBg: "#1979c9",
+
+  desktopItemHoverBg: "#1979c9",
+  desktopItemActiveBg: "#37a2ff",
+  desktopItemActiveBorder: "#ffffff",
+
+  desktopIconBg: "#075893",
+  desktopIconText: "#ffffff",
+  desktopActiveIconBg: "#005fff",
+  desktopActiveIconText: "#ffffff",
+
+  desktopExpandedText: "#ffffff",
+  desktopExpandedIconBg: "#075893",
+  desktopExpandedActiveBg: "#37a2ff",
+
+  desktopChildBg: "#f4f4f4",
+  desktopChildText: "#111111",
+  desktopChildHoverBg: "#ffffff",
+  desktopChildBorder: "#d8d8d8",
+
+  mobileBg: "#ffffff",
+  mobileText: "#111111",
+  mobileItemHoverBg: "#f7f7f7",
+  mobileItemActiveBg: "#e8f4ff",
+  mobileItemActiveText: "#0b66a8",
+  mobileIconText: "#0b66a8",
+
+  mobileSectionText: "#111111",
+  mobileSectionBorder: "#d9e6f2",
+
+  mobilePanelBg: "#f5f5f5",
+  mobilePanelBorder: "#d9d9d9",
+  mobilePanelText: "#222222",
+  mobilePanelHoverBg: "#ffffff",
+
+  overlayBg: "rgba(0,0,0,0.60)",
+};
 
 const Sidebar = ({ open, setOpen }) => {
   const navigate = useNavigate();
@@ -41,11 +85,23 @@ const Sidebar = ({ open, setOpen }) => {
   const providersByCategory = useSelector(selectProvidersByCategory);
   const sports = useSelector(selectSports);
   const hotGames = useSelector(selectHotGames);
+  const sidebarColorSetting = useSelector(selectSidebarColorSetting);
+
+  const colors = {
+    ...defaultColors,
+    ...(sidebarColorSetting || {}),
+  };
 
   const [desktopOpen, setDesktopOpen] = useState(false);
   const [activeKey, setActiveKey] = useState("home");
   const [desktopExpandedKey, setDesktopExpandedKey] = useState("");
   const [mobilePanel, setMobilePanel] = useState(null);
+  const [promotionOpen, setPromotionOpen] = useState(false);
+
+  const [desktopHoverKey, setDesktopHoverKey] = useState("");
+  const [desktopChildHover, setDesktopChildHover] = useState("");
+  const [mobileHoverKey, setMobileHoverKey] = useState("");
+  const [mobileChildHover, setMobileChildHover] = useState("");
 
   const topMenus = useMemo(
     () => [
@@ -55,7 +111,7 @@ const Sidebar = ({ open, setOpen }) => {
         bn: "প্রমোশন",
         en: "Promotion",
         icon: Gift,
-        path: "/promotion",
+        path: "__promotion__",
       },
       {
         key: "referral",
@@ -216,8 +272,14 @@ const Sidebar = ({ open, setOpen }) => {
   };
 
   const goPath = (path = "/") => {
+    if (path === "__promotion__") {
+      closeMobile();
+      setPromotionOpen(true);
+      return;
+    }
+
     if (path === "__affiliate__") {
-      window.location.href = AFFILIATE_URL;
+      window.open(AFFILIATE_URL, "_blank", "noopener,noreferrer");
       return;
     }
 
@@ -259,24 +321,34 @@ const Sidebar = ({ open, setOpen }) => {
 
   return (
     <>
-      <div
-        onClick={closeMobile}
-        className={`fixed inset-0 z-40 bg-black/60 transition-all duration-300 ease-in-out lg:hidden ${
-          open ? "visible opacity-100" : "invisible opacity-0"
-        }`}
+      <PromotionModal
+        open={promotionOpen}
+        onClose={() => setPromotionOpen(false)}
       />
 
-      {/* Desktop Sidebar */}
+      <div
+        onClick={closeMobile}
+        className={`fixed inset-0 z-40 transition-all duration-300 ease-in-out lg:hidden ${
+          open ? "visible opacity-100" : "invisible opacity-0"
+        }`}
+        style={{ background: colors.overlayBg }}
+      />
+
       <aside
-        className={`fixed left-0 top-0 z-50 hidden h-screen bg-[#0b66a8] shadow-xl transition-all duration-300 ease-in-out lg:block ${
+        className={`fixed left-0 top-0 z-50 hidden h-screen shadow-xl transition-all duration-300 ease-in-out lg:block ${
           desktopOpen ? "w-[250px]" : "w-[57px]"
         }`}
+        style={{ backgroundColor: colors.desktopBg }}
       >
         {desktopOpen && (
           <button
             type="button"
             onClick={() => setDesktopOpen(false)}
-            className="absolute -right-[18px] top-3 z-50 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[#075893] text-white shadow-lg transition hover:scale-105"
+            className="absolute -right-[18px] top-3 z-50 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition hover:scale-105"
+            style={{
+              backgroundColor: colors.desktopToggleBg,
+              color: colors.desktopToggleText,
+            }}
           >
             <ChevronLeft size={23} />
           </button>
@@ -286,9 +358,23 @@ const Sidebar = ({ open, setOpen }) => {
           <button
             type="button"
             onClick={() => setDesktopOpen(true)}
-            className="flex h-[52px] w-full cursor-pointer items-center justify-center transition hover:bg-[#1979c9]"
+            onMouseEnter={() => setDesktopHoverKey("__toggle__")}
+            onMouseLeave={() => setDesktopHoverKey("")}
+            className="flex h-[52px] w-full cursor-pointer items-center justify-center transition"
+            style={{
+              backgroundColor:
+                desktopHoverKey === "__toggle__"
+                  ? colors.desktopToggleHoverBg
+                  : "transparent",
+            }}
           >
-            <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#075893] text-white shadow">
+            <span
+              className="flex h-[32px] w-[32px] items-center justify-center rounded-full shadow"
+              style={{
+                backgroundColor: colors.desktopToggleBg,
+                color: colors.desktopToggleText,
+              }}
+            >
               <ChevronRight size={22} />
             </span>
           </button>
@@ -299,6 +385,7 @@ const Sidebar = ({ open, setOpen }) => {
             const Icon = item.icon;
             const expanded = desktopExpandedKey === item.key;
             const active = activeKey === item.key;
+            const hovered = desktopHoverKey === item.key;
 
             if (!desktopOpen) {
               return (
@@ -306,16 +393,30 @@ const Sidebar = ({ open, setOpen }) => {
                   key={item.key}
                   type="button"
                   onClick={() => handleItem(item, "desktop")}
-                  className={`flex h-[52px] w-full cursor-pointer items-center justify-center transition-all duration-200 ease-in-out ${
-                    active
-                      ? "bg-[#37a2ff] shadow-[inset_4px_0_0_0_#ffffff]"
-                      : "hover:bg-[#1979c9]"
-                  }`}
+                  onMouseEnter={() => setDesktopHoverKey(item.key)}
+                  onMouseLeave={() => setDesktopHoverKey("")}
+                  className="flex h-[52px] w-full cursor-pointer items-center justify-center transition-all duration-200 ease-in-out"
+                  style={{
+                    backgroundColor: active
+                      ? colors.desktopItemActiveBg
+                      : hovered
+                        ? colors.desktopItemHoverBg
+                        : "transparent",
+                    boxShadow: active
+                      ? `inset 4px 0 0 0 ${colors.desktopItemActiveBorder}`
+                      : "none",
+                  }}
                 >
                   <span
-                    className={`flex h-[32px] w-[32px] items-center justify-center rounded-full text-white transition ${
-                      active ? "bg-[#005fff]" : "bg-[#075893]"
-                    }`}
+                    className="flex h-[32px] w-[32px] items-center justify-center rounded-full transition"
+                    style={{
+                      backgroundColor: active
+                        ? colors.desktopActiveIconBg
+                        : colors.desktopIconBg,
+                      color: active
+                        ? colors.desktopActiveIconText
+                        : colors.desktopIconText,
+                    }}
                   >
                     <Icon size={19} />
                   </span>
@@ -325,14 +426,49 @@ const Sidebar = ({ open, setOpen }) => {
 
             return (
               <div key={item.key}>
-                <SidebarItem
-                  item={item}
-                  label={label(item)}
-                  active={active}
-                  expanded={expanded}
-                  desktop
+                <button
+                  type="button"
                   onClick={() => handleItem(item, "desktop")}
-                />
+                  onMouseEnter={() => setDesktopHoverKey(item.key)}
+                  onMouseLeave={() => setDesktopHoverKey("")}
+                  className="flex h-[52px] w-full cursor-pointer items-center gap-3 px-4 text-left transition-all duration-200"
+                  style={{
+                    backgroundColor: active
+                      ? colors.desktopExpandedActiveBg
+                      : hovered
+                        ? colors.desktopItemHoverBg
+                        : "transparent",
+                    color: colors.desktopExpandedText,
+                    boxShadow: active
+                      ? `inset 4px 0 0 0 ${colors.desktopItemActiveBorder}`
+                      : "none",
+                  }}
+                >
+                  <span
+                    className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor: active
+                        ? colors.desktopActiveIconBg
+                        : colors.desktopExpandedIconBg,
+                      color: active
+                        ? colors.desktopActiveIconText
+                        : colors.desktopIconText,
+                    }}
+                  >
+                    <Icon size={19} />
+                  </span>
+
+                  <span className="flex-1 text-[15px] font-semibold">
+                    {label(item)}
+                  </span>
+
+                  {item.children?.length > 0 && (
+                    <ChevronRight
+                      size={17}
+                      className={`transition ${expanded ? "rotate-90" : ""}`}
+                    />
+                  )}
+                </button>
 
                 <AnimatePresence>
                   {item.children && expanded && (
@@ -341,33 +477,48 @@ const Sidebar = ({ open, setOpen }) => {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.22 }}
-                      className="overflow-hidden bg-[#f4f4f4]"
+                      className="overflow-hidden"
+                      style={{ backgroundColor: colors.desktopChildBg }}
                     >
-                      {item.children.map((child, index) => (
-                        <button
-                          key={child.id || index}
-                          type="button"
-                          onClick={() => {
-                            setActiveKey(item.key);
-                            goPath(child.path);
-                          }}
-                          className="flex h-[46px] w-full cursor-pointer items-center gap-3 border-b border-[#d8d8d8] px-9 text-left transition hover:bg-white"
-                        >
-                          {child.image ? (
-                            <img
-                              src={child.image}
-                              alt={childLabel(child)}
-                              className="h-6 w-6 shrink-0 object-contain"
-                            />
-                          ) : (
-                            <span className="text-xl">{child.icon}</span>
-                          )}
+                      {item.children.map((child, index) => {
+                        const childKey = child.id || index;
+                        const childHovered = desktopChildHover === childKey;
 
-                          <span className="text-[14px] font-medium text-[#111]">
-                            {childLabel(child)}
-                          </span>
-                        </button>
-                      ))}
+                        return (
+                          <button
+                            key={childKey}
+                            type="button"
+                            onClick={() => {
+                              setActiveKey(item.key);
+                              goPath(child.path);
+                            }}
+                            onMouseEnter={() => setDesktopChildHover(childKey)}
+                            onMouseLeave={() => setDesktopChildHover("")}
+                            className="flex h-[46px] w-full cursor-pointer items-center gap-3 border-b px-9 text-left transition"
+                            style={{
+                              backgroundColor: childHovered
+                                ? colors.desktopChildHoverBg
+                                : "transparent",
+                              borderColor: colors.desktopChildBorder,
+                              color: colors.desktopChildText,
+                            }}
+                          >
+                            {child.image ? (
+                              <img
+                                src={child.image}
+                                alt={childLabel(child)}
+                                className="h-6 w-6 shrink-0 object-contain"
+                              />
+                            ) : (
+                              <span className="text-xl">{child.icon}</span>
+                            )}
+
+                            <span className="text-[14px] font-medium">
+                              {childLabel(child)}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -377,11 +528,14 @@ const Sidebar = ({ open, setOpen }) => {
         </div>
       </aside>
 
-      {/* Mobile Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-[194px] transform bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed left-0 top-0 z-50 h-screen w-[194px] transform shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{
+          backgroundColor: colors.mobileBg,
+          color: colors.mobileText,
+        }}
       >
         <div className="h-full overflow-y-auto overflow-x-hidden pb-5 pt-3 sidebar-scroll">
           <MenuGroup
@@ -389,29 +543,37 @@ const Sidebar = ({ open, setOpen }) => {
             label={label}
             activeKey={activeKey}
             onItem={(item) => handleItem(item, "mobile")}
+            colors={colors}
+            hoverKey={mobileHoverKey}
+            setHoverKey={setMobileHoverKey}
           />
 
-          <SectionTitle title="Games" />
+          <SectionTitle title="Games" colors={colors} />
 
           <MenuGroup
             items={gameMenus}
             label={label}
             activeKey={activeKey}
             onItem={(item) => handleItem(item, "mobile")}
+            colors={colors}
+            hoverKey={mobileHoverKey}
+            setHoverKey={setMobileHoverKey}
           />
 
-          <SectionTitle title="Others" />
+          <SectionTitle title="Others" colors={colors} />
 
           <MenuGroup
             items={otherMenus}
             label={label}
             activeKey={activeKey}
             onItem={(item) => handleItem(item, "mobile")}
+            colors={colors}
+            hoverKey={mobileHoverKey}
+            setHoverKey={setMobileHoverKey}
           />
         </div>
       </aside>
 
-      {/* Mobile Right Panel */}
       <AnimatePresence>
         {open && mobilePanel?.children?.length > 0 && (
           <motion.aside
@@ -419,36 +581,54 @@ const Sidebar = ({ open, setOpen }) => {
             animate={{ x: 194, opacity: 1 }}
             exit={{ x: 194, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="fixed left-0 top-0 z-[51] h-screen w-[108px] border-l border-[#d9d9d9] bg-[#f5f5f5] shadow-xl lg:hidden"
+            className="fixed left-0 top-0 z-[51] h-screen w-[108px] border-l shadow-xl lg:hidden"
+            style={{
+              backgroundColor: colors.mobilePanelBg,
+              borderColor: colors.mobilePanelBorder,
+            }}
           >
             <div className="h-full overflow-y-auto sidebar-scroll">
-              {mobilePanel.children.map((child, index) => (
-                <button
-                  key={child.id || index}
-                  type="button"
-                  onClick={() => {
-                    closeMobile();
-                    goPath(child.path);
-                  }}
-                  className="flex h-[100px] w-full cursor-pointer flex-col items-center justify-center border-b border-[#d9d9d9] text-center transition hover:bg-white"
-                >
-                  {child.image ? (
-                    <img
-                      src={child.image}
-                      alt={childLabel(child)}
-                      className="h-[44px] w-[44px] object-contain"
-                    />
-                  ) : (
-                    <span className="text-[32px] leading-none">
-                      {child.icon}
-                    </span>
-                  )}
+              {mobilePanel.children.map((child, index) => {
+                const childKey = child.id || index;
+                const hovered = mobileChildHover === childKey;
 
-                  <span className="mt-2 text-[14px] font-medium uppercase text-[#222]">
-                    {childLabel(child)}
-                  </span>
-                </button>
-              ))}
+                return (
+                  <button
+                    key={childKey}
+                    type="button"
+                    onClick={() => {
+                      closeMobile();
+                      goPath(child.path);
+                    }}
+                    onMouseEnter={() => setMobileChildHover(childKey)}
+                    onMouseLeave={() => setMobileChildHover("")}
+                    className="flex h-[100px] w-full cursor-pointer flex-col items-center justify-center border-b text-center transition"
+                    style={{
+                      backgroundColor: hovered
+                        ? colors.mobilePanelHoverBg
+                        : "transparent",
+                      borderColor: colors.mobilePanelBorder,
+                      color: colors.mobilePanelText,
+                    }}
+                  >
+                    {child.image ? (
+                      <img
+                        src={child.image}
+                        alt={childLabel(child)}
+                        className="h-[44px] w-[44px] object-contain"
+                      />
+                    ) : (
+                      <span className="text-[32px] leading-none">
+                        {child.icon}
+                      </span>
+                    )}
+
+                    <span className="mt-2 text-[14px] font-medium uppercase">
+                      {childLabel(child)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </motion.aside>
         )}
@@ -457,23 +637,84 @@ const Sidebar = ({ open, setOpen }) => {
   );
 };
 
-const MenuGroup = ({ items, label, activeKey, onItem }) => (
+const MenuGroup = ({
+  items,
+  label,
+  activeKey,
+  onItem,
+  colors,
+  hoverKey,
+  setHoverKey,
+}) => (
   <>
     {items.map((item) => (
-      <SidebarItem
+      <ColoredMobileItem
         key={item.key}
         item={item}
         label={label(item)}
         active={activeKey === item.key}
-        expanded={false}
         onClick={() => onItem(item)}
+        colors={colors}
+        hovered={hoverKey === item.key}
+        onMouseEnter={() => setHoverKey(item.key)}
+        onMouseLeave={() => setHoverKey("")}
       />
     ))}
   </>
 );
 
-const SectionTitle = ({ title }) => (
-  <div className="mx-3 my-3 border-t border-[#d9e6f2] pt-4 text-[15px] font-bold text-[#111]">
+const ColoredMobileItem = ({
+  item,
+  label,
+  active,
+  onClick,
+  colors,
+  hovered,
+  onMouseEnter,
+  onMouseLeave,
+}) => {
+  const Icon = item.icon;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="flex min-h-[42px] w-full cursor-pointer items-center gap-3 px-4 text-left text-[15px] font-semibold transition"
+      style={{
+        backgroundColor: active
+          ? colors.mobileItemActiveBg
+          : hovered
+            ? colors.mobileItemHoverBg
+            : "transparent",
+        color: active ? colors.mobileItemActiveText : colors.mobileText,
+      }}
+    >
+      <span
+        className="flex h-[24px] w-[24px] shrink-0 items-center justify-center"
+        style={{
+          color: active ? colors.mobileItemActiveText : colors.mobileIconText,
+        }}
+      >
+        <Icon size={19} />
+      </span>
+
+      <span className="flex-1">{label}</span>
+
+      {item.children?.length > 0 && <ChevronRight size={16} />}
+    </button>
+  );
+};
+
+const SectionTitle = ({ title, colors }) => (
+  <div
+    className="mx-3 my-3 border-t pt-4 text-[15px] font-bold"
+    style={{
+      color: colors.mobileSectionText,
+      borderColor: colors.mobileSectionBorder,
+    }}
+  >
     {title}
   </div>
 );

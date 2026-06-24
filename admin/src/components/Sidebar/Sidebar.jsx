@@ -27,7 +27,12 @@ import {
   FaReceipt,
   FaHotjar,
 } from "react-icons/fa";
+import { MdOutlineLogin } from "react-icons/md";
 import { IoFootstepsOutline } from "react-icons/io5";
+import { IoColorPaletteOutline } from "react-icons/io5";
+import { TbLayoutSidebarLeftCollapse } from "react-icons/tb";
+import { BiCategoryAlt } from "react-icons/bi";
+import { MdOutlineAppRegistration } from "react-icons/md";
 import {
   MdCategory,
   MdFavorite,
@@ -175,6 +180,12 @@ const Sidebar = () => {
         icon: <FaReceipt />,
         text: "Auto Deposit History",
       },
+      {
+        key: "all-turnover-history",
+        to: "/all-turnover-history",
+        icon: <FaHistory />,
+        text: "All Turnover History",
+      },
     ],
     [],
   );
@@ -295,7 +306,36 @@ const Sidebar = () => {
         icon: <IoFootstepsOutline />,
         text: "Footer Setting",
       },
-
+      {
+        key: "navbar-color-setting",
+        to: "/navbar-color-setting",
+        icon: <IoColorPaletteOutline />,
+        text: "Navbar Color Setting",
+      },
+      {
+        key: "sidebar-color-setting",
+        to: "/sidebar-color-setting",
+        icon: <TbLayoutSidebarLeftCollapse />,
+        text: "Sidebar Color Setting",
+      },
+      {
+        key: "category-section-setting",
+        to: "/category-section-setting",
+        icon: <BiCategoryAlt />,
+        text: "Category Section Setting",
+      },
+      {
+        key: "register-modal-setting",
+        to: "/register-modal-setting",
+        icon: <MdOutlineAppRegistration />,
+        text: "Register Modal Setting",
+      },
+      {
+        key: "login-modal-setting",
+        to: "/login-modal-setting",
+        icon: <MdOutlineLogin />,
+        text: "Login Modal Setting",
+      },
     ],
     [],
   );

@@ -19,6 +19,8 @@ import { api } from "../../api/axios";
 import SingleUserManualDepositHistory from "../../components/SingleUserManualDepositHistory/SingleUserManualDepositHistory";
 import SingleUserAutoDepositHistory from "../../components/SingleUserAutoDepositHistory/SingleUserAutoDepositHistory";
 import SingleUserWithdrawHistory from "../../components/SingleUserWithdrawHistory/SingleUserWithdrawHistory";
+import SingleUserGameHistory from "../../components/SingleUserGameHistory/SingleUserGameHistory";
+import SingleUserTurnOverHistory from "../../components/SingleUserTurnOverHistory/SingleUserTurnOverHistory";
 
 const SingleUserDetails = () => {
   const { id } = useParams();
@@ -669,8 +671,10 @@ const SingleUserDetails = () => {
           </Section>
         </motion.div>
       </div>
+      <SingleUserGameHistory userId={id} />
       <SingleUserManualDepositHistory userId={id} />
       <SingleUserAutoDepositHistory userId={id} />
+      <SingleUserTurnOverHistory userId={id} />
       <SingleUserWithdrawHistory userId={id} />
     </>
   );

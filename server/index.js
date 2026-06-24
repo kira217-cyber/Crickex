@@ -41,6 +41,12 @@ import playGameRoutes from "./routes/playGameRoutes.js";
 import callbackRoutes from "./routes/callbackRoutes.js";
 import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
 import footerSettingRoutes from "./routes/footerSettingRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import navbarColorSettingRoutes from "./routes/navbarColorSettingRoutes.js";
+import sidebarColorSettingRoutes from "./routes/sidebarColorSettingRoutes.js";
+import categorySectionSettingRoutes from "./routes/categorySectionSettingRoutes.js";
+import registerModalSettingRoutes from "./routes/registerModalSettingRoutes.js";
+import loginModalSettingRoutes from "./routes/loginModalSettingRoutes.js";
 
 dotenv.config();
 
@@ -102,6 +108,11 @@ app.use("/api/sliders", sliderRoutes);
 app.use("/api/notice", noticeRoutes);
 app.use("/api/site-identify", siteIdentifyRoutes);
 app.use("/api/footer-settings", footerSettingRoutes);
+app.use("/api/navbar-color-settings", navbarColorSettingRoutes);
+app.use("/api/sidebar-color-settings", sidebarColorSettingRoutes);
+app.use("/api/category-section-settings", categorySectionSettingRoutes);
+app.use("/api/register-modal-settings", registerModalSettingRoutes);
+app.use("/api/login-modal-settings", loginModalSettingRoutes);
 
 // Affiliate Site Controller
 app.use("/api/aff-site-identify", affSiteIdentifyRoutes);
@@ -111,6 +122,9 @@ app.use("/api/global/client", globalClientRoutes);
 
 // global game routes client site
 app.use("/api/global/client", globalGameClientRoutes);
+
+// admin pannel Dashboard Routes
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

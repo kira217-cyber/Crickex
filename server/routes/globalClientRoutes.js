@@ -5,6 +5,11 @@ import Notice from "../models/Notice.js";
 import Slider from "../models/Slider.js";
 import FavouriteBanner from "../models/FavouriteBanner.js";
 import FooterSetting from "../models/FooterSetting.js";
+import NavbarColorSetting from "../models/NavbarColorSetting.js";
+import SidebarColorSetting from "../models/SidebarColorSetting.js";
+import CategorySectionSetting from "../models/CategorySectionSetting.js";
+import RegisterModalSetting from "../models/RegisterModalSetting.js";
+import LoginModalSetting from "../models/LoginModalSetting.js";
 
 const router = express.Router();
 
@@ -101,28 +106,95 @@ const formatFooterSetting = (req, footer) => {
   };
 };
 
+const formatCategorySectionSetting = (req, item) => {
+  if (!item) return null;
+
+  return {
+    ...item,
+    hotImageUrl: item.hotImage
+      ? `${req.protocol}://${req.get("host")}/${String(item.hotImage).replace(/^\/+/, "")}`
+      : "",
+    sportsImageUrl: item.sportsImage
+      ? `${req.protocol}://${req.get("host")}/${String(item.sportsImage).replace(/^\/+/, "")}`
+      : "",
+  };
+};
+
+const formatRegisterModalSetting = (req, item) => {
+  if (!item) return null;
+
+  const buildUrl = (filePath = "") => {
+    if (!filePath) return "";
+    if (String(filePath).startsWith("http")) return filePath;
+    const normalized = String(filePath).replace(/\\/g, "/").replace(/^\/+/, "");
+    return `${req.protocol}://${req.get("host")}/${normalized}`;
+  };
+
+  return {
+    ...item,
+    logoUrl: item.logo ? buildUrl(item.logo) : "",
+    sliderImages: Array.isArray(item.sliderImages)
+      ? item.sliderImages
+          .filter((slide) => slide?.status === "active")
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+          .map((slide) => ({
+            ...slide,
+            imageUrl: slide.image ? buildUrl(slide.image) : "",
+          }))
+      : [],
+  };
+};
+
+const formatLoginModalSetting = (req, item) => {
+  if (!item) return null;
+
+  return {
+    ...item,
+    logoUrl: item.logo ? buildFileUrl(req, item.logo) : "",
+  };
+};
+
 router.get("/site-data", async (req, res) => {
   try {
-    const [siteIdentify, notice, sliders, favouriteBanners, footerSetting] =
-      await Promise.all([
-        SiteIdentify.findOne({ status: "active" })
-          .sort({ createdAt: -1 })
-          .lean(),
-
-        Notice.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
-
-        Slider.find({ status: "active" })
-          .sort({ order: 1, createdAt: -1 })
-          .lean(),
-
-        FavouriteBanner.find({ status: "active" })
-          .sort({ order: 1, createdAt: -1 })
-          .lean(),
-
-        FooterSetting.findOne({ status: "active" })
-          .sort({ createdAt: -1 })
-          .lean(),
-      ]);
+    const [
+      siteIdentify,
+      notice,
+      sliders,
+      favouriteBanners,
+      footerSetting,
+      navbarColorSetting,
+      sidebarColorSetting,
+      categorySectionSetting,
+      registerModalSetting,
+      loginModalSetting,
+    ] = await Promise.all([
+      SiteIdentify.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
+      Notice.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
+      Slider.find({ status: "active" })
+        .sort({ order: 1, createdAt: -1 })
+        .lean(),
+      FavouriteBanner.find({ status: "active" })
+        .sort({ order: 1, createdAt: -1 })
+        .lean(),
+      FooterSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      NavbarColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      SidebarColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      CategorySectionSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      RegisterModalSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      LoginModalSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -135,6 +207,17 @@ router.get("/site-data", async (req, res) => {
           formatFavouriteBanner(req, item),
         ),
         footerSetting: formatFooterSetting(req, footerSetting),
+        navbarColorSetting,
+        sidebarColorSetting,
+        categorySectionSetting: formatCategorySectionSetting(
+          req,
+          categorySectionSetting,
+        ),
+        registerModalSetting: formatRegisterModalSetting(
+          req,
+          registerModalSetting,
+        ),
+        loginModalSetting: formatLoginModalSetting(req, loginModalSetting),
       },
     });
   } catch (error) {
