@@ -47,6 +47,9 @@ import sidebarColorSettingRoutes from "./routes/sidebarColorSettingRoutes.js";
 import categorySectionSettingRoutes from "./routes/categorySectionSettingRoutes.js";
 import registerModalSettingRoutes from "./routes/registerModalSettingRoutes.js";
 import loginModalSettingRoutes from "./routes/loginModalSettingRoutes.js";
+import forgotPasswordRoutes from "./routes/forgotPasswordRoutes.js";
+import referRedeemAdminRoutes from "./routes/referRedeemAdminRoutes.js";
+import referRedeemUserRoutes from "./routes/referRedeemUserRoutes.js";
 
 dotenv.config();
 
@@ -87,6 +90,13 @@ app.use("/api/auto-deposit", autoDepositRoutes);
 app.use("/api/e-wallets", eWalletRoutes);
 app.use("/api/withdraw-methods", withdrawMethodRoutes);
 app.use("/api", withdrawRequestRoutes);
+
+// Forget Password
+app.use("/api/users/forgot-password", forgotPasswordRoutes);
+
+// Refer and Reedeem
+app.use("/api/admin/refer-redeem", referRedeemAdminRoutes);
+app.use("/api/user/refer-redeem", referRedeemUserRoutes);
 
 /* ✅ Game System Routes */
 app.use("/api/game-categories", gameCategoryRoutes);

@@ -48,6 +48,7 @@ import SidebarColorSetting from "../pages/SidebarColorSetting/SidebarColorSettin
 import CategorySectionSetting from "../pages/CategorySectionSetting/CategorySectionSetting";
 import RegisterModalSetting from "../pages/RegisterModalSetting/RegisterModalSetting";
 import LoginModalSetting from "../pages/LoginModalSetting/LoginModalSetting";
+import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
 
 export const routes = createBrowserRouter([
   {
@@ -112,6 +113,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="single-user-details">
             <SingleUserDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "user-refer-redeem",
+        element: (
+          <PrivateRoute permKey="user-refer-redeem">
+            <UserReferRedeem />
           </PrivateRoute>
         ),
       },

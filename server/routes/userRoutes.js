@@ -5,6 +5,11 @@ import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { protectAdmin } from "../middleware/protectAdmin.js";
+import ReferRedeemSetting from "../models/ReferRedeemSetting.js";
+import {
+  isRegisterOtpVerified,
+  clearRegisterOtp,
+} from "./forgotPasswordRoutes.js";
 
 const router = express.Router();
 
@@ -56,6 +61,24 @@ const createUniqueReferralCode = async () => {
   throw new Error("Failed to generate unique referral code");
 };
 
+const normalizeCountryCode = (value = "") => {
+  const cleaned = clean(value);
+
+  if (!cleaned) return "";
+
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned.replace(/\D/g, "")}`;
+};
+
+const normalizePhoneByCountry = (countryCode, phone) => {
+  let finalPhone = onlyDigits(phone);
+
+  if (countryCode === "+880" && finalPhone && !finalPhone.startsWith("0")) {
+    finalPhone = `0${finalPhone}`;
+  }
+
+  return finalPhone;
+};
+
 const makeUserPayload = (user) => ({
   id: user._id,
   userId: user.userId,
@@ -88,13 +111,15 @@ router.post("/register", async (req, res) => {
       currency = "BDT",
       referCode = "",
       referralCode = "",
+      otp = "",
     } = req.body || {};
 
     const finalUserId = clean(username || userId).toLowerCase();
-    const finalCountryCode = clean(countryCode);
-    const finalPhone = onlyDigits(phone);
+    const finalCountryCode = normalizeCountryCode(countryCode);
+    const finalPhone = normalizePhoneByCountry(finalCountryCode, phone);
     const finalPassword = String(password || "");
     const finalCurrency = clean(currency || "BDT").toUpperCase();
+    const submittedOtp = clean(otp);
 
     const submittedReferCode = clean(referCode || referralCode).toUpperCase();
 
@@ -145,28 +170,56 @@ router.post("/register", async (req, res) => {
       return errorResponse(res, "Phone number already registered", 409);
     }
 
+    if (finalCountryCode === "+880") {
+      const otpOk = isRegisterOtpVerified({
+        countryCode: finalCountryCode,
+        phone: finalPhone,
+        otp: submittedOtp,
+      });
+
+      if (!otpOk) {
+        return errorResponse(res, "Please verify OTP first", 400);
+      }
+    }
+
+    const referRedeemSetting = await ReferRedeemSetting.findOne().sort({
+      createdAt: 1,
+    });
+
+    const defaultUserReferCommission = Number(
+      referRedeemSetting?.referAmountForAllUsers || 0,
+    );
+
+    const safeDefaultReferCommission =
+      Number.isFinite(defaultUserReferCommission) &&
+      defaultUserReferCommission >= 0
+        ? defaultUserReferCommission
+        : 0;
+
     let referredByUser = null;
     let referCommissionAmount = 0;
 
     if (submittedReferCode) {
       referredByUser = await User.findOne({
         referralCode: submittedReferCode,
-        role: "aff-user",
       }).select(
         "_id role isActive createdUsers referralCount referCommission referCommissionBalance commissionBalance",
       );
 
       if (!referredByUser) {
-        return errorResponse(res, "Invalid affiliate refer code", 400);
+        return errorResponse(res, "Invalid refer code", 400);
       }
 
       if (!referredByUser.isActive) {
-        return errorResponse(res, "Affiliate refer code is inactive", 400);
+        return errorResponse(res, "Refer code is inactive", 400);
       }
 
       referCommissionAmount = Number(referredByUser.referCommission || 0);
 
-      if (!Number.isFinite(referCommissionAmount) || referCommissionAmount < 0) {
+      if (
+        !Number.isFinite(referCommissionAmount) ||
+        referCommissionAmount < 0
+      ) {
         referCommissionAmount = 0;
       }
     }
@@ -184,6 +237,7 @@ router.post("/register", async (req, res) => {
       role: "user",
       currency: finalCurrency || "BDT",
       referralCode: myReferralCode,
+      referCommission: safeDefaultReferCommission,
       referredBy: referredByUser?._id || null,
     });
 
@@ -203,6 +257,11 @@ router.post("/register", async (req, res) => {
       );
     }
 
+    clearRegisterOtp({
+      countryCode: finalCountryCode,
+      phone: finalPhone,
+    });
+
     const token = generateToken({
       id: user._id,
       userId: user.userId,
@@ -212,14 +271,14 @@ router.post("/register", async (req, res) => {
     return successResponse(
       res,
       referredByUser
-        ? "Registration successful with affiliate referral"
+        ? "Registration successful with referral"
         : "Registration successful",
       {
         user: makeUserPayload(user),
         token,
         referral: referredByUser
           ? {
-              affiliateId: referredByUser._id,
+              referrerId: referredByUser._id,
               referCode: submittedReferCode,
               referCommissionAmount,
             }
@@ -237,7 +296,6 @@ router.post("/register", async (req, res) => {
     return errorResponse(res, error.message || "Registration failed", 500);
   }
 });
-
 
 /* =========================
    Login User
@@ -257,7 +315,10 @@ router.post("/login", async (req, res) => {
       return errorResponse(res, "Password is required", 400);
     }
 
-    const user = await User.findOne({ userId: finalUserId });
+    const user = await User.findOne({
+      userId: finalUserId,
+      role: "user",
+    });
 
     if (!user) {
       return errorResponse(res, "Invalid username or password", 401);
@@ -322,25 +383,18 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-
 router.get("/me", requireAuth, async (req, res) => {
   return successResponse(res, "User profile fetched", {
     user: makeUserPayload(req.user),
   });
 });
 
-
 /* =========================
    Admin: Get All Normal Users
 ========================= */
 router.get("/admin/users", protectAdmin, async (req, res) => {
   try {
-    const {
-      q = "",
-      status = "all",
-      page = 1,
-      limit = 15,
-    } = req.query;
+    const { q = "", status = "all", page = 1, limit = 15 } = req.query;
 
     const pageNum = Math.max(Number(page) || 1, 1);
     const limitNum = Math.min(Math.max(Number(limit) || 15, 1), 100);
@@ -360,7 +414,10 @@ router.get("/admin/users", protectAdmin, async (req, res) => {
 
     if (String(q || "").trim()) {
       const keyword = String(q).trim();
-      const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      const regex = new RegExp(
+        keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        "i",
+      );
 
       filter.$or = [
         { userId: regex },
@@ -416,51 +473,55 @@ router.get("/admin/users", protectAdmin, async (req, res) => {
 /* =========================
    Admin: Toggle Normal User Active
 ========================= */
-router.patch("/admin/users/:id/toggle-active", protectAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { isActive } = req.body || {};
+router.patch(
+  "/admin/users/:id/toggle-active",
+  protectAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body || {};
 
-    if (typeof isActive !== "boolean") {
-      return errorResponse(res, "isActive must be boolean", 400);
-    }
+      if (typeof isActive !== "boolean") {
+        return errorResponse(res, "isActive must be boolean", 400);
+      }
 
-    const user = await User.findOne({
-      _id: id,
-      role: "user",
-    });
+      const user = await User.findOne({
+        _id: id,
+        role: "user",
+      });
 
-    if (!user) {
-      return errorResponse(res, "User not found", 404);
-    }
+      if (!user) {
+        return errorResponse(res, "User not found", 404);
+      }
 
-    user.isActive = isActive;
-    await user.save();
+      user.isActive = isActive;
+      await user.save();
 
-    return successResponse(
-      res,
-      user.isActive
-        ? "User activated successfully"
-        : "User deactivated successfully",
-      {
-        user: {
-          _id: user._id,
-          userId: user.userId,
-          phone: user.phone,
-          email: user.email,
-          role: user.role,
-          isActive: user.isActive,
-          balance: user.balance,
-          referralCode: user.referralCode,
-          createdAt: user.createdAt,
+      return successResponse(
+        res,
+        user.isActive
+          ? "User activated successfully"
+          : "User deactivated successfully",
+        {
+          user: {
+            _id: user._id,
+            userId: user.userId,
+            phone: user.phone,
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+            balance: user.balance,
+            referralCode: user.referralCode,
+            createdAt: user.createdAt,
+          },
         },
-      },
-    );
-  } catch (error) {
-    console.error("ADMIN TOGGLE USER ERROR:", error);
-    return errorResponse(res, "Failed to update user status", 500);
-  }
-});
+      );
+    } catch (error) {
+      console.error("ADMIN TOGGLE USER ERROR:", error);
+      return errorResponse(res, "Failed to update user status", 500);
+    }
+  },
+);
 
 /* =========================
    Admin: Get Single Normal User Details
@@ -486,7 +547,6 @@ router.get("/admin/users/:id", protectAdmin, async (req, res) => {
     return errorResponse(res, "Failed to load user details", 500);
   }
 });
-
 
 /* =========================
    Admin: Single Normal User Details
@@ -555,10 +615,16 @@ router.patch("/admin/users/:id/details", protectAdmin, async (req, res) => {
       return errorResponse(res, "User not found", 404);
     }
 
-    const finalUserId = String(userId || "").trim().toLowerCase();
-    const finalEmail = String(email || "").trim().toLowerCase();
+    const finalUserId = String(userId || "")
+      .trim()
+      .toLowerCase();
+    const finalEmail = String(email || "")
+      .trim()
+      .toLowerCase();
     const finalPhone = String(phone || "").replace(/\D/g, "");
-    const finalCountryCode = String(countryCode || user.countryCode || "").trim();
+    const finalCountryCode = String(
+      countryCode || user.countryCode || "",
+    ).trim();
 
     if (!finalUserId) {
       return errorResponse(res, "Username is required", 400);
@@ -569,7 +635,11 @@ router.patch("/admin/users/:id/details", protectAdmin, async (req, res) => {
     }
 
     if (!/^[a-z0-9]+$/.test(finalUserId)) {
-      return errorResponse(res, "Username only allows letters and numbers", 400);
+      return errorResponse(
+        res,
+        "Username only allows letters and numbers",
+        400,
+      );
     }
 
     if (!finalCountryCode) {
@@ -631,13 +701,10 @@ router.patch("/admin/users/:id/details", protectAdmin, async (req, res) => {
     user.referCommission = Number(referCommission) || 0;
     user.gameWinCommission = Number(gameWinCommission) || 0;
 
-    user.gameLossCommissionBalance =
-      Number(gameLossCommissionBalance) || 0;
-    user.depositCommissionBalance =
-      Number(depositCommissionBalance) || 0;
+    user.gameLossCommissionBalance = Number(gameLossCommissionBalance) || 0;
+    user.depositCommissionBalance = Number(depositCommissionBalance) || 0;
     user.referCommissionBalance = Number(referCommissionBalance) || 0;
-    user.gameWinCommissionBalance =
-      Number(gameWinCommissionBalance) || 0;
+    user.gameWinCommissionBalance = Number(gameWinCommissionBalance) || 0;
 
     if (password && String(password).trim()) {
       const finalPassword = String(password).trim();

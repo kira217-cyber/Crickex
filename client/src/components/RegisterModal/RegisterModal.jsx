@@ -70,6 +70,16 @@ const getRefFromSearch = (search = "") => {
     .slice(0, 6);
 };
 
+const normalizePhoneForBd = (phone = "") => {
+  const cleanPhone = String(phone || "").replace(/\D/g, "");
+
+  if (cleanPhone && !cleanPhone.startsWith("0")) {
+    return `0${cleanPhone}`;
+  }
+
+  return cleanPhone;
+};
+
 const RegisterModal = ({ open, onClose, onLoginClick }) => {
   const { isBangla } = useLanguage();
   const dispatch = useDispatch();
@@ -106,6 +116,11 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
   const [phone, setPhone] = useState("");
   const [refCode, setRefCode] = useState("");
 
+  const [otpInput, setOtpInput] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpExpiresAt, setOtpExpiresAt] = useState(0);
+  const [countdown, setCountdown] = useState(0);
+
   const [countries, setCountries] = useState([]);
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -117,6 +132,9 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     cca2: "BD",
     flag: "https://flagcdn.com/w40/bd.png",
   });
+
+  const isBangladeshSelected =
+    selected?.cca2 === "BD" || selected?.code === "+880";
 
   const text = {
     title: isBangla ? "সাইন আপ" : "Sign up",
@@ -147,6 +165,16 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
       : "Registering means you are over 18 years old, have read and agree to the Terms & Conditions.",
     searchCountry: isBangla ? "দেশ খুঁজুন..." : "Search country...",
 
+    sendOtp: isBangla ? "OTP পাঠান" : "Send OTP",
+    resendOtp: isBangla ? "আবার OTP পাঠান" : "Resend OTP",
+    sendingOtp: isBangla ? "OTP পাঠানো হচ্ছে..." : "Sending OTP...",
+    otpCode: isBangla ? "OTP কোড" : "OTP Code",
+    otpPh: isBangla ? "OTP কোড লিখুন" : "Enter OTP code",
+    enterOtp: isBangla ? "OTP কোড দিন" : "Enter OTP code",
+    otpExpired: isBangla
+      ? "OTP মেয়াদ শেষ। আবার OTP পাঠান"
+      : "OTP expired. Send OTP again",
+
     enterUsername: isBangla ? "ইউজারনেম দিন" : "Enter username",
     usernameLength: isBangla
       ? "ইউজারনেম ৪-১৫ অক্ষরের হতে হবে"
@@ -169,6 +197,12 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     success: isBangla ? "রেজিস্ট্রেশন সফল হয়েছে" : "Registration successful",
   };
 
+  const resetOtp = () => {
+    setOtpInput("");
+    setOtpExpiresAt(0);
+    setCountdown(0);
+  };
+
   useEffect(() => {
     const queryRef = getRefFromSearch(location.search);
 
@@ -186,6 +220,7 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     setCurrencyOpen(false);
     setCountryOpen(false);
     setSearch("");
+    resetOtp();
   };
 
   const handleClose = () => {
@@ -255,6 +290,12 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
   }, [open]);
 
   useEffect(() => {
+    if (!isBangladeshSelected) {
+      resetOtp();
+    }
+  }, [isBangladeshSelected]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (countryRef.current && !countryRef.current.contains(event.target)) {
         setCountryOpen(false);
@@ -264,6 +305,36 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  useEffect(() => {
+    if (!otpExpiresAt) return;
+
+    const timer = setTimeout(
+      () => {
+        resetOtp();
+      },
+      Math.max(0, otpExpiresAt - Date.now()),
+    );
+
+    return () => clearTimeout(timer);
+  }, [otpExpiresAt]);
 
   const filteredCountries = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -280,6 +351,9 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
   const cleanUsername = username.trim().toLowerCase();
   const cleanPassword = String(password || "");
   const cleanPhone = String(phone || "").replace(/\D/g, "");
+  const finalSubmitPhone = isBangladeshSelected
+    ? normalizePhoneForBd(cleanPhone)
+    : cleanPhone;
 
   const canSubmit =
     cleanUsername.length >= 4 &&
@@ -289,7 +363,77 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
     cleanPassword.length <= 20 &&
     /[a-zA-Z]/.test(cleanPassword) &&
     /\d/.test(cleanPassword) &&
-    cleanPhone.length >= 6;
+    cleanPhone.length >= 6 &&
+    (!isBangladeshSelected || otpInput.trim().length > 0);
+
+  const handleSendOtp = async () => {
+    if (!isBangladeshSelected) return;
+
+    if (!cleanPhone) {
+      toast.error(text.enterPhone);
+      return;
+    }
+
+    if (cleanPhone.length < 6) {
+      toast.error(text.phoneLength);
+      return;
+    }
+
+    try {
+      setOtpSending(true);
+      setOtpInput("");
+      setOtpExpiresAt(0);
+
+      const { data } = await api.post(
+        "/api/users/forgot-password/register/send-otp",
+        {
+          countryCode: selected.code,
+          phone: normalizePhoneForBd(cleanPhone),
+        },
+      );
+
+      if (!data?.success) {
+        throw new Error(data?.message || "OTP send failed");
+      }
+
+      setOtpExpiresAt(Date.now() + 3 * 60 * 1000);
+      setCountdown(Number(data?.resendAfter || 60));
+
+      toast.success(
+        data?.message ||
+          (isBangla ? "OTP সফলভাবে পাঠানো হয়েছে" : "OTP sent successfully"),
+      );
+    } catch (error) {
+      const waitSeconds = error?.response?.data?.waitSeconds;
+
+      if (waitSeconds) {
+        setCountdown(Number(waitSeconds));
+      }
+
+      toast.error(
+        error?.response?.data?.message || error?.message || "OTP send failed",
+      );
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const verifyRegisterOtp = async () => {
+    const { data } = await api.post(
+      "/api/users/forgot-password/register/verify-otp",
+      {
+        countryCode: selected.code,
+        phone: finalSubmitPhone,
+        otp: otpInput.trim(),
+      },
+    );
+
+    if (!data?.success) {
+      throw new Error(data?.message || "OTP verification failed");
+    }
+
+    return data;
+  };
 
   const registerMutation = useMutation({
     mutationFn: async (payload) => {
@@ -368,21 +512,46 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
       return false;
     }
 
+    if (isBangladeshSelected) {
+      if (!otpExpiresAt || Date.now() > otpExpiresAt) {
+        toast.error(text.otpExpired);
+        return false;
+      }
+
+      if (!otpInput.trim()) {
+        toast.error(text.enterOtp);
+        return false;
+      }
+    }
+
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (registerMutation.isPending) return;
     if (!validateForm()) return;
 
-    registerMutation.mutate({
-      currency: "BDT",
-      username: cleanUsername,
-      password: cleanPassword,
-      countryCode: selected.code,
-      phone: cleanPhone,
-      referCode: refCode.trim().toUpperCase(),
-    });
+    try {
+      if (isBangladeshSelected) {
+        await verifyRegisterOtp();
+      }
+
+      registerMutation.mutate({
+        currency: "BDT",
+        username: cleanUsername,
+        password: cleanPassword,
+        countryCode: selected.code,
+        phone: finalSubmitPhone,
+        referCode: refCode.trim().toUpperCase(),
+        otp: isBangladeshSelected ? otpInput.trim() : "",
+      });
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "OTP verification failed",
+      );
+    }
   };
 
   const inputStyle = {
@@ -584,7 +753,8 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="cursor-pointer"
+                      disabled={registerMutation.isPending}
+                      className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                       style={{ color: setting.placeholderText }}
                     >
                       {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -649,11 +819,12 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                       <input
                         type="tel"
                         value={phone}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setPhone(
                             e.target.value.replace(/\D/g, "").slice(0, 15),
-                          )
-                        }
+                          );
+                          resetOtp();
+                        }}
                         placeholder={text.phonePh}
                         disabled={registerMutation.isPending}
                         className="register-dynamic-input h-full min-w-0 flex-1 bg-transparent px-4 text-[13px] outline-none disabled:cursor-not-allowed"
@@ -708,6 +879,7 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                                 setSelected(item);
                                 setCountryOpen(false);
                                 setSearch("");
+                                resetOtp();
                               }}
                               className="flex w-full cursor-pointer items-center justify-between px-3 py-2 text-left"
                               style={{
@@ -742,6 +914,57 @@ const RegisterModal = ({ open, onClose, onLoginClick }) => {
                     )}
                   </div>
                 </div>
+
+                {isBangladeshSelected && (
+                  <div className="mt-5">
+                    <label
+                      className="mb-3 block text-[14px]"
+                      style={{ color: setting.labelText }}
+                    >
+                      {text.otpCode}
+                    </label>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        value={otpInput}
+                        onChange={(e) =>
+                          setOtpInput(e.target.value.replace(/\D/g, ""))
+                        }
+                        placeholder={text.otpPh}
+                        disabled={registerMutation.isPending}
+                        className="register-dynamic-input h-[45px] min-w-0 flex-1 rounded-[4px] border px-4 text-[13px] outline-none disabled:cursor-not-allowed"
+                        style={inputStyle}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={
+                          otpSending ||
+                          countdown > 0 ||
+                          registerMutation.isPending
+                        }
+                        className="h-[45px] shrink-0 cursor-pointer rounded-[4px] px-3 text-[12px] font-medium disabled:cursor-not-allowed disabled:opacity-70"
+                        style={{
+                          backgroundColor:
+                            otpSending ||
+                            countdown > 0 ||
+                            registerMutation.isPending
+                              ? setting.buttonDisabledBg
+                              : setting.buttonBg,
+                          color: setting.buttonText,
+                        }}
+                      >
+                        {otpSending
+                          ? text.sendingOtp
+                          : countdown > 0
+                            ? `${text.resendOtp} (${countdown}s)`
+                            : text.sendOtp}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-5">
                   <label

@@ -31,12 +31,15 @@ import api from "../../api/axios";
 
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
+import AutoDepositModal from "../AutoDepositModal/AutoDepositModal";
 import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
 import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
 import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
 import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
 import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
+import ForgetPasswordModal from "../ForgetPasswordModal/ForgetPasswordModal";
+import ReferAndRedeemModal from "../ReferAndRedeemModal/ReferAndRedeemModal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -113,15 +116,22 @@ const Navber = ({ setOpen }) => {
   const [openLogin, setOpenLogin] = useState(false);
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
 
+  const [openAutoDeposit, setOpenAutoDeposit] = useState(false);
   const [openDepositFunds, setOpenDepositFunds] = useState(false);
   const [openDepositConfirm, setOpenDepositConfirm] = useState(false);
   const [openDepositHistory, setOpenDepositHistory] = useState(false);
+
   const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
   const [openPasswordChange, setOpenPasswordChange] = useState(false);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [openForgetPassword, setOpenForgetPassword] = useState(false);
+  const [openReferRedeem, setOpenReferRedeem] = useState(false);
 
   const [depositData, setDepositData] = useState(null);
-  const [openWithdraw, setOpenWithdraw] = useState(false);
+
   const [refreshingBalance, setRefreshingBalance] = useState(false);
+  const [referInfoLoading, setReferInfoLoading] = useState(false);
+  const [referInfo, setReferInfo] = useState(null);
 
   const [signupHover, setSignupHover] = useState(false);
   const [loginHover, setLoginHover] = useState(false);
@@ -131,6 +141,23 @@ const Navber = ({ setOpen }) => {
   const [hoveredMenu, setHoveredMenu] = useState("");
 
   const profileRef = useRef(null);
+
+  const referPoints = Number(
+    referInfo?.calculation?.points ?? user?.referCommissionBalance ?? 0,
+  );
+
+  const bonusWallet = Number(
+    referInfo?.calculation?.estimatedRedeemAmount || 0,
+  );
+
+  const formattedReferPoints = referPoints.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+
+  const formattedBonusWallet = bonusWallet.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -146,13 +173,59 @@ const Navber = ({ setOpen }) => {
     setOpenRegister(false);
     setOpenLogin(false);
     setOpenLangModal(false);
+
+    setOpenAutoDeposit(false);
     setOpenDepositFunds(false);
     setOpenDepositConfirm(false);
     setOpenDepositHistory(false);
+
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
     setOpenWithdraw(false);
+    setOpenForgetPassword(false);
+    setOpenReferRedeem(false);
   };
+
+  const fetchReferRedeemInfo = async () => {
+    if (!isAuth) return;
+
+    try {
+      setReferInfoLoading(true);
+
+      const { data } = await api.get("/api/user/refer-redeem/info");
+      const payload = data?.data || null;
+
+      setReferInfo(payload);
+
+      if (payload?.user) {
+        dispatch(
+          updateUser({
+            referralCode: payload.user.referralCode,
+            referralCount: Number(payload.user.referralCount || 0),
+            referCommission: Number(payload.user.referCommission || 0),
+            referCommissionBalance: Number(
+              payload.user.referCommissionBalance || 0,
+            ),
+            balance: Number(payload.user.balance || 0),
+            currency: payload.user.currency || "BDT",
+          }),
+        );
+      }
+    } catch (error) {
+      console.error("Refer redeem info load failed:", error);
+    } finally {
+      setReferInfoLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuth) {
+      fetchReferRedeemInfo();
+    } else {
+      setReferInfo(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuth]);
 
   const openDeposit = () => {
     setOpenProfileMenu(false);
@@ -164,7 +237,7 @@ const Navber = ({ setOpen }) => {
     }
 
     closeAllModals();
-    setOpenDepositFunds(true);
+    setOpenAutoDeposit(true);
   };
 
   const openTransaction = () => {
@@ -178,6 +251,19 @@ const Navber = ({ setOpen }) => {
 
     closeAllModals();
     setOpenDepositHistory(true);
+  };
+
+  const openReferRedeemModal = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenReferRedeem(true);
   };
 
   const openUserInfo = () => {
@@ -275,6 +361,8 @@ const Navber = ({ setOpen }) => {
         }),
       );
 
+      await fetchReferRedeemInfo();
+
       toast.success(res?.data?.message || texts.refreshSuccess);
     } catch (error) {
       toast.error(error?.response?.data?.message || texts.refreshFailed);
@@ -286,13 +374,20 @@ const Navber = ({ setOpen }) => {
   const handleLogout = () => {
     dispatch(logout());
     setOpenProfileMenu(false);
+
+    setOpenAutoDeposit(false);
     setOpenDepositFunds(false);
     setOpenDepositConfirm(false);
     setOpenDepositHistory(false);
+
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
-    setDepositData(null);
     setOpenWithdraw(false);
+    setOpenForgetPassword(false);
+    setOpenReferRedeem(false);
+
+    setDepositData(null);
+    setReferInfo(null);
   };
 
   useEffect(() => {
@@ -313,7 +408,7 @@ const Navber = ({ setOpen }) => {
       path: "__withdraw_modal__",
       icon: BadgeDollarSign,
     },
-    { label: texts.referBonus, path: "/", icon: Gift },
+    { label: texts.referBonus, path: "__refer_redeem_modal__", icon: Gift },
     {
       label: texts.transaction,
       path: "__transaction_modal__",
@@ -335,6 +430,7 @@ const Navber = ({ setOpen }) => {
     if (path === "__deposit_modal__") return openDeposit;
     if (path === "__transaction_modal__") return openTransaction;
     if (path === "__withdraw_modal__") return openWithdrawModal;
+    if (path === "__refer_redeem_modal__") return openReferRedeemModal;
     if (path === "__personal_info_modal__") return openUserInfo;
     if (path === "__password_change_modal__") return openChangePassword;
     return null;
@@ -461,7 +557,10 @@ const Navber = ({ setOpen }) => {
                 <div ref={profileRef} className="relative">
                   <button
                     type="button"
-                    onClick={() => setOpenProfileMenu((prev) => !prev)}
+                    onClick={() => {
+                      setOpenProfileMenu((prev) => !prev);
+                      fetchReferRedeemInfo();
+                    }}
                     className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-full transition hover:scale-105"
                     style={{
                       backgroundColor: colors.profileIconBg,
@@ -487,16 +586,45 @@ const Navber = ({ setOpen }) => {
                         <div className="border-b border-black/10 px-4 py-3">
                           <div className="text-[14px]">{texts.vipPoints}</div>
                           <div className="mt-1 flex items-center gap-2 text-[18px] font-bold">
-                            <span>0</span>
-                            <RefreshCw size={13} />
+                            <span>
+                              {referInfoLoading ? "..." : formattedReferPoints}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={fetchReferRedeemInfo}
+                              disabled={referInfoLoading}
+                              className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <RefreshCw
+                                size={13}
+                                className={
+                                  referInfoLoading ? "animate-spin" : ""
+                                }
+                              />
+                            </button>
                           </div>
 
                           <div className="mt-3 text-[14px]">
                             {texts.bonusWallet}
                           </div>
                           <div className="mt-1 flex items-center gap-2 text-[18px] font-bold">
-                            <span>৳ 0</span>
-                            <RefreshCw size={13} />
+                            <span>
+                              ৳{" "}
+                              {referInfoLoading ? "..." : formattedBonusWallet}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={fetchReferRedeemInfo}
+                              disabled={referInfoLoading}
+                              className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <RefreshCw
+                                size={13}
+                                className={
+                                  referInfoLoading ? "animate-spin" : ""
+                                }
+                              />
+                            </button>
                           </div>
                         </div>
 
@@ -743,6 +871,27 @@ const Navber = ({ setOpen }) => {
           setOpenLogin(false);
           setOpenRegister(true);
         }}
+        onForgotClick={() => {
+          setOpenLogin(false);
+          setOpenForgetPassword(true);
+        }}
+      />
+
+      <ForgetPasswordModal
+        open={openForgetPassword}
+        onClose={() => setOpenForgetPassword(false)}
+        onLoginClick={() => {
+          setOpenForgetPassword(false);
+          setOpenLogin(true);
+        }}
+      />
+
+      <ReferAndRedeemModal
+        open={openReferRedeem}
+        onClose={() => {
+          setOpenReferRedeem(false);
+          fetchReferRedeemInfo();
+        }}
       />
 
       <PersonalInfoModal
@@ -756,6 +905,15 @@ const Navber = ({ setOpen }) => {
       <PasswordChangeModal
         open={openPasswordChange}
         onClose={() => setOpenPasswordChange(false)}
+      />
+
+      <AutoDepositModal
+        open={openAutoDeposit}
+        onClose={() => setOpenAutoDeposit(false)}
+        onDepositClick={() => {
+          setOpenAutoDeposit(false);
+          setOpenDepositFunds(true);
+        }}
       />
 
       <DepositFundsModal
@@ -787,7 +945,7 @@ const Navber = ({ setOpen }) => {
         onClose={() => setOpenDepositHistory(false)}
         onBackToDeposit={() => {
           setOpenDepositHistory(false);
-          setOpenDepositFunds(true);
+          setOpenAutoDeposit(true);
         }}
       />
 
@@ -796,7 +954,7 @@ const Navber = ({ setOpen }) => {
         onClose={() => setOpenWithdraw(false)}
         onDepositClick={() => {
           setOpenWithdraw(false);
-          setOpenDepositFunds(true);
+          setOpenAutoDeposit(true);
         }}
       />
     </>

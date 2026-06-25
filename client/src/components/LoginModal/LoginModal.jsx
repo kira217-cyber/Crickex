@@ -168,6 +168,28 @@ const LoginModal = ({ open, onClose, onRegisterClick, onForgotClick }) => {
     onClose?.();
   };
 
+  const handleForgotClick = () => {
+    if (loginMutation.isPending) return;
+
+    resetForm();
+    onClose?.();
+
+    setTimeout(() => {
+      onForgotClick?.();
+    }, 150);
+  };
+
+  const handleRegisterClick = () => {
+    if (loginMutation.isPending) return;
+
+    resetForm();
+    onClose?.();
+
+    setTimeout(() => {
+      onRegisterClick?.();
+    }, 150);
+  };
+
   const inputStyle = {
     backgroundColor: setting.inputBg,
     color: setting.inputText,
@@ -291,7 +313,7 @@ const LoginModal = ({ open, onClose, onRegisterClick, onForgotClick }) => {
               <div className="mt-2 flex justify-end">
                 <button
                   type="button"
-                  onClick={onForgotClick}
+                  onClick={handleForgotClick}
                   disabled={loginMutation.isPending}
                   className="cursor-pointer text-[14px] disabled:cursor-not-allowed disabled:opacity-60"
                   style={{ color: setting.linkText }}
@@ -323,7 +345,7 @@ const LoginModal = ({ open, onClose, onRegisterClick, onForgotClick }) => {
                 {text.noAccount}{" "}
                 <button
                   type="button"
-                  onClick={onRegisterClick}
+                  onClick={handleRegisterClick}
                   disabled={loginMutation.isPending}
                   className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                   style={{ color: setting.linkText }}

@@ -26,6 +26,7 @@ import {
   FaUserShield,
   FaReceipt,
   FaHotjar,
+  FaGift,
 } from "react-icons/fa";
 import { MdOutlineLogin } from "react-icons/md";
 import { IoFootstepsOutline } from "react-icons/io5";
@@ -131,6 +132,12 @@ const Sidebar = () => {
         to: "/bulk-adjustment",
         icon: <FaUserFriends />,
         text: "Bulk Adjustment",
+      },
+      {
+        key: "user-refer-redeem",
+        to: "/user-refer-redeem",
+        icon: <FaGift />,
+        text: "Refer & Redeem",
       },
     ],
     [],
