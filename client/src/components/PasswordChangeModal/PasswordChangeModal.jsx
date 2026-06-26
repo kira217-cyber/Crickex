@@ -2,10 +2,37 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Lock, Eye, EyeOff, Save, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { logout } from "../../features/auth/authSlice";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+  cardBg: "#ffffff",
+  cardBorder: "#dce8f5",
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+};
 
 const PasswordInput = ({
   name,
@@ -16,15 +43,22 @@ const PasswordInput = ({
   saving,
   onChange,
   onToggleShow,
+  colors,
 }) => {
   return (
     <div>
-      <label className="mb-1.5 block text-[13px] font-bold text-[#333]">
+      <label
+        className="mb-1.5 block text-[13px] font-bold"
+        style={{ color: colors.labelText }}
+      >
         {label}
       </label>
 
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#0865a9]">
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2"
+          style={{ color: colors.primaryBg }}
+        >
           <Lock size={17} />
         </span>
 
@@ -35,14 +69,26 @@ const PasswordInput = ({
           placeholder={placeholder}
           disabled={saving}
           autoComplete="new-password"
-          className="h-[42px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] pl-10 pr-11 text-[14px] text-[#222] outline-none placeholder:text-[#999] focus:border-[#0865a9] disabled:cursor-not-allowed disabled:text-[#777]"
+          className="h-[42px] w-full rounded-[4px] border pl-10 pr-11 text-[14px] outline-none disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: colors.inputBg,
+            color: saving ? colors.mutedText : colors.inputText,
+            borderColor: colors.inputBorder,
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = colors.inputFocusBorder;
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = colors.inputBorder;
+          }}
         />
 
         <button
           type="button"
           onClick={() => onToggleShow(name)}
           disabled={saving}
-          className="absolute right-2 top-1/2 flex h-[28px] w-[28px] -translate-y-1/2 cursor-pointer items-center justify-center rounded-[4px] text-[#0865a9] disabled:cursor-not-allowed disabled:opacity-60"
+          className="absolute right-2 top-1/2 flex h-[28px] w-[28px] -translate-y-1/2 cursor-pointer items-center justify-center rounded-[4px] disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ color: colors.primaryBg }}
         >
           {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
         </button>
@@ -54,6 +100,12 @@ const PasswordInput = ({
 const PasswordChangeModal = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const { isBangla } = useLanguage();
+
+  const modalColorSetting = useSelector(selectModalColorSetting);
+  const colors = {
+    ...defaultModalColors,
+    ...(modalColorSetting || {}),
+  };
 
   const [saving, setSaving] = useState(false);
 
@@ -194,29 +246,49 @@ const PasswordChangeModal = ({ open, onClose }) => {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+          style={{ background: colors.pageOverlayBg }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[430px] sm:rounded-[8px]"
+            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[430px] sm:rounded-[8px]"
+            style={{ backgroundColor: colors.modalBg }}
           >
-            <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+            <div
+              className="relative flex h-[50px] shrink-0 items-center justify-center"
+              style={{
+                backgroundColor: colors.headerBg,
+                color: colors.headerText,
+              }}
+            >
               <h2 className="text-[18px] font-semibold">{t.title}</h2>
 
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={saving}
-                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ color: colors.closeIconColor }}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="shrink-0 bg-[#0865a9] px-4 pb-4">
-              <div className="rounded-[4px] bg-white/10 px-4 py-3 text-white">
+            <div
+              className="shrink-0 px-4 pb-4"
+              style={{ backgroundColor: colors.headerBg }}
+            >
+              <div
+                className="rounded-[4px] px-4 py-3"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.10)",
+                  color: colors.headerText,
+                }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15">
                     <ShieldCheck size={24} />
@@ -224,7 +296,7 @@ const PasswordChangeModal = ({ open, onClose }) => {
 
                   <div className="min-w-0">
                     <p className="text-[15px] font-bold">{t.title}</p>
-                    <p className="mt-1 text-[12px] leading-5 text-white/80">
+                    <p className="mt-1 text-[12px] leading-5 opacity-80">
                       {t.subtitle}
                     </p>
                   </div>
@@ -232,9 +304,18 @@ const PasswordChangeModal = ({ open, onClose }) => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-[#f3f7fb] px-4 py-4">
+            <div
+              className="flex-1 overflow-y-auto px-4 py-4"
+              style={{ backgroundColor: colors.sectionBg }}
+            >
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="rounded-[6px] border border-[#dce8f5] bg-white p-4 shadow-sm">
+                <div
+                  className="rounded-[6px] border p-4 shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.cardBorder,
+                  }}
+                >
                   <PasswordInput
                     name="currentPassword"
                     label={t.currentPassword}
@@ -244,10 +325,17 @@ const PasswordChangeModal = ({ open, onClose }) => {
                     saving={saving}
                     onChange={setField}
                     onToggleShow={toggleShow}
+                    colors={colors}
                   />
                 </div>
 
-                <div className="rounded-[6px] border border-[#dce8f5] bg-white p-4 shadow-sm">
+                <div
+                  className="rounded-[6px] border p-4 shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.cardBorder,
+                  }}
+                >
                   <PasswordInput
                     name="newPassword"
                     label={t.newPassword}
@@ -257,10 +345,17 @@ const PasswordChangeModal = ({ open, onClose }) => {
                     saving={saving}
                     onChange={setField}
                     onToggleShow={toggleShow}
+                    colors={colors}
                   />
                 </div>
 
-                <div className="rounded-[6px] border border-[#dce8f5] bg-white p-4 shadow-sm">
+                <div
+                  className="rounded-[6px] border p-4 shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.cardBorder,
+                  }}
+                >
                   <PasswordInput
                     name="confirmPassword"
                     label={t.confirmPassword}
@@ -270,21 +365,41 @@ const PasswordChangeModal = ({ open, onClose }) => {
                     saving={saving}
                     onChange={setField}
                     onToggleShow={toggleShow}
+                    colors={colors}
                   />
                 </div>
 
-                <div className="rounded-[6px] border border-[#dce8f5] bg-[#eef7ff] p-4 text-[12px] leading-6 text-[#0865a9]">
+                <div
+                  className="rounded-[6px] border p-4 text-[12px] leading-6"
+                  style={{
+                    backgroundColor: colors.summaryBg,
+                    borderColor: colors.cardBorder,
+                    color: colors.summaryText,
+                  }}
+                >
                   {t.note}
                 </div>
               </form>
             </div>
 
-            <div className="shrink-0 border-t border-[#e5e5e5] bg-white px-4 py-3">
+            <div
+              className="shrink-0 border-t px-4 py-3"
+              style={{
+                backgroundColor: colors.modalBg,
+                borderColor: colors.cardBorder,
+              }}
+            >
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex h-[42px] w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] bg-[#0865a9] text-[14px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                className="flex h-[42px] w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] text-[14px] font-bold disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: saving
+                    ? colors.disabledBg
+                    : colors.primaryBg,
+                  color: saving ? colors.disabledText : colors.primaryText,
+                }}
               >
                 {saving ? (
                   <>

@@ -343,6 +343,24 @@ const Sidebar = () => {
         icon: <MdOutlineLogin />,
         text: "Login Modal Setting",
       },
+      {
+        key: "modal-color-setting",
+        to: "/modal-color-setting",
+        icon: <IoColorPaletteOutline />,
+        text: "Modal Color Setting",
+      },
+      {
+        key: "transaction-history-color-setting",
+        to: "/transaction-history-color-setting",
+        icon: <IoColorPaletteOutline />,
+        text: "Transaction History Color Setting",
+      },
+      {
+        key: "bottom-navigation-color-setting",
+        to: "/bottom-navigation-color-setting",
+        icon: <IoColorPaletteOutline />,
+        text: "Bottom Navigation Color Setting",
+      },
     ],
     [],
   );

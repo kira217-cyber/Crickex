@@ -3,10 +3,40 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Copy, ChevronRight, Lock, AlertCircle } from "lucide-react";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+  cardBg: "#ffffff",
+  cardBorder: "#d7d7d7",
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+  dangerBg: "#e95b5b",
+  dangerText: "#ffffff",
+};
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -47,10 +77,14 @@ const InputRow = memo(
     copyable = false,
     onCopy,
     type = "text",
+    colors,
   }) => {
     return (
       <div className="mt-3">
-        <label className="mb-1 block text-[13px] font-semibold text-[#333]">
+        <label
+          className="mb-1 block text-[13px] font-semibold"
+          style={{ color: colors.labelText }}
+        >
           {label}
         </label>
 
@@ -62,14 +96,29 @@ const InputRow = memo(
             disabled={disabled}
             placeholder={placeholder}
             autoComplete="off"
-            className="h-[42px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-3 pr-10 text-[14px] text-[#222] outline-none placeholder:text-[#999] focus:border-[#0865a9] disabled:cursor-not-allowed disabled:text-[#666]"
+            className="h-[42px] w-full rounded-[4px] border px-3 pr-10 text-[14px] outline-none disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: colors.inputBg,
+              color: disabled ? colors.mutedText : colors.inputText,
+              borderColor: colors.inputBorder,
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = colors.inputFocusBorder;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = colors.inputBorder;
+            }}
           />
 
           {copyable && (
             <button
               type="button"
               onClick={onCopy}
-              className="absolute right-2 top-1/2 flex h-[28px] w-[28px] -translate-y-1/2 cursor-pointer items-center justify-center rounded-[4px] bg-[#0865a9] text-white"
+              className="absolute right-2 top-1/2 flex h-[28px] w-[28px] -translate-y-1/2 cursor-pointer items-center justify-center rounded-[4px]"
+              style={{
+                backgroundColor: colors.primaryBg,
+                color: colors.primaryText,
+              }}
             >
               <Copy size={15} />
             </button>
@@ -90,6 +139,12 @@ const DepositConfirmModal = ({
   onBack,
 }) => {
   const { isBangla, language } = useLanguage();
+
+  const modalColorSetting = useSelector(selectModalColorSetting);
+  const colors = {
+    ...defaultModalColors,
+    ...(modalColorSetting || {}),
+  };
 
   const [seconds, setSeconds] = useState(15 * 60);
   const [values, setValues] = useState({});
@@ -313,22 +368,33 @@ const DepositConfirmModal = ({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+          style={{ background: colors.pageOverlayBg }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            style={{ backgroundColor: colors.modalBg }}
           >
-            <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+            <div
+              className="relative flex h-[50px] shrink-0 items-center justify-center"
+              style={{
+                backgroundColor: colors.headerBg,
+                color: colors.headerText,
+              }}
+            >
               <h2 className="text-[18px] font-semibold">{t.title}</h2>
 
               <button
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ color: colors.closeIconColor }}
               >
                 <X size={24} />
               </button>
@@ -344,7 +410,14 @@ const DepositConfirmModal = ({
                       className="h-[48px] w-[62px] object-contain"
                     />
                   ) : (
-                    <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-[#0865a9] bg-[#eef7ff] text-[12px] font-black text-[#0865a9]">
+                    <div
+                      className="flex h-[56px] w-[56px] items-center justify-center rounded-full border text-[12px] font-black"
+                      style={{
+                        borderColor: colors.primaryBg,
+                        backgroundColor: colors.summaryBg,
+                        color: colors.summaryText,
+                      }}
+                    >
                       {String(depositData?.methodId || "PAY")
                         .slice(0, 3)
                         .toUpperCase()}
@@ -352,12 +425,21 @@ const DepositConfirmModal = ({
                   )}
 
                   <div>
-                    <h3 className="text-[17px] font-bold text-[#222]">
+                    <h3
+                      className="text-[17px] font-bold"
+                      style={{ color: colors.normalText }}
+                    >
                       {methodName}
                     </h3>
-                    <p className="text-[12px] text-[#777]">
+                    <p
+                      className="text-[12px]"
+                      style={{ color: colors.mutedText }}
+                    >
                       {t.timeLeft}:{" "}
-                      <span className="font-bold text-red-500">
+                      <span
+                        className="font-bold"
+                        style={{ color: colors.dangerBg }}
+                      >
                         {formatTime(seconds)}
                       </span>
                     </p>
@@ -371,13 +453,23 @@ const DepositConfirmModal = ({
                     onBack?.();
                   }}
                   disabled={submitting}
-                  className="cursor-pointer rounded-[4px] border border-[#d7d7d7] px-3 py-1 text-[12px] text-[#0865a9] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="cursor-pointer rounded-[4px] border px-3 py-1 text-[12px] disabled:cursor-not-allowed disabled:opacity-60"
+                  style={{
+                    borderColor: colors.cardBorder,
+                    color: colors.primaryBg,
+                  }}
                 >
                   {t.back}
                 </button>
               </div>
 
-              <p className="mt-4 rounded-[4px] bg-[#eef4ff] p-3 text-center text-[12px] leading-relaxed text-[#2451cc]">
+              <p
+                className="mt-4 rounded-[4px] p-3 text-center text-[12px] leading-relaxed"
+                style={{
+                  backgroundColor: colors.sectionBg,
+                  color: colors.sectionText,
+                }}
+              >
                 {instructions}
               </p>
 
@@ -387,6 +479,7 @@ const DepositConfirmModal = ({
                   value={money(amount)}
                   onChange={() => {}}
                   disabled
+                  colors={colors}
                 />
 
                 <InputRow
@@ -396,6 +489,7 @@ const DepositConfirmModal = ({
                   disabled
                   copyable={!!contactNumber}
                   onCopy={() => handleCopy(contactNumber)}
+                  colors={colors}
                 />
 
                 {inputDefs.length ? (
@@ -429,6 +523,7 @@ const DepositConfirmModal = ({
                         placeholder={placeholder}
                         disabled={field.key === "amount"}
                         type={field.type || "text"}
+                        colors={colors}
                       />
                     );
                   })
@@ -440,6 +535,7 @@ const DepositConfirmModal = ({
                       onChange={(e) => setField("senderNumber", e.target.value)}
                       placeholder="01XXXXXXXXX"
                       type="tel"
+                      colors={colors}
                     />
 
                     <InputRow
@@ -447,11 +543,18 @@ const DepositConfirmModal = ({
                       value={values.trxId || ""}
                       onChange={(e) => setField("trxId", e.target.value)}
                       placeholder="e.g. TXN123456"
+                      colors={colors}
                     />
                   </>
                 )}
 
-                <div className="mt-4 rounded-[4px] bg-[#eef7ff] p-3 text-[12px] text-[#0865a9]">
+                <div
+                  className="mt-4 rounded-[4px] p-3 text-[12px]"
+                  style={{
+                    backgroundColor: colors.summaryBg,
+                    color: colors.summaryText,
+                  }}
+                >
                   <div className="flex justify-between">
                     <span>{t.credited}</span>
                     <span className="font-bold">
@@ -471,12 +574,29 @@ const DepositConfirmModal = ({
                 <button
                   type="submit"
                   disabled={!canSubmit || submitting}
-                  className="relative mt-4 h-[42px] w-full cursor-pointer rounded-[3px] bg-[#0865a9] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                  className="relative mt-4 h-[42px] w-full cursor-pointer rounded-[3px] text-[14px] font-medium disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor:
+                      !canSubmit || submitting
+                        ? colors.disabledBg
+                        : colors.primaryBg,
+                    color:
+                      !canSubmit || submitting
+                        ? colors.disabledText
+                        : colors.primaryText,
+                  }}
                 >
                   {submitting ? t.submitting : t.submit}
 
                   {!canSubmit && (
-                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#333] bg-[#e95b5b] text-white">
+                    <span
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                      style={{
+                        borderColor: colors.normalText,
+                        backgroundColor: colors.dangerBg,
+                        color: colors.dangerText,
+                      }}
+                    >
                       <AlertCircle size={15} />
                     </span>
                   )}
@@ -485,9 +605,16 @@ const DepositConfirmModal = ({
                 <button
                   type="button"
                   onClick={() => setHowOpen((prev) => !prev)}
-                  className="mt-4 flex h-[44px] w-full cursor-pointer items-center justify-between rounded-[4px] border border-[#d7d7d7] bg-white px-3"
+                  className="mt-4 flex h-[44px] w-full cursor-pointer items-center justify-between rounded-[4px] border px-3"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.cardBorder,
+                  }}
                 >
-                  <div className="flex items-center gap-2 text-[14px] font-bold text-[#333]">
+                  <div
+                    className="flex items-center gap-2 text-[14px] font-bold"
+                    style={{ color: colors.normalText }}
+                  >
                     <ChevronRight
                       size={16}
                       className={`transition ${howOpen ? "rotate-90" : ""}`}
@@ -497,7 +624,14 @@ const DepositConfirmModal = ({
                 </button>
 
                 {howOpen && (
-                  <div className="mt-2 rounded-[4px] border border-[#d7d7d7] bg-[#fafafa] p-3 text-[12px] leading-relaxed text-[#555]">
+                  <div
+                    className="mt-2 rounded-[4px] border p-3 text-[12px] leading-relaxed"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                      color: colors.mutedText,
+                    }}
+                  >
                     <ol className="list-decimal space-y-1 pl-5">
                       <li>{t.step1}</li>
                       <li>{t.step2}</li>
@@ -508,7 +642,10 @@ const DepositConfirmModal = ({
                   </div>
                 )}
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-[12px] text-[#777]">
+                <div
+                  className="mt-4 flex items-center justify-center gap-2 text-[12px]"
+                  style={{ color: colors.mutedText }}
+                >
                   <Lock size={13} />
                   <span>{t.secure}</span>
                 </div>
@@ -519,7 +656,8 @@ const DepositConfirmModal = ({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="absolute right-3 top-3 hidden h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-full text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex"
+              className="absolute right-3 top-3 hidden h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-60 sm:flex"
+              style={{ color: colors.closeIconColor }}
             >
               <IoMdClose size={20} />
             </button>

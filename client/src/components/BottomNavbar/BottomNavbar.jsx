@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth } from "../../features/auth/authSelectors";
 import { updateUser } from "../../features/auth/authSlice";
+import { selectBottomNavigationColorSetting } from "../../features/global/globalSelectors";
 
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
@@ -32,11 +33,69 @@ const flagUrl = {
   English: "https://flagcdn.com/w40/us.png",
 };
 
+const defaultBottomColors = {
+  beforeLoginBg: "#ffffff",
+  beforeLoginBorder: "#c9c9c9",
+
+  languageBoxBg: "#dce8f2",
+  languageTitleText: "#0b3554",
+  languageSubtitleText: "#111111",
+
+  signupBg: "#ffffff",
+  signupText: "#111111",
+
+  loginBg: "#0b66a8",
+  loginText: "#ffffff",
+
+  afterLoginBgFrom: "#051b2e",
+  afterLoginBgVia: "#082f50",
+  afterLoginBgTo: "#051b2e",
+  afterLoginBorder: "rgba(255,255,255,0.10)",
+
+  itemIconBg: "rgba(255,255,255,0.10)",
+  itemIconText: "rgba(255,255,255,0.85)",
+  itemText: "rgba(255,255,255,0.75)",
+
+  activeIconBg: "#2e9bf3",
+  activeIconText: "#ffffff",
+  activeText: "#ffffff",
+
+  depositIconBgFrom: "#2e9bf3",
+  depositIconBgTo: "#0865a9",
+  depositIconText: "#ffffff",
+  depositBadgeBg: "#5ed51d",
+  depositBadgeText: "#ffffff",
+
+  langModalOverlayBg: "rgba(0,0,0,0.50)",
+  langModalBg: "#ffffff",
+  langModalHeaderBg: "#0b66a8",
+  langModalHeaderText: "#ffffff",
+  langModalMutedText: "rgba(255,255,255,0.80)",
+
+  langOptionWrapperBg: "#eef7ff",
+  langOptionBg: "#ffffff",
+  langOptionText: "#111111",
+  langOptionActiveBg: "#0b66a8",
+  langOptionActiveText: "#ffffff",
+  langOptionCheckBg: "#ffffff",
+  langOptionCheckText: "#0b66a8",
+  langOptionCheckBorder: "#c9dff2",
+};
+
 const BottomNavbar = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { language, changeLanguage, isBangla } = useLanguage();
   const isAuth = useSelector(selectIsAuth);
+
+  const bottomNavigationColorSetting = useSelector(
+    selectBottomNavigationColorSetting,
+  );
+
+  const colors = {
+    ...defaultBottomColors,
+    ...(bottomNavigationColorSetting || {}),
+  };
 
   const [openLangModal, setOpenLangModal] = useState(false);
   const [openRegister, setOpenRegister] = useState(false);
@@ -170,14 +229,21 @@ const BottomNavbar = () => {
   return (
     <>
       {!isAuth ? (
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[50px] border-t border-[#c9c9c9] bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.12)] md:hidden">
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 flex h-[50px] border-t shadow-[0_-2px_8px_rgba(0,0,0,0.12)] md:hidden"
+          style={{
+            backgroundColor: colors.beforeLoginBg,
+            borderColor: colors.beforeLoginBorder,
+          }}
+        >
           <button
             type="button"
             onClick={() => {
               closeAllModals();
               setOpenLangModal(true);
             }}
-            className="flex w-[100px] cursor-pointer items-center justify-center gap-2 bg-[#dce8f2]"
+            className="flex w-[100px] cursor-pointer items-center justify-center gap-2"
+            style={{ backgroundColor: colors.languageBoxBg }}
           >
             <img
               src={language === "Bangla" ? flagUrl.Bangla : flagUrl.English}
@@ -186,8 +252,16 @@ const BottomNavbar = () => {
             />
 
             <div className="text-left leading-[15px]">
-              <p className="text-[13px] font-bold text-[#0b3554]">BDT</p>
-              <p className="text-[12px] font-semibold text-[#111]">
+              <p
+                className="text-[13px] font-bold"
+                style={{ color: colors.languageTitleText }}
+              >
+                BDT
+              </p>
+              <p
+                className="text-[12px] font-semibold"
+                style={{ color: colors.languageSubtitleText }}
+              >
                 {isBangla ? "বাংলা" : "English"}
               </p>
             </div>
@@ -199,7 +273,11 @@ const BottomNavbar = () => {
               closeAllModals();
               setOpenRegister(true);
             }}
-            className="flex flex-1 cursor-pointer items-center justify-center bg-white text-[15px] font-bold text-[#111]"
+            className="flex flex-1 cursor-pointer items-center justify-center text-[15px] font-bold"
+            style={{
+              backgroundColor: colors.signupBg,
+              color: colors.signupText,
+            }}
           >
             {isBangla ? "সাইন আপ" : "Sign Up"}
           </button>
@@ -210,14 +288,27 @@ const BottomNavbar = () => {
               closeAllModals();
               setOpenLogin(true);
             }}
-            className="flex flex-1 cursor-pointer items-center justify-center bg-[#0b66a8] text-[15px] font-bold text-white"
+            className="flex flex-1 cursor-pointer items-center justify-center text-[15px] font-bold"
+            style={{
+              backgroundColor: colors.loginBg,
+              color: colors.loginText,
+            }}
           >
             {isBangla ? "লগইন" : "Login"}
           </button>
         </div>
       ) : (
-        <div className="fixed bottom-2 left-0 right-0 z-40 border-t border-white/10 md:hidden">
-          <div className="flex h-[58px] items-center justify-between rounded-[18px] border border-white/10 bg-gradient-to-r from-[#051b2e] via-[#082f50] to-[#051b2e] px-2 pb-[3px] pt-[5px] shadow-[0_-8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div
+          className="fixed bottom-2 left-0 right-0 z-40 border-t md:hidden"
+          style={{ borderColor: colors.afterLoginBorder }}
+        >
+          <div
+            className="flex h-[58px] items-center justify-between rounded-[18px] border px-2 pb-[3px] pt-[5px] shadow-[0_-8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md"
+            style={{
+              background: `linear-gradient(to right, ${colors.afterLoginBgFrom}, ${colors.afterLoginBgVia}, ${colors.afterLoginBgTo})`,
+              borderColor: colors.afterLoginBorder,
+            }}
+          >
             {authMenus.map((item) => {
               const Icon = item.icon;
               const active = isActivePath(item.path);
@@ -226,27 +317,46 @@ const BottomNavbar = () => {
               const content = (
                 <>
                   <div
-                    className={`relative flex h-[30px] w-[30px] items-center justify-center rounded-full transition ${
-                      isDeposit
-                        ? "bg-gradient-to-br from-[#2e9bf3] to-[#0865a9] text-white shadow-lg shadow-blue-900/30"
+                    className="relative flex h-[30px] w-[30px] items-center justify-center rounded-full transition"
+                    style={{
+                      background: isDeposit
+                        ? `linear-gradient(to bottom right, ${colors.depositIconBgFrom}, ${colors.depositIconBgTo})`
                         : active
-                          ? "bg-[#2e9bf3] text-white"
-                          : "bg-white/10 text-white/85"
-                    }`}
+                          ? colors.activeIconBg
+                          : colors.itemIconBg,
+                      color: isDeposit
+                        ? colors.depositIconText
+                        : active
+                          ? colors.activeIconText
+                          : colors.itemIconText,
+                      boxShadow: isDeposit
+                        ? "0 10px 15px -3px rgba(30,64,175,0.30)"
+                        : "none",
+                    }}
                   >
                     <Icon size={17} />
 
                     {isDeposit && (
-                      <span className="absolute -right-[3px] -top-[3px] flex h-[13px] w-[13px] items-center justify-center rounded-full bg-[#5ed51d] text-white">
+                      <span
+                        className="absolute -right-[3px] -top-[3px] flex h-[13px] w-[13px] items-center justify-center rounded-full"
+                        style={{
+                          backgroundColor: colors.depositBadgeBg,
+                          color: colors.depositBadgeText,
+                        }}
+                      >
                         <Sparkles size={8} />
                       </span>
                     )}
                   </div>
 
                   <span
-                    className={`mt-[3px] text-[10.5px] font-bold leading-none ${
-                      active || isDeposit ? "text-white" : "text-white/75"
-                    }`}
+                    className="mt-[3px] text-[10.5px] font-bold leading-none"
+                    style={{
+                      color:
+                        active || isDeposit
+                          ? colors.activeText
+                          : colors.itemText,
+                    }}
                   >
                     {item.label}
                   </span>
@@ -283,21 +393,34 @@ const BottomNavbar = () => {
 
       <AnimatePresence>
         {openLangModal && (
-          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
+          <div
+            className="fixed inset-0 z-[999] flex items-center justify-center px-4"
+            style={{ background: colors.langModalOverlayBg }}
+          >
             <motion.div
               initial={{ scale: 0.92, opacity: 0, y: 18 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.92, opacity: 0, y: 18 }}
               transition={{ duration: 0.22 }}
-              className="w-full max-w-[360px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+              className="w-full max-w-[360px] overflow-hidden rounded-2xl shadow-2xl"
+              style={{ backgroundColor: colors.langModalBg }}
             >
-              <div className="bg-[#0b66a8] px-5 py-4 text-white">
+              <div
+                className="px-5 py-4"
+                style={{
+                  backgroundColor: colors.langModalHeaderBg,
+                  color: colors.langModalHeaderText,
+                }}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold">
                       {isBangla ? "ভাষা নির্বাচন করুন" : "Choose Language"}
                     </h2>
-                    <p className="mt-1 text-xs text-white/80">
+                    <p
+                      className="mt-1 text-xs"
+                      style={{ color: colors.langModalMutedText }}
+                    >
                       {isBangla
                         ? "আপনার পছন্দের ভাষা বেছে নিন"
                         : "Select your preferred language"}
@@ -307,7 +430,8 @@ const BottomNavbar = () => {
                   <button
                     type="button"
                     onClick={() => setOpenLangModal(false)}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+                    style={{ color: colors.langModalHeaderText }}
                   >
                     <X size={18} />
                   </button>
@@ -315,7 +439,10 @@ const BottomNavbar = () => {
               </div>
 
               <div className="p-5">
-                <div className="rounded-xl bg-[#eef7ff] p-1">
+                <div
+                  className="rounded-xl p-1"
+                  style={{ backgroundColor: colors.langOptionWrapperBg }}
+                >
                   {languages.map((item) => {
                     const active = language === item.key;
 
@@ -327,11 +454,15 @@ const BottomNavbar = () => {
                           changeLanguage(item.key);
                           setOpenLangModal(false);
                         }}
-                        className={`mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0 ${
-                          active
-                            ? "bg-[#0b66a8] text-white shadow-md"
-                            : "bg-white text-[#111] hover:bg-[#f8fbff]"
-                        }`}
+                        className="mb-1 flex h-[52px] w-full cursor-pointer items-center justify-between rounded-lg px-3 transition last:mb-0"
+                        style={{
+                          backgroundColor: active
+                            ? colors.langOptionActiveBg
+                            : colors.langOptionBg,
+                          color: active
+                            ? colors.langOptionActiveText
+                            : colors.langOptionText,
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <img
@@ -345,11 +476,18 @@ const BottomNavbar = () => {
                         </div>
 
                         <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                            active
-                              ? "border-white bg-white text-[#0b66a8]"
-                              : "border-[#c9dff2] bg-[#eef7ff] text-transparent"
-                          }`}
+                          className="flex h-6 w-6 items-center justify-center rounded-full border"
+                          style={{
+                            borderColor: active
+                              ? colors.langOptionCheckBg
+                              : colors.langOptionCheckBorder,
+                            backgroundColor: active
+                              ? colors.langOptionCheckBg
+                              : colors.langOptionWrapperBg,
+                            color: active
+                              ? colors.langOptionCheckText
+                              : "transparent",
+                          }}
                         >
                           <Check size={15} />
                         </span>

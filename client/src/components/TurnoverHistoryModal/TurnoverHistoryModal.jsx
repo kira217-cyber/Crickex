@@ -12,8 +12,37 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { selectTransactionHistoryColorSetting } from "../../features/global/globalSelectors";
+
+const defaultHistoryColors = {
+  modalBg: "#ffffff",
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+  sectionBg: "#f3f7fb",
+  sectionBorder: "#e5e5e5",
+  cardBg: "#ffffff",
+  cardBorder: "#dce8f5",
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  normalText: "#222222",
+  mutedText: "#777777",
+  summaryBg: "#f4f8ff",
+  summaryText: "#0865a9",
+  progressBg: "#0865a9",
+  progressTrackBg: "#ffffff",
+  successBg: "#dcfce7",
+  successText: "#15803d",
+  warningBg: "#fef9c3",
+  warningText: "#a16207",
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+};
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -63,6 +92,15 @@ const percent = (progress, required) => {
 
 const TurnoverHistoryModal = ({ onBackToDeposit }) => {
   const { isBangla } = useLanguage();
+
+  const transactionHistoryColorSetting = useSelector(
+    selectTransactionHistoryColorSetting,
+  );
+
+  const colors = {
+    ...defaultHistoryColors,
+    ...(transactionHistoryColorSetting || {}),
+  };
 
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -133,22 +171,33 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
     if (s === "completed") {
       return {
         label: t.completed,
-        cls: "bg-green-100 text-green-700 border-green-200",
+        bg: colors.successBg,
+        text: colors.successText,
         icon: <CheckCircle2 size={14} />,
       };
     }
 
     return {
       label: t.running,
-      cls: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      bg: colors.warningBg,
+      text: colors.warningText,
       icon: <Clock3 size={14} />,
     };
   };
 
   return (
     <>
-      <div className="shrink-0 bg-[#0865a9] px-4 pb-4">
-        <div className="rounded-[4px] bg-white/10 px-4 py-3 text-white">
+      <div
+        className="shrink-0 px-4 pb-4"
+        style={{ backgroundColor: colors.headerBg }}
+      >
+        <div
+          className="rounded-[4px] px-4 py-3"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.10)",
+            color: colors.headerText,
+          }}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
@@ -157,7 +206,7 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
 
               <div className="min-w-0">
                 <p className="text-[14px] font-bold">{t.subtitle}</p>
-                <p className="mt-1 text-[12px] text-white/80">
+                <p className="mt-1 text-[12px] opacity-80">
                   {t.total}: {total}
                 </p>
               </div>
@@ -166,7 +215,8 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
             <button
               type="button"
               onClick={handleRefresh}
-              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[4px] bg-white/15 text-white"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[4px] bg-white/15"
+              style={{ color: colors.headerText }}
             >
               <RefreshCw
                 size={17}
@@ -177,9 +227,18 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-[#f3f7fb] px-4 py-4">
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4"
+        style={{ backgroundColor: colors.sectionBg }}
+      >
         {isLoading ? (
-          <div className="rounded-[6px] bg-white p-6 text-center text-[13px] text-[#666] shadow-sm">
+          <div
+            className="rounded-[6px] p-6 text-center text-[13px] shadow-sm"
+            style={{
+              backgroundColor: colors.cardBg,
+              color: colors.mutedText,
+            }}
+          >
             {t.loading}
           </div>
         ) : rows.length ? (
@@ -191,21 +250,36 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
               return (
                 <div
                   key={item._id}
-                  className="rounded-[6px] border border-[#dce8f5] bg-white p-4 shadow-sm"
+                  className="rounded-[6px] border p-4 shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.cardBorder,
+                  }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-bold text-[#222]">
+                      <p
+                        className="truncate text-[14px] font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {sourceText(item?.sourceType, isBangla)}
                       </p>
 
-                      <p className="mt-1 text-[12px] text-[#777]">
+                      <p
+                        className="mt-1 text-[12px]"
+                        style={{ color: colors.mutedText }}
+                      >
                         {t.date}: {formatDate(item?.createdAt)}
                       </p>
                     </div>
 
                     <span
-                      className={`flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-bold ${statusInfo.cls}`}
+                      className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-bold"
+                      style={{
+                        backgroundColor: statusInfo.bg,
+                        color: statusInfo.text,
+                        borderColor: statusInfo.bg,
+                      }}
                     >
                       {statusInfo.icon}
                       {statusInfo.label}
@@ -213,76 +287,139 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
-                    <div className="rounded-[4px] bg-[#f4f8ff] p-2">
-                      <div className="flex items-center gap-1 text-[#777]">
+                    <div
+                      className="rounded-[4px] p-2"
+                      style={{ backgroundColor: colors.summaryBg }}
+                    >
+                      <div
+                        className="flex items-center gap-1"
+                        style={{ color: colors.mutedText }}
+                      >
                         <Target size={13} />
                         <span>{t.required}</span>
                       </div>
 
-                      <p className="mt-1 font-bold text-[#0865a9]">
+                      <p
+                        className="mt-1 font-bold"
+                        style={{ color: colors.summaryText }}
+                      >
                         {money(item?.required)}
                       </p>
                     </div>
 
-                    <div className="rounded-[4px] bg-[#f4f8ff] p-2">
-                      <div className="flex items-center gap-1 text-[#777]">
+                    <div
+                      className="rounded-[4px] p-2"
+                      style={{ backgroundColor: colors.summaryBg }}
+                    >
+                      <div
+                        className="flex items-center gap-1"
+                        style={{ color: colors.mutedText }}
+                      >
                         <TrendingUp size={13} />
                         <span>{t.progress}</span>
                       </div>
 
-                      <p className="mt-1 font-bold text-[#222]">
+                      <p
+                        className="mt-1 font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {money(item?.progress)}
                       </p>
                     </div>
 
-                    <div className="rounded-[4px] bg-[#f4f8ff] p-2">
-                      <div className="flex items-center gap-1 text-[#777]">
+                    <div
+                      className="rounded-[4px] p-2"
+                      style={{ backgroundColor: colors.summaryBg }}
+                    >
+                      <div
+                        className="flex items-center gap-1"
+                        style={{ color: colors.mutedText }}
+                      >
                         <Wallet size={13} />
                         <span>{t.creditedAmount}</span>
                       </div>
 
-                      <p className="mt-1 font-bold text-[#222]">
+                      <p
+                        className="mt-1 font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {money(item?.creditedAmount)}
                       </p>
                     </div>
 
-                    <div className="rounded-[4px] bg-[#f4f8ff] p-2">
-                      <div className="flex items-center gap-1 text-[#777]">
+                    <div
+                      className="rounded-[4px] p-2"
+                      style={{ backgroundColor: colors.summaryBg }}
+                    >
+                      <div
+                        className="flex items-center gap-1"
+                        style={{ color: colors.mutedText }}
+                      >
                         <CheckCircle2 size={13} />
                         <span>{t.status}</span>
                       </div>
 
-                      <p className="mt-1 font-bold text-[#222]">
+                      <p
+                        className="mt-1 font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {statusInfo.label}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-[4px] bg-[#eef5ff] p-3">
-                    <div className="mb-2 flex items-center justify-between text-[12px] font-bold text-[#0865a9]">
+                  <div
+                    className="mt-3 rounded-[4px] p-3"
+                    style={{ backgroundColor: colors.summaryBg }}
+                  >
+                    <div
+                      className="mb-2 flex items-center justify-between text-[12px] font-bold"
+                      style={{ color: colors.summaryText }}
+                    >
                       <span>{t.progress}</span>
                       <span>{progressPercent}%</span>
                     </div>
 
-                    <div className="h-[8px] overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-[8px] overflow-hidden rounded-full"
+                      style={{ backgroundColor: colors.progressTrackBg }}
+                    >
                       <div
-                        className="h-full rounded-full bg-[#0865a9]"
-                        style={{ width: `${progressPercent}%` }}
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${progressPercent}%`,
+                          backgroundColor: colors.progressBg,
+                        }}
                       />
                     </div>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[#777]">
-                    <div className="rounded bg-[#fafafa] p-2">
+                  <div
+                    className="mt-3 grid grid-cols-2 gap-2 text-[11px]"
+                    style={{ color: colors.mutedText }}
+                  >
+                    <div
+                      className="rounded p-2"
+                      style={{ backgroundColor: colors.inputBg }}
+                    >
                       {t.completedAt}:{" "}
-                      <span className="font-bold text-[#222]">
+                      <span
+                        className="font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {formatDate(item?.completedAt)}
                       </span>
                     </div>
 
-                    <div className="rounded bg-[#fafafa] p-2 text-right">
+                    <div
+                      className="rounded p-2 text-right"
+                      style={{ backgroundColor: colors.inputBg }}
+                    >
                       ID:{" "}
-                      <span className="font-bold text-[#222]">
+                      <span
+                        className="font-bold"
+                        style={{ color: colors.normalText }}
+                      >
                         {String(item?._id || "").slice(-8)}
                       </span>
                     </div>
@@ -292,14 +429,29 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
             })}
           </div>
         ) : (
-          <div className="rounded-[6px] bg-white p-8 text-center text-[13px] text-[#666] shadow-sm">
+          <div
+            className="rounded-[6px] p-8 text-center text-[13px] shadow-sm"
+            style={{
+              backgroundColor: colors.cardBg,
+              color: colors.mutedText,
+            }}
+          >
             {t.noData}
           </div>
         )}
       </div>
 
-      <div className="shrink-0 border-t border-[#e5e5e5] bg-white px-4 py-3">
-        <div className="mb-3 flex items-center justify-between text-[12px] text-[#555]">
+      <div
+        className="shrink-0 border-t px-4 py-3"
+        style={{
+          backgroundColor: colors.modalBg,
+          borderColor: colors.sectionBorder,
+        }}
+      >
+        <div
+          className="mb-3 flex items-center justify-between text-[12px]"
+          style={{ color: colors.mutedText }}
+        >
           <span>
             {t.page} {page} {t.of} {totalPages}
           </span>
@@ -313,7 +465,12 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
             type="button"
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             disabled={page <= 1 || isFetching}
-            className="flex h-[38px] cursor-pointer items-center justify-center gap-1 rounded-[4px] border border-[#d7d7d7] bg-white text-[13px] text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-[38px] cursor-pointer items-center justify-center gap-1 rounded-[4px] border text-[13px] disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: colors.cardBg,
+              borderColor: colors.cardBorder,
+              color: colors.normalText,
+            }}
           >
             <ChevronLeft size={16} />
             {t.prev}
@@ -322,7 +479,11 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
           <button
             type="button"
             onClick={onBackToDeposit}
-            className="h-[38px] cursor-pointer rounded-[4px] bg-[#0865a9] text-[13px] font-bold text-white"
+            className="h-[38px] cursor-pointer rounded-[4px] text-[13px] font-bold"
+            style={{
+              backgroundColor: colors.primaryBg,
+              color: colors.primaryText,
+            }}
           >
             {t.back}
           </button>
@@ -331,7 +492,12 @@ const TurnoverHistoryModal = ({ onBackToDeposit }) => {
             type="button"
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={page >= totalPages || isFetching}
-            className="flex h-[38px] cursor-pointer items-center justify-center gap-1 rounded-[4px] border border-[#d7d7d7] bg-white text-[13px] text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-[38px] cursor-pointer items-center justify-center gap-1 rounded-[4px] border text-[13px] disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: colors.cardBg,
+              borderColor: colors.cardBorder,
+              color: colors.normalText,
+            }}
           >
             {t.next}
             <ChevronRight size={16} />

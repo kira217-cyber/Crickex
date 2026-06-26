@@ -50,6 +50,9 @@ import loginModalSettingRoutes from "./routes/loginModalSettingRoutes.js";
 import forgotPasswordRoutes from "./routes/forgotPasswordRoutes.js";
 import referRedeemAdminRoutes from "./routes/referRedeemAdminRoutes.js";
 import referRedeemUserRoutes from "./routes/referRedeemUserRoutes.js";
+import modalColorSettingRoutes from "./routes/modalColorSettingRoutes.js";
+import transactionHistoryColorSettingRoutes from "./routes/transactionHistoryColorSettingRoutes.js";
+import bottomNavigationColorSettingRoutes from "./routes/bottomNavigationColorSettingRoutes.js";
 
 dotenv.config();
 
@@ -123,6 +126,15 @@ app.use("/api/sidebar-color-settings", sidebarColorSettingRoutes);
 app.use("/api/category-section-settings", categorySectionSettingRoutes);
 app.use("/api/register-modal-settings", registerModalSettingRoutes);
 app.use("/api/login-modal-settings", loginModalSettingRoutes);
+app.use("/api/modal-color-settings", modalColorSettingRoutes);
+app.use(
+  "/api/transaction-history-color-settings",
+  transactionHistoryColorSettingRoutes,
+);
+app.use(
+  "/api/bottom-navigation-color-settings",
+  bottomNavigationColorSettingRoutes,
+);
 
 // Affiliate Site Controller
 app.use("/api/aff-site-identify", affSiteIdentifyRoutes);

@@ -10,6 +10,9 @@ import SidebarColorSetting from "../models/SidebarColorSetting.js";
 import CategorySectionSetting from "../models/CategorySectionSetting.js";
 import RegisterModalSetting from "../models/RegisterModalSetting.js";
 import LoginModalSetting from "../models/LoginModalSetting.js";
+import ModalColorSetting from "../models/ModalColorSetting.js";
+import TransactionHistoryColorSetting from "../models/TransactionHistoryColorSetting.js";
+import BottomNavigationColorSetting from "../models/BottomNavigationColorSetting.js";
 
 const router = express.Router();
 
@@ -167,6 +170,9 @@ router.get("/site-data", async (req, res) => {
       categorySectionSetting,
       registerModalSetting,
       loginModalSetting,
+      modalColorSetting,
+      transactionHistoryColorSetting,
+      bottomNavigationColorSetting,
     ] = await Promise.all([
       SiteIdentify.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
       Notice.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
@@ -194,6 +200,15 @@ router.get("/site-data", async (req, res) => {
       LoginModalSetting.findOne({ status: "active" })
         .sort({ createdAt: -1 })
         .lean(),
+      ModalColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      TransactionHistoryColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      BottomNavigationColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     return res.status(200).json({
@@ -218,6 +233,9 @@ router.get("/site-data", async (req, res) => {
           registerModalSetting,
         ),
         loginModalSetting: formatLoginModalSetting(req, loginModalSetting),
+        modalColorSetting,
+        transactionHistoryColorSetting,
+        bottomNavigationColorSetting,
       },
     });
   } catch (error) {

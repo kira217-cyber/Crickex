@@ -17,6 +17,53 @@ import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+
+  secondaryBg: "#2e9bf3",
+  secondaryText: "#ffffff",
+
+  inactiveTabBg: "#00518c",
+  inactiveTabText: "#ffffff",
+
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+
+  cardBg: "#ffffff",
+  cardBorder: "#dce8f5",
+
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+
+  dangerBg: "#e95b5b",
+  dangerText: "#ffffff",
+
+  successBg: "#22c55e",
+  successText: "#ffffff",
+};
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -45,6 +92,12 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
 
   const isAuthenticated = useSelector(selectIsAuth);
   const user = useSelector(selectUser);
+
+  const modalColorSetting = useSelector(selectModalColorSetting);
+  const colors = {
+    ...defaultModalColors,
+    ...(modalColorSetting || {}),
+  };
 
   const [loading, setLoading] = useState(true);
   const [eligibilityLoading, setEligibilityLoading] = useState(true);
@@ -345,7 +398,14 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
   const EligibilityBox = () => {
     if (eligibilityLoading) {
       return (
-        <div className="rounded-[4px] border border-[#dce8f5] bg-[#eef4ff] p-3 text-[#0865a9]">
+        <div
+          className="rounded-[4px] border p-3"
+          style={{
+            backgroundColor: colors.sectionBg,
+            borderColor: colors.cardBorder,
+            color: colors.summaryText,
+          }}
+        >
           <div className="flex items-center gap-2 text-[13px] font-bold">
             <Loader2 size={15} className="animate-spin" />
             {t.loading}
@@ -405,73 +465,124 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+          style={{ background: colors.pageOverlayBg }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            style={{ backgroundColor: colors.modalBg }}
           >
-            <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+            <div
+              className="relative flex h-[50px] shrink-0 items-center justify-center"
+              style={{
+                backgroundColor: colors.headerBg,
+                color: colors.headerText,
+              }}
+            >
               <h2 className="text-[18px] font-semibold">{t.title}</h2>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white"
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center"
+                style={{ color: colors.closeIconColor }}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="flex h-[52px] shrink-0 items-center gap-1 bg-[#0865a9] px-4 pb-3">
+            <div
+              className="flex h-[52px] shrink-0 items-center gap-1 px-4 pb-3"
+              style={{ backgroundColor: colors.headerBg }}
+            >
               <button
                 type="button"
                 onClick={onDepositClick}
-                className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#00518c] text-[13px] font-bold text-white"
+                className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                style={{
+                  backgroundColor: colors.inactiveTabBg,
+                  color: colors.inactiveTabText,
+                }}
               >
                 {t.deposit}
               </button>
 
               <button
                 type="button"
-                className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#2e9bf3] text-[13px] font-bold text-white"
+                className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                style={{
+                  backgroundColor: colors.secondaryBg,
+                  color: colors.secondaryText,
+                }}
               >
                 {t.title}
               </button>
-
             </div>
 
             {loading ? (
-              <div className="flex flex-1 items-center justify-center bg-white">
-                <div className="flex items-center gap-2 text-[14px] font-semibold text-[#0865a9]">
+              <div
+                className="flex flex-1 items-center justify-center"
+                style={{ backgroundColor: colors.modalBg }}
+              >
+                <div
+                  className="flex items-center gap-2 text-[14px] font-semibold"
+                  style={{ color: colors.primaryBg }}
+                >
                   <Loader2 size={18} className="animate-spin" />
                   {t.loading}
                 </div>
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto bg-white px-4 pb-5 pt-3">
+                <div
+                  className="flex-1 overflow-y-auto px-4 pb-5 pt-3"
+                  style={{ backgroundColor: colors.modalBg }}
+                >
                   <EligibilityBox />
 
-                  <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3 shadow-sm">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3 shadow-sm"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-[#0865a9]">
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ color: colors.primaryBg }}
+                      >
                         <Wallet size={18} />
                         <span className="text-[14px] font-bold">
                           {t.balance}
                         </span>
                       </div>
 
-                      <span className="text-[14px] font-bold text-green-600">
+                      <span
+                        className="text-[14px] font-bold"
+                        style={{ color: colors.successBg }}
+                      >
                         {money(userBalance)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3 shadow-sm">
-                    <p className="text-[14px] font-bold text-[#0865a9]">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3 shadow-sm"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
+                    <p
+                      className="text-[14px] font-bold"
+                      style={{ color: colors.primaryBg }}
+                    >
                       {t.method}
                     </p>
 
@@ -494,13 +605,20 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                               onClick={() =>
                                 handleSelectMethod(method.methodId)
                               }
-                              className={`flex min-h-[82px] cursor-pointer flex-col items-center justify-center rounded-[6px] border transition ${
-                                active
-                                  ? "border-[#0865a9] bg-[#eaf4ff] shadow-sm"
-                                  : "border-[#dce8f5] bg-[#f7f9fd]"
-                              }`}
+                              className="flex min-h-[82px] cursor-pointer flex-col items-center justify-center rounded-[6px] border transition"
+                              style={{
+                                backgroundColor: active
+                                  ? colors.summaryBg
+                                  : colors.inputBg,
+                                borderColor: active
+                                  ? colors.primaryBg
+                                  : colors.cardBorder,
+                              }}
                             >
-                              <div className="flex h-10 w-10 items-center justify-center overflow-hidden bg-white">
+                              <div
+                                className="flex h-10 w-10 items-center justify-center overflow-hidden"
+                                style={{ backgroundColor: colors.cardBg }}
+                              >
                                 {method.logoUrl ? (
                                   <img
                                     src={getImageUrl(method.logoUrl)}
@@ -510,15 +628,18 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                                 ) : (
                                   <Wallet
                                     size={20}
-                                    className="text-[#0865a9]"
+                                    style={{ color: colors.primaryBg }}
                                   />
                                 )}
                               </div>
 
                               <span
-                                className={`mt-1 line-clamp-1 text-[11px] font-bold ${
-                                  active ? "text-[#0865a9]" : "text-[#333]"
-                                }`}
+                                className="mt-1 line-clamp-1 text-[11px] font-bold"
+                                style={{
+                                  color: active
+                                    ? colors.summaryText
+                                    : colors.normalText,
+                                }}
                               >
                                 {name || method.methodId}
                               </span>
@@ -527,22 +648,37 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                         })}
                       </div>
                     ) : (
-                      <p className="mt-3 text-[13px] text-[#777]">
+                      <p
+                        className="mt-3 text-[13px]"
+                        style={{ color: colors.mutedText }}
+                      >
                         {t.noMethod}
                       </p>
                     )}
 
                     {selectedMethod ? (
-                      <div className="mt-2 text-[12px] text-[#777]">
+                      <div
+                        className="mt-2 text-[12px]"
+                        style={{ color: colors.mutedText }}
+                      >
                         {t.min}: {money(minAmount)} | {t.max}:{" "}
                         {maxAmount > 0 ? money(maxAmount) : "∞"}
                       </div>
                     ) : null}
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3 shadow-sm">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3 shadow-sm"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-[#0865a9]">
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ color: colors.primaryBg }}
+                      >
                         <Phone size={18} />
                         <span className="text-[14px] font-bold">
                           {t.wallet}
@@ -558,7 +694,11 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                           }
                           setShowAddWallet((prev) => !prev);
                         }}
-                        className="flex h-[30px] cursor-pointer items-center gap-1 rounded-[4px] bg-[#0865a9] px-2 text-[11px] font-bold text-white"
+                        className="flex h-[30px] cursor-pointer items-center gap-1 rounded-[4px] px-2 text-[11px] font-bold"
+                        style={{
+                          backgroundColor: colors.primaryBg,
+                          color: colors.primaryText,
+                        }}
                       >
                         {showAddWallet ? (
                           <ChevronUp size={14} />
@@ -569,7 +709,13 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                       </button>
                     </div>
 
-                    <p className="mt-2 rounded bg-[#eef5ff] p-2 text-[11px] leading-4 text-[#0865a9]">
+                    <p
+                      className="mt-2 rounded p-2 text-[11px] leading-4"
+                      style={{
+                        backgroundColor: colors.summaryBg,
+                        color: colors.summaryText,
+                      }}
+                    >
                       {t.maxWalletText}
                     </p>
 
@@ -584,17 +730,27 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                               key={wallet._id}
                               type="button"
                               onClick={() => setSelectedWalletId(wallet._id)}
-                              className={`flex w-full cursor-pointer items-center justify-between rounded-[5px] border p-3 text-left transition ${
-                                active
-                                  ? "border-[#0865a9] bg-[#eaf4ff]"
-                                  : "border-[#dce8f5] bg-[#f7f9fd]"
-                              }`}
+                              className="flex w-full cursor-pointer items-center justify-between rounded-[5px] border p-3 text-left transition"
+                              style={{
+                                backgroundColor: active
+                                  ? colors.summaryBg
+                                  : colors.inputBg,
+                                borderColor: active
+                                  ? colors.primaryBg
+                                  : colors.cardBorder,
+                              }}
                             >
                               <div>
-                                <p className="text-[13px] font-bold text-[#222]">
+                                <p
+                                  className="text-[13px] font-bold"
+                                  style={{ color: colors.normalText }}
+                                >
                                   {wallet.walletNumber}
                                 </p>
-                                <p className="mt-1 text-[11px] text-[#777]">
+                                <p
+                                  className="mt-1 text-[11px]"
+                                  style={{ color: colors.mutedText }}
+                                >
                                   {wallet.label ||
                                     wallet.walletType ||
                                     "personal"}
@@ -604,7 +760,7 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                               {active ? (
                                 <CheckCircle2
                                   size={18}
-                                  className="text-green-600"
+                                  style={{ color: colors.successBg }}
                                 />
                               ) : null}
                             </button>
@@ -612,7 +768,10 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                         })}
                       </div>
                     ) : (
-                      <p className="mt-3 text-[12px] text-[#777]">
+                      <p
+                        className="mt-3 text-[12px]"
+                        style={{ color: colors.mutedText }}
+                      >
                         {t.noWallet}
                       </p>
                     )}
@@ -626,7 +785,13 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="mt-3 grid grid-cols-1 gap-2 rounded-[5px] border border-[#dce8f5] bg-[#fafcff] p-3">
+                          <div
+                            className="mt-3 grid grid-cols-1 gap-2 rounded-[5px] border p-3"
+                            style={{
+                              backgroundColor: colors.cardBg,
+                              borderColor: colors.cardBorder,
+                            }}
+                          >
                             {walletLimitReached ? (
                               <div className="rounded bg-yellow-50 p-2 text-[12px] text-yellow-700">
                                 {t.maxWalletReached}
@@ -638,7 +803,12 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                                   onChange={(e) =>
                                     setWalletType(e.target.value)
                                   }
-                                  className="h-[40px] rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-3 text-[13px] text-[#222] outline-none focus:border-[#0865a9]"
+                                  className="h-[40px] rounded-[4px] border px-3 text-[13px] outline-none"
+                                  style={{
+                                    backgroundColor: colors.inputBg,
+                                    color: colors.inputText,
+                                    borderColor: colors.inputBorder,
+                                  }}
                                 >
                                   {walletTypes.map((type) => (
                                     <option key={type.key} value={type.key}>
@@ -656,7 +826,12 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                                   }
                                   placeholder="01XXXXXXXXX"
                                   inputMode="numeric"
-                                  className="h-[40px] rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-3 text-[13px] text-[#222] outline-none focus:border-[#0865a9]"
+                                  className="h-[40px] rounded-[4px] border px-3 text-[13px] outline-none"
+                                  style={{
+                                    backgroundColor: colors.inputBg,
+                                    color: colors.inputText,
+                                    borderColor: colors.inputBorder,
+                                  }}
                                 />
 
                                 <input
@@ -665,7 +840,12 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                                     setWalletLabel(e.target.value)
                                   }
                                   placeholder={t.walletLabelPlaceholder}
-                                  className="h-[40px] rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-3 text-[13px] text-[#222] outline-none focus:border-[#0865a9]"
+                                  className="h-[40px] rounded-[4px] border px-3 text-[13px] outline-none"
+                                  style={{
+                                    backgroundColor: colors.inputBg,
+                                    color: colors.inputText,
+                                    borderColor: colors.inputBorder,
+                                  }}
                                 />
 
                                 <button
@@ -674,7 +854,17 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                                   disabled={
                                     submittingWallet || !selectedMethodId
                                   }
-                                  className="h-[36px] cursor-pointer rounded-[4px] bg-[#0865a9] text-[13px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#999]"
+                                  className="h-[36px] cursor-pointer rounded-[4px] text-[13px] font-bold disabled:cursor-not-allowed"
+                                  style={{
+                                    backgroundColor:
+                                      submittingWallet || !selectedMethodId
+                                        ? colors.disabledBg
+                                        : colors.primaryBg,
+                                    color:
+                                      submittingWallet || !selectedMethodId
+                                        ? colors.disabledText
+                                        : colors.primaryText,
+                                  }}
                                 >
                                   {submittingWallet
                                     ? t.walletSaving
@@ -688,8 +878,17 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                     </AnimatePresence>
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3 shadow-sm">
-                    <div className="flex items-center gap-2 text-[#0865a9]">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3 shadow-sm"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ color: colors.primaryBg }}
+                    >
                       <Wallet size={18} />
                       <span className="text-[14px] font-bold">{t.amount}</span>
                     </div>
@@ -701,17 +900,34 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                       }
                       placeholder={t.enterAmount}
                       inputMode="decimal"
-                      className="mt-3 h-[42px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4 text-[14px] text-[#222] outline-none focus:border-[#0865a9]"
+                      className="mt-3 h-[42px] w-full rounded-[4px] border px-4 text-[14px] outline-none"
+                      style={{
+                        backgroundColor: colors.inputBg,
+                        color: colors.inputText,
+                        borderColor: colors.inputBorder,
+                      }}
                     />
 
-                    <div className="mt-2 text-[12px] text-[#777]">
+                    <div
+                      className="mt-2 text-[12px]"
+                      style={{ color: colors.mutedText }}
+                    >
                       {t.min}: {money(minAmount)} | {t.max}:{" "}
                       {maxAmount > 0 ? money(maxAmount) : "∞"}
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#97b6e9] bg-[#eef4ff] p-3">
-                    <div className="flex items-start gap-2 text-[#2451cc]">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3"
+                    style={{
+                      backgroundColor: colors.sectionBg,
+                      borderColor: colors.sectionBorder,
+                    }}
+                  >
+                    <div
+                      className="flex items-start gap-2"
+                      style={{ color: colors.sectionText }}
+                    >
                       <Info size={17} className="mt-[1px] shrink-0" />
                       <p className="text-[12px] leading-[18px]">
                         {t.secureText}
@@ -720,8 +936,14 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                   </div>
                 </div>
 
-                <div className="shrink-0 bg-white px-4 pb-4">
-                  <div className="mb-3 flex items-center justify-center gap-2 text-[12px] text-[#777]">
+                <div
+                  className="shrink-0 px-4 pb-4"
+                  style={{ backgroundColor: colors.modalBg }}
+                >
+                  <div
+                    className="mb-3 flex items-center justify-center gap-2 text-[12px]"
+                    style={{ color: colors.mutedText }}
+                  >
                     <ShieldCheck size={14} />
                     <span>
                       {eligibility?.eligible
@@ -734,16 +956,38 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
                     type="button"
                     onClick={handleWithdraw}
                     disabled={!canWithdraw}
-                    className="relative h-[38px] w-full cursor-pointer rounded-[2px] bg-[#0865a9] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                    className="relative h-[38px] w-full cursor-pointer rounded-[2px] text-[14px] font-medium disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: canWithdraw
+                        ? colors.primaryBg
+                        : colors.disabledBg,
+                      color: canWithdraw
+                        ? colors.primaryText
+                        : colors.disabledText,
+                    }}
                   >
                     {submittingWithdraw ? t.processing : t.submit}
 
                     {!canWithdraw ? (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#333] bg-[#e95b5b] text-white">
+                      <span
+                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: colors.normalText,
+                          backgroundColor: colors.dangerBg,
+                          color: colors.dangerText,
+                        }}
+                      >
                         <AlertCircle size={15} />
                       </span>
                     ) : (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-green-700 bg-green-500 text-white">
+                      <span
+                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: colors.successBg,
+                          backgroundColor: colors.successBg,
+                          color: colors.successText,
+                        }}
+                      >
                         <CheckCircle2 size={15} />
                       </span>
                     )}

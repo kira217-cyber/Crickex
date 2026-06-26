@@ -2,12 +2,60 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronDown, Info, BadgePercent, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import AutoDepositModal from "../AutoDepositModal/AutoDepositModal";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+
+  secondaryBg: "#2e9bf3",
+  secondaryText: "#ffffff",
+
+  inactiveTabBg: "#00518c",
+  inactiveTabText: "#ffffff",
+
+  promotionBg: "#e9b20d",
+  promotionText: "#ffffff",
+
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+
+  cardBg: "#ffffff",
+  cardBorder: "#d7d7d7",
+
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+
+  dangerBg: "#e95b5b",
+  dangerText: "#ffffff",
+};
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -38,6 +86,12 @@ const getImg = (url) => {
 
 const DepositFundsModal = ({ open, onClose, onNext }) => {
   const { isBangla, language } = useLanguage();
+
+  const modalColorSetting = useSelector(selectModalColorSetting);
+  const colors = {
+    ...defaultModalColors,
+    ...(modalColorSetting || {}),
+  };
 
   const [activeModal, setActiveModal] = useState("deposit");
 
@@ -286,30 +340,48 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
     <>
       <AnimatePresence>
         {open && activeModal === "deposit" && (
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+            style={{ background: colors.pageOverlayBg }}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ duration: 0.2 }}
-              className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+              className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+              style={{ backgroundColor: colors.modalBg }}
             >
-              <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+              <div
+                className="relative flex h-[50px] shrink-0 items-center justify-center"
+                style={{
+                  backgroundColor: colors.headerBg,
+                  color: colors.headerText,
+                }}
+              >
                 <h2 className="text-[18px] font-semibold">{t.title}</h2>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white"
+                  className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center"
+                  style={{ color: colors.closeIconColor }}
                 >
                   <X size={24} />
                 </button>
               </div>
 
-              <div className="flex h-[52px] shrink-0 items-center gap-1 bg-[#0865a9] px-4 pb-3">
+              <div
+                className="flex h-[52px] shrink-0 items-center gap-1 px-4 pb-3"
+                style={{ backgroundColor: colors.headerBg }}
+              >
                 <button
                   type="button"
-                  className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#2e9bf3] text-[13px] font-bold text-white"
+                  className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                  style={{
+                    backgroundColor: colors.secondaryBg,
+                    color: colors.secondaryText,
+                  }}
                 >
                   {t.deposit}
                 </button>
@@ -317,18 +389,29 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                 <button
                   type="button"
                   onClick={() => setActiveModal("auto")}
-                  className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#00518c] text-[13px] font-bold text-white"
+                  className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                  style={{
+                    backgroundColor: colors.inactiveTabBg,
+                    color: colors.inactiveTabText,
+                  }}
                 >
                   {t.autoDeposit}
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto bg-white px-4 pb-5 pt-3">
+              <div
+                className="flex-1 overflow-y-auto px-4 pb-5 pt-3"
+                style={{ backgroundColor: colors.modalBg }}
+              >
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setPromoOpen((p) => !p)}
-                    className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[3px] bg-[#e9b20d] px-3 text-white"
+                    className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[3px] px-3"
+                    style={{
+                      backgroundColor: colors.promotionBg,
+                      color: colors.promotionText,
+                    }}
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <BadgePercent size={18} />
@@ -346,69 +429,122 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                   </button>
 
                   {promoOpen && (
-                    <div className="absolute left-0 right-0 top-[44px] z-20 overflow-hidden rounded-[3px] border border-[#d8d8d8] bg-white shadow-xl">
-                      {promotions.map((promo) => (
-                        <button
-                          key={promo.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedPromoId(promo.id);
-                            setPromoOpen(false);
-                          }}
-                          className={`flex w-full cursor-pointer items-center justify-between px-3 py-3 text-left text-[13px] ${
-                            selectedPromoId === promo.id
-                              ? "bg-[#eaf4ff] text-[#0865a9]"
-                              : "bg-white text-[#333]"
-                          }`}
-                        >
-                          <span className="font-semibold">
-                            {promoName(promo)}
-                          </span>
-                          <span className="text-[12px] font-bold">
-                            {promo.id === "none"
-                              ? "x1"
-                              : promo.bonusType === "percent"
-                                ? `+${promo.bonusValue}% | x${promo.turnoverMultiplier}`
-                                : `+৳${promo.bonusValue} | x${promo.turnoverMultiplier}`}
-                          </span>
-                        </button>
-                      ))}
+                    <div
+                      className="absolute left-0 right-0 top-[44px] z-20 overflow-hidden rounded-[3px] border shadow-xl"
+                      style={{
+                        backgroundColor: colors.cardBg,
+                        borderColor: colors.cardBorder,
+                      }}
+                    >
+                      {promotions.map((promo) => {
+                        const active = selectedPromoId === promo.id;
+
+                        return (
+                          <button
+                            key={promo.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPromoId(promo.id);
+                              setPromoOpen(false);
+                            }}
+                            className="flex w-full cursor-pointer items-center justify-between px-3 py-3 text-left text-[13px]"
+                            style={{
+                              backgroundColor: active
+                                ? colors.summaryBg
+                                : colors.cardBg,
+                              color: active
+                                ? colors.summaryText
+                                : colors.normalText,
+                            }}
+                          >
+                            <span className="font-semibold">
+                              {promoName(promo)}
+                            </span>
+                            <span className="text-[12px] font-bold">
+                              {promo.id === "none"
+                                ? "x1"
+                                : promo.bonusType === "percent"
+                                  ? `+${promo.bonusValue}% | x${promo.turnoverMultiplier}`
+                                  : `+৳${promo.bonusValue} | x${promo.turnoverMultiplier}`}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
 
-                <div className="mt-4 rounded-[4px] border border-[#97b6e9] bg-[#eef4ff] p-3">
-                  <div className="flex items-start gap-2 text-[#2451cc]">
+                <div
+                  className="mt-4 rounded-[4px] border p-3"
+                  style={{
+                    backgroundColor: colors.sectionBg,
+                    borderColor: colors.sectionBorder,
+                  }}
+                >
+                  <div
+                    className="flex items-start gap-2"
+                    style={{ color: colors.sectionText }}
+                  >
                     <Info size={17} className="mt-[1px] shrink-0" />
                     <p className="text-[14px] leading-[17px]">
                       {t.requiredInfo}
                     </p>
                   </div>
 
-                  <div className="my-3 h-px border-t border-dashed border-[#b4c7ef]" />
+                  <div
+                    className="my-3 h-px border-t border-dashed"
+                    style={{ borderColor: colors.sectionBorder }}
+                  />
 
-                  <div className="border-l-2 border-[#3187ff] pl-3">
-                    <p className="text-[14px] font-medium text-[#1572e8]">
+                  <div
+                    className="border-l-2 pl-3"
+                    style={{ borderColor: colors.primaryBg }}
+                  >
+                    <p
+                      className="text-[14px] font-medium"
+                      style={{ color: colors.primaryBg }}
+                    >
                       {t.contactInfo}
                     </p>
 
-                    <div className="mt-2 inline-flex rounded-full bg-[#d8eaff] px-3 py-1 text-[12px] text-[#2581ff]">
+                    <div
+                      className="mt-2 inline-flex rounded-full px-3 py-1 text-[12px]"
+                      style={{
+                        backgroundColor: colors.summaryBg,
+                        color: colors.summaryText,
+                      }}
+                    >
                       {t.phoneNumber}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-[13px] font-bold text-[#333]">
+                  <label
+                    className="mb-2 block text-[13px] font-bold"
+                    style={{ color: colors.labelText }}
+                  >
                     {t.paymentMethod}
                   </label>
 
                   {isLoading ? (
-                    <div className="rounded-[4px] bg-[#f3f3f3] p-4 text-center text-[13px] text-[#666]">
+                    <div
+                      className="rounded-[4px] p-4 text-center text-[13px]"
+                      style={{
+                        backgroundColor: colors.inputBg,
+                        color: colors.mutedText,
+                      }}
+                    >
                       {t.loading}
                     </div>
                   ) : !methods.length ? (
-                    <div className="rounded-[4px] bg-[#f3f3f3] p-4 text-center text-[13px] text-[#666]">
+                    <div
+                      className="rounded-[4px] p-4 text-center text-[13px]"
+                      style={{
+                        backgroundColor: colors.inputBg,
+                        color: colors.mutedText,
+                      }}
+                    >
                       {t.noMethod}
                     </div>
                   ) : (
@@ -431,11 +567,16 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
 
                               setSelectedChannelId(ch);
                             }}
-                            className={`relative flex h-[72px] cursor-pointer flex-col items-center justify-center rounded-[6px] border bg-white p-2 ${
-                              active
-                                ? "border-[#0865a9] shadow-[0_0_0_2px_rgba(8,101,169,0.12)]"
-                                : "border-[#ddd]"
-                            }`}
+                            className="relative flex h-[72px] cursor-pointer flex-col items-center justify-center rounded-[6px] border p-2"
+                            style={{
+                              backgroundColor: colors.cardBg,
+                              borderColor: active
+                                ? colors.primaryBg
+                                : colors.cardBorder,
+                              boxShadow: active
+                                ? `0 0 0 2px ${colors.primaryBg}20`
+                                : "none",
+                            }}
                           >
                             {method.logoUrl ? (
                               <img
@@ -444,17 +585,31 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                                 className="max-h-[32px] max-w-[70px] object-contain"
                               />
                             ) : (
-                              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#e7f2ff] text-[11px] font-bold text-[#0865a9]">
+                              <div
+                                className="flex h-[30px] w-[30px] items-center justify-center rounded-full text-[11px] font-bold"
+                                style={{
+                                  backgroundColor: colors.summaryBg,
+                                  color: colors.summaryText,
+                                }}
+                              >
                                 {method.methodId?.slice(0, 2)?.toUpperCase()}
                               </div>
                             )}
 
-                            <span className="mt-1 max-w-full truncate text-[11px] font-semibold text-[#333]">
+                            <span
+                              className="mt-1 max-w-full truncate text-[11px] font-semibold"
+                              style={{ color: colors.normalText }}
+                            >
                               {methodName(method)}
                             </span>
 
                             {active && (
-                              <span className="absolute bottom-0 right-0 h-0 w-0 border-b-[18px] border-l-[18px] border-b-[#0865a9] border-l-transparent" />
+                              <span
+                                className="absolute bottom-0 right-0 h-0 w-0 border-b-[18px] border-l-[18px] border-l-transparent"
+                                style={{
+                                  borderBottomColor: colors.primaryBg,
+                                }}
+                              />
                             )}
                           </button>
                         );
@@ -464,12 +619,21 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-[13px] font-bold text-[#333]">
+                  <label
+                    className="mb-2 block text-[13px] font-bold"
+                    style={{ color: colors.labelText }}
+                  >
                     {t.depositChannel}
                   </label>
 
                   {!channels.length ? (
-                    <div className="rounded-[4px] bg-[#f3f3f3] p-3 text-[13px] text-[#777]">
+                    <div
+                      className="rounded-[4px] p-3 text-[13px]"
+                      style={{
+                        backgroundColor: colors.inputBg,
+                        color: colors.mutedText,
+                      }}
+                    >
                       {t.noChannel}
                     </div>
                   ) : (
@@ -482,14 +646,27 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                             key={channel.id}
                             type="button"
                             onClick={() => setSelectedChannelId(channel.id)}
-                            className={`relative cursor-pointer rounded-[4px] border px-3 py-2 text-[13px] font-bold ${
-                              active
-                                ? "border-[#0865a9] bg-[#eaf4ff] text-[#0865a9]"
-                                : "border-[#ddd] bg-white text-[#444]"
-                            }`}
+                            className="relative cursor-pointer rounded-[4px] border px-3 py-2 text-[13px] font-bold"
+                            style={{
+                              borderColor: active
+                                ? colors.primaryBg
+                                : colors.cardBorder,
+                              backgroundColor: active
+                                ? colors.summaryBg
+                                : colors.cardBg,
+                              color: active
+                                ? colors.summaryText
+                                : colors.normalText,
+                            }}
                           >
                             {channel.tagText ? (
-                              <span className="absolute -top-2 right-1 rounded bg-[#e43434] px-1 text-[9px] text-white">
+                              <span
+                                className="absolute -top-2 right-1 rounded px-1 text-[9px]"
+                                style={{
+                                  backgroundColor: colors.dangerBg,
+                                  color: colors.dangerText,
+                                }}
+                              >
                                 {channel.tagText}
                               </span>
                             ) : null}
@@ -502,7 +679,10 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-[13px] font-bold text-[#333]">
+                  <label
+                    className="mb-2 block text-[13px] font-bold"
+                    style={{ color: colors.labelText }}
+                  >
                     {t.amount}
                   </label>
 
@@ -513,18 +693,39 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                     }
                     placeholder={t.enterAmount}
                     inputMode="decimal"
-                    className="h-[42px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4 text-[14px] text-[#222] outline-none focus:border-[#0865a9]"
+                    className="h-[42px] w-full rounded-[4px] border px-4 text-[14px] outline-none"
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      color: colors.inputText,
+                      borderColor: colors.inputBorder,
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        colors.inputFocusBorder;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = colors.inputBorder;
+                    }}
                   />
 
                   {selectedMethod && (
-                    <div className="mt-2 text-[12px] text-[#777]">
+                    <div
+                      className="mt-2 text-[12px]"
+                      style={{ color: colors.mutedText }}
+                    >
                       {t.min}: {money(selectedMethod.minDepositAmount)} |{" "}
                       {t.max}: {money(selectedMethod.maxDepositAmount)}
                     </div>
                   )}
                 </div>
 
-                <div className="mt-4 rounded-[4px] bg-[#eef7ff] p-3 text-[12px] text-[#0865a9]">
+                <div
+                  className="mt-4 rounded-[4px] p-3 text-[12px]"
+                  style={{
+                    backgroundColor: colors.summaryBg,
+                    color: colors.summaryText,
+                  }}
+                >
                   <div className="flex justify-between">
                     <span>{t.bonus}</span>
                     <span>{money(calculation.totalBonus)}</span>
@@ -545,17 +746,33 @@ const DepositFundsModal = ({ open, onClose, onNext }) => {
                 </div>
               </div>
 
-              <div className="shrink-0 bg-white px-4 pb-4">
+              <div
+                className="shrink-0 px-4 pb-4"
+                style={{ backgroundColor: colors.modalBg }}
+              >
                 <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={!canSubmit}
-                  className="relative h-[38px] w-full cursor-pointer rounded-[2px] bg-[#0865a9] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                  className="relative h-[38px] w-full cursor-pointer rounded-[2px] text-[14px] font-medium disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: canSubmit
+                      ? colors.primaryBg
+                      : colors.disabledBg,
+                    color: canSubmit ? colors.primaryText : colors.disabledText,
+                  }}
                 >
                   {t.submit}
 
                   {!canSubmit && (
-                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#333] bg-[#e95b5b] text-white">
+                    <span
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                      style={{
+                        borderColor: colors.normalText,
+                        backgroundColor: colors.dangerBg,
+                        color: colors.dangerText,
+                      }}
+                    >
                       <AlertCircle size={15} />
                     </span>
                   )}

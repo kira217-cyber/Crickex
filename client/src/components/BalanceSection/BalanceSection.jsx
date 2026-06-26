@@ -5,11 +5,25 @@ import { toast } from "react-toastify";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
 import { updateUser } from "../../features/auth/authSlice";
+import { selectBottomNavigationColorSetting } from "../../features/global/globalSelectors";
 import api from "../../api/axios";
 import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
 import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
 import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
 import PromotionModal from "../PromotionModal/PromotionModal";
+
+const defaultBottomColors = {
+  balanceBgFrom: "#064b83",
+  balanceBgVia: "#0b66a8",
+  balanceBgTo: "#063f70",
+  balanceText: "#ffffff",
+  balanceMutedText: "rgba(255,255,255,0.70)",
+  balanceIconBg: "rgba(255,255,255,0.15)",
+  balanceActionBg: "rgba(255,255,255,0.10)",
+  balanceActionText: "#ffffff",
+  balanceAccentIcon: "#ff4960",
+  balanceDivider: "rgba(255,255,255,0.15)",
+};
 
 const BalanceSection = () => {
   const dispatch = useDispatch();
@@ -17,6 +31,15 @@ const BalanceSection = () => {
 
   const isAuth = useSelector(selectIsAuth);
   const user = useSelector(selectUser);
+
+  const bottomNavigationColorSetting = useSelector(
+    selectBottomNavigationColorSetting,
+  );
+
+  const colors = {
+    ...defaultBottomColors,
+    ...(bottomNavigationColorSetting || {}),
+  };
 
   const [refreshing, setRefreshing] = useState(false);
   const [openPromotion, setOpenPromotion] = useState(false);
@@ -74,21 +97,42 @@ const BalanceSection = () => {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#064b83] via-[#0b66a8] to-[#063f70] px-2 py-3 text-white shadow-lg md:hidden">
+      <div
+        className="relative overflow-hidden px-2 py-3 shadow-lg md:hidden"
+        style={{
+          background: `linear-gradient(to right, ${colors.balanceBgFrom}, ${colors.balanceBgVia}, ${colors.balanceBgTo})`,
+          color: colors.balanceText,
+        }}
+      >
         <div className="absolute -left-10 -top-10 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -right-8 -bottom-10 h-24 w-24 rounded-full bg-[#5ed51d]/20 blur-2xl" />
+        <div
+          className="absolute -right-8 -bottom-10 h-24 w-24 rounded-full blur-2xl"
+          style={{ backgroundColor: `${colors.balanceAccentIcon}33` }}
+        />
 
         <div className="relative z-10 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]"
+              style={{
+                backgroundColor: colors.balanceIconBg,
+                color: colors.balanceText,
+              }}
+            >
               <WalletCards size={20} />
             </div>
 
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-white/70">
+              <p
+                className="text-[11px] font-semibold"
+                style={{ color: colors.balanceMutedText }}
+              >
                 {t.balance}
               </p>
-              <p className="truncate text-[18px] font-black leading-tight">
+              <p
+                className="truncate text-[18px] font-black leading-tight"
+                style={{ color: colors.balanceText }}
+              >
                 ৳ {balance}
               </p>
             </div>
@@ -99,7 +143,11 @@ const BalanceSection = () => {
               type="button"
               onClick={handleRefreshBalance}
               disabled={refreshing}
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                backgroundColor: colors.balanceActionBg,
+                color: colors.balanceActionText,
+              }}
             >
               <RefreshCw
                 size={17}
@@ -107,15 +155,25 @@ const BalanceSection = () => {
               />
             </button>
 
-            <div className="h-[30px] w-px bg-white/15" />
+            <div
+              className="h-[30px] w-px"
+              style={{ backgroundColor: colors.balanceDivider }}
+            />
 
             <button
               type="button"
               onClick={() => setOpenPromotion(true)}
-              className="flex h-full min-w-[56px] cursor-pointer flex-col items-center justify-center gap-[3px] text-white"
+              className="flex h-full min-w-[56px] cursor-pointer flex-col items-center justify-center gap-[3px]"
+              style={{ color: colors.balanceActionText }}
             >
-              <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]">
-                <Gift size={15} className="text-[#ff4960]" />
+              <span
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]"
+                style={{
+                  backgroundColor: colors.balanceActionBg,
+                  color: colors.balanceAccentIcon,
+                }}
+              >
+                <Gift size={15} />
               </span>
               <span className="text-[11px] font-semibold leading-none">
                 {t.promotions}
@@ -125,10 +183,17 @@ const BalanceSection = () => {
             <button
               type="button"
               onClick={() => setOpenDepositFunds(true)}
-              className="flex h-full min-w-[56px] cursor-pointer flex-col items-center justify-center gap-[3px] text-white"
+              className="flex h-full min-w-[56px] cursor-pointer flex-col items-center justify-center gap-[3px]"
+              style={{ color: colors.balanceActionText }}
             >
-              <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]">
-                <CreditCard size={15} className="text-[#ff4960]" />
+              <span
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]"
+                style={{
+                  backgroundColor: colors.balanceActionBg,
+                  color: colors.balanceAccentIcon,
+                }}
+              >
+                <CreditCard size={15} />
               </span>
               <span className="text-[11px] font-semibold leading-none">
                 {t.deposit}

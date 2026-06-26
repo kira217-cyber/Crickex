@@ -23,3 +23,12 @@ export const selectRegisterModalSetting = (state) =>
 
 export const selectLoginModalSetting = (state) =>
   state.global.loginModalSetting;
+
+export const selectModalColorSetting = (state) =>
+  state.global.modalColorSetting;
+
+export const selectTransactionHistoryColorSetting = (state) =>
+  state.global.transactionHistoryColorSetting;
+
+export const selectBottomNavigationColorSetting = (state) =>
+  state.global.bottomNavigationColorSetting;

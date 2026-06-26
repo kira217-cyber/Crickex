@@ -27,6 +27,9 @@ const initialState = {
   categorySectionSetting: null,
   registerModalSetting: null,
   loginModalSetting: null,
+  modalColorSetting: null,
+  transactionHistoryColorSetting: null,
+  bottomNavigationColorSetting: null,
 
   loading: false,
   loaded: false,
@@ -49,6 +52,9 @@ const globalSlice = createSlice({
       state.categorySectionSetting = null;
       state.registerModalSetting = null;
       state.loginModalSetting = null;
+      state.modalColorSetting = null;
+      state.transactionHistoryColorSetting = null;
+      state.bottomNavigationColorSetting = null;
 
       state.loading = false;
       state.loaded = false;
@@ -78,6 +84,11 @@ const globalSlice = createSlice({
         state.categorySectionSetting = payload.categorySectionSetting || null;
         state.registerModalSetting = payload.registerModalSetting || null;
         state.loginModalSetting = payload.loginModalSetting || null;
+        state.modalColorSetting = payload.modalColorSetting || null;
+        state.transactionHistoryColorSetting =
+          payload.transactionHistoryColorSetting || null;
+        state.bottomNavigationColorSetting =
+          payload.bottomNavigationColorSetting || null;
 
         state.loading = false;
         state.loaded = true;

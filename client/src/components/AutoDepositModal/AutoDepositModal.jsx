@@ -16,6 +16,56 @@ import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+
+  secondaryBg: "#2e9bf3",
+  secondaryText: "#ffffff",
+
+  inactiveTabBg: "#00518c",
+  inactiveTabText: "#ffffff",
+
+  promotionBg: "#e9b20d",
+  promotionText: "#ffffff",
+
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+
+  cardBg: "#ffffff",
+  cardBorder: "#dce8f5",
+
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+
+  dangerBg: "#e95b5b",
+  dangerText: "#ffffff",
+
+  successBg: "#22c55e",
+  successText: "#ffffff",
+};
 
 const money = (value) => {
   const num = Number(value || 0);
@@ -79,6 +129,12 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
 
   const user = useSelector(selectUser);
   const isAuthenticated = useSelector(selectIsAuth);
+
+  const modalColorSetting = useSelector(selectModalColorSetting);
+  const colors = {
+    ...defaultModalColors,
+    ...(modalColorSetting || {}),
+  };
 
   const userMongoId = user?._id || user?.id || "";
   const userId = user?.userId || "";
@@ -312,73 +368,123 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/45 px-0 backdrop-blur-[3px] sm:px-4">
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center px-0 backdrop-blur-[3px] sm:px-4"
+          style={{ background: colors.pageOverlayBg }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            style={{ backgroundColor: colors.modalBg }}
           >
-            <div className="relative flex h-[50px] shrink-0 items-center justify-center bg-[#0865a9] text-white">
+            <div
+              className="relative flex h-[50px] shrink-0 items-center justify-center"
+              style={{
+                backgroundColor: colors.headerBg,
+                color: colors.headerText,
+              }}
+            >
               <h2 className="text-[18px] font-semibold">{t.title}</h2>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-white"
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center"
+                style={{ color: colors.closeIconColor }}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="flex h-[52px] shrink-0 items-center gap-1 bg-[#0865a9] px-4 pb-3">
+            <div
+              className="flex h-[52px] shrink-0 items-center gap-1 px-4 pb-3"
+              style={{ backgroundColor: colors.headerBg }}
+            >
               <button
                 type="button"
                 onClick={onDepositClick}
-                className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#00518c] text-[13px] font-bold text-white"
+                className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                style={{
+                  backgroundColor: colors.inactiveTabBg,
+                  color: colors.inactiveTabText,
+                }}
               >
                 {t.deposit}
               </button>
 
               <button
                 type="button"
-                className="h-[34px] flex-1 cursor-pointer rounded-[3px] bg-[#2e9bf3] text-[13px] font-bold text-white"
+                className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
+                style={{
+                  backgroundColor: colors.secondaryBg,
+                  color: colors.secondaryText,
+                }}
               >
                 {t.autoDeposit}
               </button>
             </div>
 
             {loadingStatus ? (
-              <div className="flex flex-1 items-center justify-center bg-white px-5">
-                <div className="text-center text-[14px] font-semibold text-[#0865a9]">
+              <div
+                className="flex flex-1 items-center justify-center px-5"
+                style={{ backgroundColor: colors.modalBg }}
+              >
+                <div
+                  className="text-center text-[14px] font-semibold"
+                  style={{ color: colors.primaryBg }}
+                >
                   {t.loading}
                 </div>
               </div>
             ) : !enabled ? (
-              <div className="flex flex-1 items-center justify-center bg-white px-5">
+              <div
+                className="flex flex-1 items-center justify-center px-5"
+                style={{ backgroundColor: colors.modalBg }}
+              >
                 <div className="text-center">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#eaf4ff] text-[#0865a9]">
+                  <div
+                    className="mx-auto flex h-20 w-20 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor: colors.summaryBg,
+                      color: colors.summaryText,
+                    }}
+                  >
                     <AlertCircle size={42} />
                   </div>
 
-                  <h3 className="mt-5 text-[24px] font-bold text-[#0865a9]">
+                  <h3
+                    className="mt-5 text-[24px] font-bold"
+                    style={{ color: colors.primaryBg }}
+                  >
                     {t.disabledTitle}
                   </h3>
 
-                  <p className="mx-auto mt-2 max-w-[280px] text-[14px] leading-6 text-[#666]">
+                  <p
+                    className="mx-auto mt-2 max-w-[280px] text-[14px] leading-6"
+                    style={{ color: colors.mutedText }}
+                  >
                     {t.disabledText}
                   </p>
                 </div>
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto bg-white px-4 pb-5 pt-3">
+                <div
+                  className="flex-1 overflow-y-auto px-4 pb-5 pt-3"
+                  style={{ backgroundColor: colors.modalBg }}
+                >
                   <div ref={promoBoxRef} className="relative">
                     <button
                       type="button"
                       onClick={() => setBonusOpen((prev) => !prev)}
-                      className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[3px] bg-[#e9b20d] px-3 text-white"
+                      className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[3px] px-3"
+                      style={{
+                        backgroundColor: colors.promotionBg,
+                        color: colors.promotionText,
+                      }}
                     >
                       <div className="flex min-w-0 items-center gap-2">
                         <BadgePercent size={18} />
@@ -398,7 +504,13 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                     </button>
 
                     {bonusOpen && (
-                      <div className="absolute left-0 right-0 top-[44px] z-30 max-h-[260px] overflow-y-auto rounded-[3px] border border-[#d8d8d8] bg-white shadow-xl">
+                      <div
+                        className="absolute left-0 right-0 top-[44px] z-30 max-h-[260px] overflow-y-auto rounded-[3px] border shadow-xl"
+                        style={{
+                          backgroundColor: colors.cardBg,
+                          borderColor: colors.cardBorder,
+                        }}
+                      >
                         {bonusOptions.map((bonus) => {
                           const active =
                             String(selectedBonusId) === String(bonus._id);
@@ -416,17 +528,24 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                                 setSelectedBonusId(bonus._id);
                                 setBonusOpen(false);
                               }}
-                              className={`flex w-full cursor-pointer items-start justify-between gap-3 px-3 py-3 text-left text-[13px] ${
-                                active
-                                  ? "bg-[#eaf4ff] text-[#0865a9]"
-                                  : "bg-white text-[#333]"
-                              }`}
+                              className="flex w-full cursor-pointer items-start justify-between gap-3 px-3 py-3 text-left text-[13px]"
+                              style={{
+                                backgroundColor: active
+                                  ? colors.summaryBg
+                                  : colors.cardBg,
+                                color: active
+                                  ? colors.summaryText
+                                  : colors.normalText,
+                              }}
                             >
                               <div className="min-w-0">
                                 <div className="font-semibold">{bonusName}</div>
 
                                 {bonus._id !== "none" ? (
-                                  <div className="mt-1 text-[11px] text-[#777]">
+                                  <div
+                                    className="mt-1 text-[11px]"
+                                    style={{ color: colors.mutedText }}
+                                  >
                                     {bonus.bonusScope === "first-deposit"
                                       ? t.firstDepositOnly
                                       : t.allTime}
@@ -448,8 +567,17 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                     )}
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#97b6e9] bg-[#eef4ff] p-3">
-                    <div className="flex items-start gap-2 text-[#2451cc]">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3"
+                    style={{
+                      backgroundColor: colors.sectionBg,
+                      borderColor: colors.sectionBorder,
+                    }}
+                  >
+                    <div
+                      className="flex items-start gap-2"
+                      style={{ color: colors.sectionText }}
+                    >
                       <Info size={17} className="mt-[1px] shrink-0" />
                       <p className="text-[13px] leading-[18px]">
                         {t.firstDepositNote}
@@ -457,8 +585,17 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3 shadow-sm">
-                    <div className="flex items-center gap-2 text-[#0865a9]">
+                  <div
+                    className="mt-4 rounded-[4px] border p-3 shadow-sm"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ color: colors.primaryBg }}
+                    >
                       <Wallet size={18} />
                       <span className="text-[14px] font-bold">{t.amount}</span>
                     </div>
@@ -470,16 +607,37 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                       }
                       placeholder={t.enterAmount}
                       inputMode="decimal"
-                      className="mt-3 h-[42px] w-full rounded-[4px] border border-[#d7d7d7] bg-[#eeeeee] px-4 text-[14px] text-[#222] outline-none focus:border-[#0865a9]"
+                      className="mt-3 h-[42px] w-full rounded-[4px] border px-4 text-[14px] outline-none"
+                      style={{
+                        backgroundColor: colors.inputBg,
+                        color: colors.inputText,
+                        borderColor: colors.inputBorder,
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor =
+                          colors.inputFocusBorder;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = colors.inputBorder;
+                      }}
                     />
 
-                    <div className="mt-2 text-[12px] text-[#777]">
+                    <div
+                      className="mt-2 text-[12px]"
+                      style={{ color: colors.mutedText }}
+                    >
                       {t.min}: {money(minAmount)} | {t.max}:{" "}
                       {Number(maxAmount || 0) > 0 ? money(maxAmount) : "∞"}
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[4px] bg-[#eef7ff] p-3 text-[12px] text-[#0865a9]">
+                  <div
+                    className="mt-4 rounded-[4px] p-3 text-[12px]"
+                    style={{
+                      backgroundColor: colors.summaryBg,
+                      color: colors.summaryText,
+                    }}
+                  >
                     <div className="flex justify-between">
                       <span>{t.bonus}</span>
                       <span>{money(calculation.bonusAmount)}</span>
@@ -500,8 +658,17 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                   </div>
 
                   {selectedBonus?._id !== "none" ? (
-                    <div className="mt-4 rounded-[4px] border border-[#dce8f5] bg-white p-3">
-                      <div className="flex items-center gap-2 text-[#0865a9]">
+                    <div
+                      className="mt-4 rounded-[4px] border p-3"
+                      style={{
+                        backgroundColor: colors.cardBg,
+                        borderColor: colors.cardBorder,
+                      }}
+                    >
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ color: colors.primaryBg }}
+                      >
                         <Gift size={17} />
                         <span className="text-[14px] font-bold">
                           {selectedBonusName}
@@ -509,18 +676,30 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                       </div>
 
                       <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
-                        <div className="rounded bg-[#f4f8ff] p-2">
-                          <p className="text-[#777]">{t.bonus}</p>
-                          <p className="font-bold text-[#0865a9]">
+                        <div
+                          className="rounded p-2"
+                          style={{ backgroundColor: colors.summaryBg }}
+                        >
+                          <p style={{ color: colors.mutedText }}>{t.bonus}</p>
+                          <p
+                            className="font-bold"
+                            style={{ color: colors.summaryText }}
+                          >
                             {getBonusText(selectedBonus)}
                           </p>
                         </div>
 
-                        <div className="rounded bg-[#f4f8ff] p-2">
-                          <p className="text-[#777]">
+                        <div
+                          className="rounded p-2"
+                          style={{ backgroundColor: colors.summaryBg }}
+                        >
+                          <p style={{ color: colors.mutedText }}>
                             {isBangla ? "ধরণ" : "Scope"}
                           </p>
-                          <p className="font-bold text-[#0865a9]">
+                          <p
+                            className="font-bold"
+                            style={{ color: colors.summaryText }}
+                          >
                             {selectedBonus.bonusScope === "first-deposit"
                               ? t.firstDepositOnly
                               : t.allTime}
@@ -531,8 +710,14 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                   ) : null}
                 </div>
 
-                <div className="shrink-0 bg-white px-4 pb-4">
-                  <div className="mb-3 flex items-center justify-center gap-2 text-[12px] text-[#777]">
+                <div
+                  className="shrink-0 px-4 pb-4"
+                  style={{ backgroundColor: colors.modalBg }}
+                >
+                  <div
+                    className="mb-3 flex items-center justify-center gap-2 text-[12px]"
+                    style={{ color: colors.mutedText }}
+                  >
                     <ShieldCheck size={14} />
                     <span>{t.secureText}</span>
                   </div>
@@ -541,18 +726,40 @@ const AutoDepositModal = ({ open, onClose, onDepositClick }) => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={!canSubmit}
-                    className="relative h-[38px] w-full cursor-pointer rounded-[2px] bg-[#0865a9] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:bg-[#a6a6a6]"
+                    className="relative h-[38px] w-full cursor-pointer rounded-[2px] text-[14px] font-medium disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: canSubmit
+                        ? colors.primaryBg
+                        : colors.disabledBg,
+                      color: canSubmit
+                        ? colors.primaryText
+                        : colors.disabledText,
+                    }}
                   >
                     {processing ? t.processing : t.submit}
 
                     {!canSubmit && (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#333] bg-[#e95b5b] text-white">
+                      <span
+                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: colors.normalText,
+                          backgroundColor: colors.dangerBg,
+                          color: colors.dangerText,
+                        }}
+                      >
                         <AlertCircle size={15} />
                       </span>
                     )}
 
                     {canSubmit && (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-green-700 bg-green-500 text-white">
+                      <span
+                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: colors.successBg,
+                          backgroundColor: colors.successBg,
+                          color: colors.successText,
+                        }}
+                      >
                         <CheckCircle size={15} />
                       </span>
                     )}

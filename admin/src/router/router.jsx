@@ -49,6 +49,9 @@ import CategorySectionSetting from "../pages/CategorySectionSetting/CategorySect
 import RegisterModalSetting from "../pages/RegisterModalSetting/RegisterModalSetting";
 import LoginModalSetting from "../pages/LoginModalSetting/LoginModalSetting";
 import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
+import ModalColorSetting from "../pages/ModalColorSetting/ModalColorSetting";
+import TransactionHistoryColorSetting from "../pages/TransactionHistoryColorSetting/TransactionHistoryColorSetting";
+import BottomNavigationColorSetting from "../pages/BottomNavigationColorSetting/BottomNavigationColorSetting";
 
 export const routes = createBrowserRouter([
   {
@@ -394,6 +397,31 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="client-site-identify">
             <SiteIdentify />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "modal-color-setting",
+        element: (
+          <PrivateRoute permKey="modal-color-setting">
+            <ModalColorSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "transaction-history-color-setting",
+        element: (
+          <PrivateRoute permKey="transaction-history-color-setting">
+            <TransactionHistoryColorSetting />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "bottom-navigation-color-setting",
+        element: (
+          <PrivateRoute permKey="bottom-navigation-color-setting">
+            <BottomNavigationColorSetting />
           </PrivateRoute>
         ),
       },

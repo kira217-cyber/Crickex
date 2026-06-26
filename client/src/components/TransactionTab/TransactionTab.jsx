@@ -6,10 +6,33 @@ import {
   Landmark,
   RotateCcw,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { selectTransactionHistoryColorSetting } from "../../features/global/globalSelectors";
+
+const defaultHistoryColors = {
+  headerBg: "#0865a9",
+
+  secondaryBg: "#2e9bf3",
+  secondaryText: "#ffffff",
+
+  inactiveTabBg: "#00518c",
+  inactiveTabText: "#ffffff",
+
+  sectionBorder: "#ffffff",
+};
 
 const TransactionTab = ({ activeTab = "deposit", onChange }) => {
   const { isBangla } = useLanguage();
+
+  const transactionHistoryColorSetting = useSelector(
+    selectTransactionHistoryColorSetting,
+  );
+
+  const colors = {
+    ...defaultHistoryColors,
+    ...(transactionHistoryColorSetting || {}),
+  };
 
   const tabs = [
     {
@@ -40,7 +63,13 @@ const TransactionTab = ({ activeTab = "deposit", onChange }) => {
   ];
 
   return (
-    <div className="shrink-0 border-b border-white/10 bg-[#0865a9] px-3 pb-3">
+    <div
+      className="shrink-0 border-b px-3 pb-3"
+      style={{
+        backgroundColor: colors.headerBg,
+        borderColor: `${colors.sectionBorder}1A`,
+      }}
+    >
       <div className="overflow-x-auto [scrollbar-width:none]">
         <div className="flex min-w-max items-center gap-2">
           {tabs.map((tab) => {
@@ -51,11 +80,13 @@ const TransactionTab = ({ activeTab = "deposit", onChange }) => {
                 key={tab.key}
                 type="button"
                 onClick={() => onChange?.(tab.key)}
-                className={`flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] px-3 text-[12px] font-bold transition ${
-                  active
-                    ? "bg-[#2e9bf3] text-white shadow-sm"
-                    : "bg-[#00518c] text-white/85 hover:bg-[#0b6cad]"
-                }`}
+                className="flex h-[36px] cursor-pointer items-center gap-2 rounded-[4px] px-3 text-[12px] font-bold transition"
+                style={{
+                  backgroundColor: active
+                    ? colors.secondaryBg
+                    : colors.inactiveTabBg,
+                  color: active ? colors.secondaryText : colors.inactiveTabText,
+                }}
               >
                 {tab.icon}
                 <span className="whitespace-nowrap">{tab.label}</span>

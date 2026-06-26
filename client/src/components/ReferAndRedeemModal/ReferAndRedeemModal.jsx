@@ -17,10 +17,60 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectUser } from "../../features/auth/authSelectors";
 import { updateUser } from "../../features/auth/authSlice";
+import { selectModalColorSetting } from "../../features/global/globalSelectors";
 import api from "../../api/axios";
 
 const fallbackLogoUrl =
   "https://img.c88rx.com/cx/h5/assets/images/member-logo.png?v=1780386038573";
+
+const defaultModalColors = {
+  modalBg: "#ffffff",
+  pageOverlayBg: "rgba(0,0,0,0.45)",
+
+  headerBg: "#0865a9",
+  headerText: "#ffffff",
+  closeIconColor: "#ffffff",
+
+  primaryBg: "#0865a9",
+  primaryText: "#ffffff",
+
+  secondaryBg: "#2e9bf3",
+  secondaryText: "#ffffff",
+
+  inactiveTabBg: "#00518c",
+  inactiveTabText: "#ffffff",
+
+  promotionBg: "#e9b20d",
+  promotionText: "#ffffff",
+
+  sectionBg: "#eef4ff",
+  sectionBorder: "#97b6e9",
+  sectionText: "#2451cc",
+
+  cardBg: "#ffffff",
+  cardBorder: "#d7d7d7",
+
+  inputBg: "#eeeeee",
+  inputText: "#222222",
+  inputBorder: "#d7d7d7",
+  inputFocusBorder: "#0865a9",
+
+  labelText: "#333333",
+  normalText: "#333333",
+  mutedText: "#777777",
+
+  summaryBg: "#eef7ff",
+  summaryText: "#0865a9",
+
+  disabledBg: "#a6a6a6",
+  disabledText: "#ffffff",
+
+  dangerBg: "#fef2f2",
+  dangerText: "#dc2626",
+
+  successBg: "#ecfdf5",
+  successText: "#059669",
+};
 
 const money = (n) => {
   const num = Number(n || 0);
@@ -40,38 +90,6 @@ const formatDate = (date) => {
   });
 };
 
-const defaultSetting = {
-  logo: "",
-  logoUrl: "",
-
-  overlayBg: "rgba(0,0,0,0.45)",
-  modalBg: "#ffffff",
-  headerBg: "#0865a9",
-  headerText: "#ffffff",
-
-  labelText: "#333333",
-  inputBg: "#eeeeee",
-  inputText: "#222222",
-  inputBorder: "#d7d7d7",
-  placeholderText: "#8c98a3",
-
-  buttonBg: "#0865a9",
-  buttonText: "#ffffff",
-  buttonDisabledBg: "#a6a6a6",
-
-  secondaryButtonBg: "#ffffff",
-  secondaryButtonText: "#0865a9",
-  secondaryButtonBorder: "#0865a9",
-
-  linkText: "#0069b4",
-  footerText: "#8d8d8d",
-
-  successBg: "#ecfdf5",
-  successText: "#059669",
-  dangerBg: "#fef2f2",
-  dangerText: "#dc2626",
-};
-
 const ReferAndRedeemModal = ({
   open,
   onClose,
@@ -81,8 +99,47 @@ const ReferAndRedeemModal = ({
   const dispatch = useDispatch();
   const authUser = useSelector(selectUser);
 
+  const modalColorSetting = useSelector(selectModalColorSetting);
+
   const setting = {
-    ...defaultSetting,
+    logo: "",
+    logoUrl: "",
+
+    overlayBg:
+      modalColorSetting?.pageOverlayBg || defaultModalColors.pageOverlayBg,
+    modalBg: modalColorSetting?.modalBg || defaultModalColors.modalBg,
+    headerBg: modalColorSetting?.headerBg || defaultModalColors.headerBg,
+    headerText: modalColorSetting?.headerText || defaultModalColors.headerText,
+
+    labelText: modalColorSetting?.labelText || defaultModalColors.labelText,
+    inputBg: modalColorSetting?.inputBg || defaultModalColors.inputBg,
+    inputText: modalColorSetting?.inputText || defaultModalColors.inputText,
+    inputBorder:
+      modalColorSetting?.inputBorder || defaultModalColors.inputBorder,
+    placeholderText:
+      modalColorSetting?.mutedText || defaultModalColors.mutedText,
+
+    buttonBg: modalColorSetting?.primaryBg || defaultModalColors.primaryBg,
+    buttonText:
+      modalColorSetting?.primaryText || defaultModalColors.primaryText,
+    buttonDisabledBg:
+      modalColorSetting?.disabledBg || defaultModalColors.disabledBg,
+
+    secondaryButtonBg: modalColorSetting?.cardBg || defaultModalColors.cardBg,
+    secondaryButtonText:
+      modalColorSetting?.primaryBg || defaultModalColors.primaryBg,
+    secondaryButtonBorder:
+      modalColorSetting?.primaryBg || defaultModalColors.primaryBg,
+
+    linkText: modalColorSetting?.summaryText || defaultModalColors.summaryText,
+    footerText: modalColorSetting?.mutedText || defaultModalColors.mutedText,
+
+    successBg: modalColorSetting?.successBg || defaultModalColors.successBg,
+    successText:
+      modalColorSetting?.successText || defaultModalColors.successText,
+    dangerBg: modalColorSetting?.dangerBg || defaultModalColors.dangerBg,
+    dangerText: modalColorSetting?.dangerText || defaultModalColors.dangerText,
+
     ...(customSetting || {}),
   };
 
@@ -309,14 +366,6 @@ const ReferAndRedeemModal = ({
             </div>
 
             <div className="flex-1 overflow-y-auto px-[12px] pb-2 pt-2">
-              {/* <div className="flex justify-center pb-7">
-                <img
-                  src={logoUrl}
-                  alt="CRICKEX"
-                  className="h-[28px] object-contain"
-                />
-              </div> */}
-
               <div
                 className="mb-5 rounded-[22px] p-4"
                 style={{
