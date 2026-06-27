@@ -88,26 +88,17 @@ const FooterSettingSchema = new Schema(
   {
     paymentTitle: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "পেমেন্ট মেথডস",
-        en: "Payment Methods",
-      }),
+      default: () => ({ bn: "পেমেন্ট মেথডস", en: "Payment Methods" }),
     },
 
     socialTitle: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "সোশ্যাল নেটওয়ার্কস",
-        en: "Social Networks",
-      }),
+      default: () => ({ bn: "সোশ্যাল নেটওয়ার্কস", en: "Social Networks" }),
     },
 
     sponsorTitle: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "স্পন্সর",
-        en: "Sponsor",
-      }),
+      default: () => ({ bn: "স্পন্সর", en: "Sponsor" }),
     },
 
     officialPartnerTitle: {
@@ -128,40 +119,22 @@ const FooterSettingSchema = new Schema(
 
     descriptionTitle: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "",
-        en: "",
-      }),
+      default: () => ({ bn: "", en: "" }),
     },
 
     description: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "",
-        en: "",
-      }),
+      default: () => ({ bn: "", en: "" }),
     },
 
     readMoreText: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "আরও পড়ুন",
-        en: "Read More",
-      }),
+      default: () => ({ bn: "আরও পড়ুন", en: "Read More" }),
     },
 
     showLessText: {
       type: localizedTextSchema,
-      default: () => ({
-        bn: "কম দেখুন",
-        en: "Show Less",
-      }),
-    },
-
-    footerLogo: {
-      type: String,
-      default: "",
-      trim: true,
+      default: () => ({ bn: "কম দেখুন", en: "Show Less" }),
     },
 
     footerQualityTitle: {
@@ -172,29 +145,46 @@ const FooterSettingSchema = new Schema(
       }),
     },
 
+    footerLogo: { type: String, default: "", trim: true },
+
     copyrightText: {
       type: String,
       default: "© 2026 CRICKEX Copyrights. All Rights Reserved",
       trim: true,
     },
 
-    officialPartnerImage: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    officialPartnerLink: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    officialPartnerImage: { type: String, default: "", trim: true },
+    officialPartnerLink: { type: String, default: "", trim: true },
 
     paymentMethods: [paymentMethodSchema],
     socials: [socialSchema],
     sponsors: [sponsorSchema],
     ambassadors: [ambassadorSchema],
     links: [footerLinkSchema],
+
+    footerBg: { type: String, default: "#ffffff", trim: true },
+    footerText: { type: String, default: "#111111", trim: true },
+    sectionTitleText: { type: String, default: "#111111", trim: true },
+
+    dividerBg: { type: String, default: "#d6d6d6", trim: true },
+
+    socialIconBg: { type: String, default: "#0b66a8", trim: true },
+    socialIconText: { type: String, default: "#ffffff", trim: true },
+
+    linkBorder: { type: String, default: "#0b66a8", trim: true },
+    linkText: { type: String, default: "#005daa", trim: true },
+
+    descriptionTitleText: { type: String, default: "#444444", trim: true },
+    descriptionText: { type: String, default: "#999999", trim: true },
+
+    readMoreButtonBg: { type: String, default: "#006bb6", trim: true },
+    readMoreButtonText: { type: String, default: "#ffffff", trim: true },
+
+    qualityTitleText: { type: String, default: "#005daa", trim: true },
+    copyrightTextColor: { type: String, default: "#888888", trim: true },
+
+    itemTitleText: { type: String, default: "#111111", trim: true },
+    itemSubText: { type: String, default: "#111111", trim: true },
 
     status: {
       type: String,

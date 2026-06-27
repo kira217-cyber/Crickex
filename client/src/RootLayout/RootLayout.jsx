@@ -13,6 +13,7 @@ import { selectGlobalLoaded } from "../features/global/globalSelectors";
 import { fetchGlobalGameData } from "../features/globalGame/globalGameSlice";
 import { selectGlobalGameLoaded } from "../features/globalGame/globalGameSelectors";
 import Footer from "../components/Footer/Footer";
+import SocialLink from "../components/SocialLink/SocialLink";
 
 const RootLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -36,6 +37,7 @@ const RootLayout = () => {
   return (
     <div className="min-h-screen bg-[#f5f6f8]">
       <SiteIdentity />
+      <SocialLink />
 
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       <Navber setOpen={setSidebarOpen} />

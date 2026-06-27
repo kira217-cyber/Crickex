@@ -1,13 +1,48 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Loader2, RefreshCw, Save, Trash2 } from "lucide-react";
+import {
+  Bell,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { api } from "../../api/axios";
+
+const defaultColors = {
+  sectionBg: "#0B66A8",
+  desktopSectionBg: "transparent",
+  iconColor: "#ffffff",
+  desktopIconColor: "#4b5563",
+  textColor: "#ffffff",
+  desktopTextColor: "#444444",
+  skeletonBg: "rgba(255,255,255,0.4)",
+  desktopSkeletonBg: "#d1d5db",
+};
 
 const emptyForm = {
   textBn: "",
   textEn: "",
   status: "active",
+  ...defaultColors,
 };
+
+const colorFields = [
+  ["sectionBg", "Mobile Section BG"],
+  ["desktopSectionBg", "Desktop Section BG"],
+  ["iconColor", "Mobile Icon Color"],
+  ["desktopIconColor", "Desktop Icon Color"],
+  ["textColor", "Mobile Text Color"],
+  ["desktopTextColor", "Desktop Text Color"],
+  ["skeletonBg", "Mobile Skeleton BG"],
+  ["desktopSkeletonBg", "Desktop Skeleton BG"],
+];
+
+const inputClass =
+  "w-full rounded-xl border border-[#1A79D3]/25 bg-black/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#3ea0ff] focus:ring-2 focus:ring-[#1A79D3]/20";
+
+const labelClass = "mb-2 block text-sm font-bold text-blue-100";
 
 const AddNotice = () => {
   const [form, setForm] = useState(emptyForm);
@@ -16,10 +51,28 @@ const AddNotice = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  const inputClass =
-    "w-full rounded-xl border border-[#1A79D3]/25 bg-black/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#3ea0ff] focus:ring-2 focus:ring-[#1A79D3]/20";
+  const normalizeNotice = (data = null) => {
+    if (!data) return emptyForm;
 
-  const labelClass = "mb-2 block text-sm font-bold text-blue-100";
+    return {
+      textBn: data?.text?.bn || "",
+      textEn: data?.text?.en || "",
+      status: data?.status || "active",
+
+      sectionBg: data?.sectionBg || defaultColors.sectionBg,
+      desktopSectionBg:
+        data?.desktopSectionBg || defaultColors.desktopSectionBg,
+      iconColor: data?.iconColor || defaultColors.iconColor,
+      desktopIconColor:
+        data?.desktopIconColor || defaultColors.desktopIconColor,
+      textColor: data?.textColor || defaultColors.textColor,
+      desktopTextColor:
+        data?.desktopTextColor || defaultColors.desktopTextColor,
+      skeletonBg: data?.skeletonBg || defaultColors.skeletonBg,
+      desktopSkeletonBg:
+        data?.desktopSkeletonBg || defaultColors.desktopSkeletonBg,
+    };
+  };
 
   const loadNotice = async () => {
     try {
@@ -29,16 +82,7 @@ const AddNotice = () => {
       const data = res.data?.data || null;
 
       setNotice(data);
-
-      if (data) {
-        setForm({
-          textBn: data?.text?.bn || "",
-          textEn: data?.text?.en || "",
-          status: data?.status || "active",
-        });
-      } else {
-        setForm(emptyForm);
-      }
+      setForm(normalizeNotice(data));
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to load notice");
     } finally {
@@ -50,6 +94,10 @@ const AddNotice = () => {
     loadNotice();
   }, []);
 
+  const setValue = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -60,13 +108,21 @@ const AddNotice = () => {
     try {
       setLoading(true);
 
-      const res = await api.post("/api/notice", {
+      const payload = {
         textBn: form.textBn.trim(),
         textEn: form.textEn.trim(),
         status: form.status,
+      };
+
+      colorFields.forEach(([key]) => {
+        payload[key] = form[key] || "";
       });
 
+      const res = await api.post("/api/notice", payload);
+
       setNotice(res.data?.data || null);
+      setForm(normalizeNotice(res.data?.data || null));
+
       toast.success("Notice saved successfully");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to save notice");
@@ -95,6 +151,24 @@ const AddNotice = () => {
     }
   };
 
+  const handleResetColors = async () => {
+    const ok = window.confirm("Are you sure you want to reset notice colors?");
+    if (!ok) return;
+
+    try {
+      setLoading(true);
+
+      await api.patch("/api/notice/reset-colors");
+
+      toast.success("Notice colors reset successfully");
+      await loadNotice();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to reset colors");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 text-white">
       <section className="relative overflow-hidden rounded-3xl border border-[#1A79D3]/20 bg-gradient-to-r from-black/80 via-[#06182a] to-black/80 p-6 shadow-2xl shadow-black/50">
@@ -114,8 +188,7 @@ const AddNotice = () => {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm text-slate-300">
-              Only one notice will be saved. New save will update the existing
-              notice.
+              Manage notice text, status and notice bar colors from admin panel.
             </p>
           </div>
 
@@ -138,75 +211,109 @@ const AddNotice = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]"
+        className="grid gap-6 "
       >
-        <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
-          <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-            <div>
-              <h2 className="text-xl font-black">
-                {notice ? "Update Notice" : "Add Notice"}
-              </h2>
-              <p className="text-sm text-slate-400">
-                Add Bangla and English notice text.
-              </p>
-            </div>
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+            <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-xl font-black">
+                  {notice ? "Update Notice" : "Add Notice"}
+                </h2>
+                <p className="text-sm text-slate-400">
+                  Add Bangla and English notice text.
+                </p>
+              </div>
 
-            <button
-              type="button"
-              onClick={loadNotice}
-              disabled={fetching}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#1A79D3]/25 bg-[#1A79D3]/10 px-4 py-2 text-sm font-black text-blue-100 hover:bg-[#1A79D3]/20 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {fetching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-              Refresh
-            </button>
-          </div>
-
-          <div className="grid gap-5">
-            <div>
-              <label className={labelClass}>Bangla Notice Text *</label>
-              <textarea
-                rows={5}
-                className={`${inputClass} resize-none`}
-                value={form.textBn}
-                onChange={(e) => setForm({ ...form, textBn: e.target.value })}
-                placeholder="বাংলা নোটিশ লিখুন..."
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>English Notice Text *</label>
-              <textarea
-                rows={5}
-                className={`${inputClass} resize-none`}
-                value={form.textEn}
-                onChange={(e) => setForm({ ...form, textEn: e.target.value })}
-                placeholder="Write English notice..."
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                className={`${inputClass} cursor-pointer`}
+              <button
+                type="button"
+                onClick={loadNotice}
+                disabled={fetching}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#1A79D3]/25 bg-[#1A79D3]/10 px-4 py-2 text-sm font-black text-blue-100 hover:bg-[#1A79D3]/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option className="bg-[#050607]" value="active">
-                  Active
-                </option>
-                <option className="bg-[#050607]" value="inactive">
-                  Inactive
-                </option>
-              </select>
+                {fetching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Refresh
+              </button>
             </div>
-          </div>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            <div className="grid gap-5">
+              <div>
+                <label className={labelClass}>Bangla Notice Text *</label>
+                <textarea
+                  rows={5}
+                  className={`${inputClass} resize-none`}
+                  value={form.textBn}
+                  onChange={(e) => setValue("textBn", e.target.value)}
+                  placeholder="বাংলা নোটিশ লিখুন..."
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>English Notice Text *</label>
+                <textarea
+                  rows={5}
+                  className={`${inputClass} resize-none`}
+                  value={form.textEn}
+                  onChange={(e) => setValue("textEn", e.target.value)}
+                  placeholder="Write English notice..."
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setValue("status", e.target.value)}
+                  className={`${inputClass} cursor-pointer`}
+                >
+                  <option className="bg-[#050607]" value="active">
+                    Active
+                  </option>
+                  <option className="bg-[#050607]" value="inactive">
+                    Inactive
+                  </option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+            <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-xl font-black">Color Control</h2>
+                <p className="text-sm text-slate-400">
+                  Control mobile and desktop notice colors.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleResetColors}
+                disabled={loading || !notice}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset Colors
+              </button>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              {colorFields.map(([key, label]) => (
+                <ColorInput
+                  key={key}
+                  label={label}
+                  value={form[key]}
+                  onChange={(v) => setValue(key, v)}
+                />
+              ))}
+            </div>
+          </section>
+
+          <div className="grid gap-3 md:grid-cols-2">
             <button
               type="submit"
               disabled={loading}
@@ -217,7 +324,6 @@ const AddNotice = () => {
               ) : (
                 <Save className="h-5 w-5" />
               )}
-
               {loading ? "Saving..." : "Save Notice"}
             </button>
 
@@ -233,51 +339,122 @@ const AddNotice = () => {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+        <section className="sticky top-6 h-fit rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
           <h2 className="text-xl font-black">Live Preview</h2>
           <p className="mt-1 text-sm text-slate-400">
-            This is how the notice text will look.
+            Mobile and desktop notice preview.
           </p>
 
-          <div className="mt-5 space-y-4">
-            <div className="rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-5">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="rounded-lg bg-[#3ea0ff] px-3 py-1 text-xs font-black text-white">
-                  বাংলা
-                </span>
+          <div className="mt-5 space-y-5">
+            <PreviewBox title="Mobile Preview">
+              <NoticePreview form={form} mode="mobile" />
+            </PreviewBox>
 
-                <span
-                  className={`rounded-lg px-3 py-1 text-xs font-black ${
-                    form.status === "active"
-                      ? "bg-emerald-500 text-white"
-                      : "bg-red-500 text-white"
-                  }`}
-                >
-                  {form.status.toUpperCase()}
-                </span>
-              </div>
+            <PreviewBox title="Desktop Preview">
+              <NoticePreview form={form} mode="desktop" />
+            </PreviewBox>
 
-              <p className="whitespace-pre-wrap text-sm leading-7 text-slate-200">
-                {form.textBn || "বাংলা নোটিশ প্রিভিউ এখানে দেখাবে..."}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-5">
-              <div className="mb-3">
-                <span className="rounded-lg bg-[#3ea0ff] px-3 py-1 text-xs font-black text-white">
-                  English
-                </span>
-              </div>
-
-              <p className="whitespace-pre-wrap text-sm leading-7 text-slate-200">
-                {form.textEn || "English notice preview will show here..."}
-              </p>
-            </div>
+            <PreviewBox title="Loading Skeleton Preview">
+              <SkeletonPreview form={form} />
+            </PreviewBox>
           </div>
-        </div>
+        </section>
       </form>
     </div>
   );
 };
+
+const ColorInput = ({ label, value, onChange }) => (
+  <div>
+    <label className={labelClass}>{label}</label>
+
+    <div className="flex gap-3">
+      <input
+        type="color"
+        value={String(value || "#000000").startsWith("#") ? value : "#000000"}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-[46px] w-[58px] cursor-pointer rounded-xl border border-[#1A79D3]/25 bg-black/40 p-1"
+      />
+
+      <input
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+        placeholder="#000000 or rgba(...) or transparent"
+      />
+    </div>
+  </div>
+);
+
+const PreviewBox = ({ title, children }) => (
+  <div className="rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-4">
+    <h3 className="mb-3 text-sm font-black text-blue-100">{title}</h3>
+    {children}
+  </div>
+);
+
+const NoticePreview = ({ form, mode = "mobile" }) => {
+  const isDesktop = mode === "desktop";
+
+  const bg = isDesktop ? form.desktopSectionBg : form.sectionBg;
+  const iconColor = isDesktop ? form.desktopIconColor : form.iconColor;
+  const textColor = isDesktop ? form.desktopTextColor : form.textColor;
+  const text = isDesktop ? form.textEn : form.textBn;
+
+  return (
+    <div
+      className="w-full overflow-hidden rounded-md py-1"
+      style={{ background: bg }}
+    >
+      <div className="flex h-[26px] items-center overflow-hidden rounded-sm">
+        <div className="flex h-full w-9 shrink-0 items-center justify-center">
+          <Bell size={18} style={{ color: iconColor }} />
+        </div>
+
+        <div className="relative flex-1 overflow-hidden">
+          <div className="inline-block whitespace-nowrap">
+            <span
+              className="text-[14px] font-medium"
+              style={{ color: textColor }}
+            >
+              {text ||
+                (isDesktop
+                  ? "English notice preview will show here..."
+                  : "বাংলা নোটিশ প্রিভিউ এখানে দেখাবে...")}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SkeletonPreview = ({ form }) => (
+  <div className="space-y-3">
+    <div
+      className="rounded-md p-2"
+      style={{ background: form.sectionBg || defaultColors.sectionBg }}
+    >
+      <div
+        className="h-[14px] w-full rounded"
+        style={{ background: form.skeletonBg || defaultColors.skeletonBg }}
+      />
+    </div>
+
+    <div
+      className="rounded-md p-2"
+      style={{
+        background: form.desktopSectionBg || defaultColors.desktopSectionBg,
+      }}
+    >
+      <div
+        className="h-[14px] w-full rounded"
+        style={{
+          background: form.desktopSkeletonBg || defaultColors.desktopSkeletonBg,
+        }}
+      />
+    </div>
+  </div>
+);
 
 export default AddNotice;

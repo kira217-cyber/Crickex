@@ -6,6 +6,7 @@ export const selectSiteIdentify = (state) => state.global.siteIdentify;
 export const selectNotice = (state) => state.global.notice;
 export const selectSliders = (state) => state.global.sliders;
 export const selectFavouriteBanners = (state) => state.global.favouriteBanners;
+export const selectSocialLinks = (state) => state.global.socialLinks;
 
 export const selectFooterSetting = (state) => state.global.footerSetting;
 
@@ -24,6 +25,9 @@ export const selectRegisterModalSetting = (state) =>
 export const selectLoginModalSetting = (state) =>
   state.global.loginModalSetting;
 
+export const selectForgetPasswordModalSetting = (state) =>
+  state.global.forgetPasswordModalSetting;
+
 export const selectModalColorSetting = (state) =>
   state.global.modalColorSetting;
 
@@ -32,3 +36,6 @@ export const selectTransactionHistoryColorSetting = (state) =>
 
 export const selectBottomNavigationColorSetting = (state) =>
   state.global.bottomNavigationColorSetting;
+
+export const selectHomePageContentColorSetting = (state) =>
+  state.global.homePageContentColorSetting;

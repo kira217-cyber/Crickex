@@ -20,6 +20,7 @@ const initialState = {
   notice: null,
   sliders: [],
   favouriteBanners: [],
+  socialLinks: [],
 
   footerSetting: null,
   navbarColorSetting: null,
@@ -27,9 +28,11 @@ const initialState = {
   categorySectionSetting: null,
   registerModalSetting: null,
   loginModalSetting: null,
+  forgetPasswordModalSetting: null,
   modalColorSetting: null,
   transactionHistoryColorSetting: null,
   bottomNavigationColorSetting: null,
+  homePageContentColorSetting: null,
 
   loading: false,
   loaded: false,
@@ -45,6 +48,7 @@ const globalSlice = createSlice({
       state.notice = null;
       state.sliders = [];
       state.favouriteBanners = [];
+      state.socialLinks = [];
 
       state.footerSetting = null;
       state.navbarColorSetting = null;
@@ -52,9 +56,11 @@ const globalSlice = createSlice({
       state.categorySectionSetting = null;
       state.registerModalSetting = null;
       state.loginModalSetting = null;
+      state.forgetPasswordModalSetting = null;
       state.modalColorSetting = null;
       state.transactionHistoryColorSetting = null;
       state.bottomNavigationColorSetting = null;
+      state.homePageContentColorSetting = null;
 
       state.loading = false;
       state.loaded = false;
@@ -77,6 +83,9 @@ const globalSlice = createSlice({
         state.favouriteBanners = Array.isArray(payload.favouriteBanners)
           ? payload.favouriteBanners
           : [];
+        state.socialLinks = Array.isArray(payload.socialLinks)
+          ? payload.socialLinks
+          : [];
 
         state.footerSetting = payload.footerSetting || null;
         state.navbarColorSetting = payload.navbarColorSetting || null;
@@ -84,11 +93,15 @@ const globalSlice = createSlice({
         state.categorySectionSetting = payload.categorySectionSetting || null;
         state.registerModalSetting = payload.registerModalSetting || null;
         state.loginModalSetting = payload.loginModalSetting || null;
+        state.forgetPasswordModalSetting =
+          payload.forgetPasswordModalSetting || null;
         state.modalColorSetting = payload.modalColorSetting || null;
         state.transactionHistoryColorSetting =
           payload.transactionHistoryColorSetting || null;
         state.bottomNavigationColorSetting =
           payload.bottomNavigationColorSetting || null;
+        state.homePageContentColorSetting =
+          payload.homePageContentColorSetting || null;
 
         state.loading = false;
         state.loaded = true;

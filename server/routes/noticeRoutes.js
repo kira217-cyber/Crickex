@@ -9,11 +9,43 @@ const router = express.Router();
 
 const cleanText = (value = "") => String(value || "").trim();
 
+const colorFields = [
+  "sectionBg",
+  "desktopSectionBg",
+  "iconColor",
+  "desktopIconColor",
+  "textColor",
+  "desktopTextColor",
+  "skeletonBg",
+  "desktopSkeletonBg",
+];
+
+const defaultColors = {
+  sectionBg: "#0B66A8",
+  desktopSectionBg: "transparent",
+  iconColor: "#ffffff",
+  desktopIconColor: "#4b5563",
+  textColor: "#ffffff",
+  desktopTextColor: "#444444",
+  skeletonBg: "rgba(255,255,255,0.4)",
+  desktopSkeletonBg: "#d1d5db",
+};
+
+const buildColorPayload = (body = {}, fallback = {}) => {
+  const payload = {};
+
+  colorFields.forEach((field) => {
+    payload[field] =
+      cleanText(body?.[field]) || fallback?.[field] || defaultColors[field];
+  });
+
+  return payload;
+};
+
 /* ======================================================
    CREATE OR UPDATE SINGLE NOTICE
    POST /api/notice
 ====================================================== */
-
 router.post("/", protectAdmin, async (req, res) => {
   try {
     const textBn = cleanText(req.body?.textBn);
@@ -37,7 +69,14 @@ router.post("/", protectAdmin, async (req, res) => {
         bn: textBn,
         en: textEn,
       };
+
       existing.status = status;
+
+      const colorPayload = buildColorPayload(req.body, existing);
+
+      colorFields.forEach((field) => {
+        existing[field] = colorPayload[field];
+      });
 
       await existing.save();
       notice = existing;
@@ -48,6 +87,7 @@ router.post("/", protectAdmin, async (req, res) => {
           en: textEn,
         },
         status,
+        ...buildColorPayload(req.body, defaultColors),
       });
     }
 
@@ -61,7 +101,6 @@ router.post("/", protectAdmin, async (req, res) => {
    GET NOTICE - ADMIN
    GET /api/notice
 ====================================================== */
-
 router.get("/", protectAdmin, async (req, res) => {
   try {
     const notice = await Notice.findOne().sort({ createdAt: -1 });
@@ -76,7 +115,6 @@ router.get("/", protectAdmin, async (req, res) => {
    GET ACTIVE NOTICE - PUBLIC
    GET /api/notice/active
 ====================================================== */
-
 router.get("/active", async (req, res) => {
   try {
     const notice = await Notice.findOne({
@@ -92,10 +130,33 @@ router.get("/active", async (req, res) => {
 });
 
 /* ======================================================
+   RESET NOTICE COLORS ONLY
+   PATCH /api/notice/reset-colors
+====================================================== */
+router.patch("/reset-colors", protectAdmin, async (req, res) => {
+  try {
+    const notice = await Notice.findOne();
+
+    if (!notice) {
+      return errorResponse(res, "Notice not found", 404);
+    }
+
+    colorFields.forEach((field) => {
+      notice[field] = defaultColors[field];
+    });
+
+    await notice.save();
+
+    return successResponse(res, "Notice colors reset successfully", notice);
+  } catch (error) {
+    return errorResponse(res, error.message || "Server error", 500);
+  }
+});
+
+/* ======================================================
    DELETE NOTICE
    DELETE /api/notice
 ====================================================== */
-
 router.delete("/", protectAdmin, async (req, res) => {
   try {
     const notice = await Notice.findOneAndDelete();

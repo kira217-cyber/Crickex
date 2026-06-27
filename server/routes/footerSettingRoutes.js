@@ -14,6 +14,31 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const cleanText = (value = "") => String(value || "").trim();
 
+const colorFields = [
+  "footerBg",
+  "footerText",
+  "sectionTitleText",
+  "dividerBg",
+
+  "socialIconBg",
+  "socialIconText",
+
+  "linkBorder",
+  "linkText",
+
+  "descriptionTitleText",
+  "descriptionText",
+
+  "readMoreButtonBg",
+  "readMoreButtonText",
+
+  "qualityTitleText",
+  "copyrightTextColor",
+
+  "itemTitleText",
+  "itemSubText",
+];
+
 const filePath = (file) => {
   if (!file) return "";
   return file.path.replace(/\\/g, "/");
@@ -23,7 +48,7 @@ const buildFileUrl = (req, filePath = "") => {
   if (!filePath) return "";
   if (String(filePath).startsWith("http")) return filePath;
 
-  const normalized = filePath.replace(/\\/g, "/");
+  const normalized = filePath.replace(/\\/g, "/").replace(/^\/+/, "");
   return `${req.protocol}://${req.get("host")}/${normalized}`;
 };
 
@@ -127,7 +152,6 @@ const filesByField = (req) => {
    GET FOOTER SETTING - ADMIN
    GET /api/footer-settings
 ====================================================== */
-
 router.get("/", protectAdmin, async (req, res) => {
   try {
     const footer = await getOrCreateFooter();
@@ -146,7 +170,6 @@ router.get("/", protectAdmin, async (req, res) => {
    PUBLIC ACTIVE FOOTER SETTING
    GET /api/footer-settings/public/active
 ====================================================== */
-
 router.get("/public/active", async (req, res) => {
   try {
     const footer = await FooterSetting.findOne({ status: "active" }).sort({
@@ -167,7 +190,6 @@ router.get("/public/active", async (req, res) => {
    UPDATE FULL FOOTER SETTING
    PUT /api/footer-settings
 ====================================================== */
-
 router.put("/", protectAdmin, upload.any(), async (req, res) => {
   try {
     const footer = await getOrCreateFooter();
@@ -295,6 +317,12 @@ router.put("/", protectAdmin, upload.any(), async (req, res) => {
 
     footer.officialPartnerLink = cleanText(req.body?.officialPartnerLink);
 
+    colorFields.forEach((field) => {
+      if (typeof req.body?.[field] !== "undefined") {
+        footer[field] = cleanText(req.body[field]) || footer[field];
+      }
+    });
+
     footer.paymentMethods = paymentMethods;
     footer.socials = socials;
     footer.sponsors = sponsors;
@@ -351,9 +379,7 @@ router.put("/", protectAdmin, upload.any(), async (req, res) => {
 /* ======================================================
    REMOVE SINGLE FOOTER IMAGE
    PATCH /api/footer-settings/remove-image
-   body: { type, parentId? }
 ====================================================== */
-
 router.patch("/remove-image", protectAdmin, async (req, res) => {
   try {
     const footer = await getOrCreateFooter();
@@ -405,10 +431,52 @@ router.patch("/remove-image", protectAdmin, async (req, res) => {
 });
 
 /* ======================================================
+   RESET FOOTER COLORS ONLY
+   PATCH /api/footer-settings/reset-colors
+====================================================== */
+router.patch("/reset-colors", protectAdmin, async (req, res) => {
+  try {
+    const footer = await getOrCreateFooter();
+
+    footer.footerBg = "#ffffff";
+    footer.footerText = "#111111";
+    footer.sectionTitleText = "#111111";
+    footer.dividerBg = "#d6d6d6";
+
+    footer.socialIconBg = "#0b66a8";
+    footer.socialIconText = "#ffffff";
+
+    footer.linkBorder = "#0b66a8";
+    footer.linkText = "#005daa";
+
+    footer.descriptionTitleText = "#444444";
+    footer.descriptionText = "#999999";
+
+    footer.readMoreButtonBg = "#006bb6";
+    footer.readMoreButtonText = "#ffffff";
+
+    footer.qualityTitleText = "#005daa";
+    footer.copyrightTextColor = "#888888";
+
+    footer.itemTitleText = "#111111";
+    footer.itemSubText = "#111111";
+
+    await footer.save();
+
+    return successResponse(
+      res,
+      "Footer colors reset successfully",
+      addImageUrls(req, footer),
+    );
+  } catch (error) {
+    return errorResponse(res, error.message || "Server error", 500);
+  }
+});
+
+/* ======================================================
    DELETE FOOTER SETTING
    DELETE /api/footer-settings/:id
 ====================================================== */
-
 router.delete("/:id", protectAdmin, async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -422,9 +490,8 @@ router.delete("/:id", protectAdmin, async (req, res) => {
     }
 
     if (footer.footerLogo) deleteLocalFile(footer.footerLogo);
-    if (footer.officialPartnerImage) {
+    if (footer.officialPartnerImage)
       deleteLocalFile(footer.officialPartnerImage);
-    }
 
     footer.paymentMethods?.forEach((item) => deleteLocalFile(item.image));
     footer.sponsors?.forEach((item) => deleteLocalFile(item.image));

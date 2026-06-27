@@ -28,7 +28,8 @@ import {
   FaHotjar,
   FaGift,
 } from "react-icons/fa";
-import { MdOutlineLogin } from "react-icons/md";
+import { FaShareAlt } from "react-icons/fa";
+import { MdOutlineLogin, MdPassword } from "react-icons/md";
 import { IoFootstepsOutline } from "react-icons/io5";
 import { IoColorPaletteOutline } from "react-icons/io5";
 import { TbLayoutSidebarLeftCollapse } from "react-icons/tb";
@@ -360,6 +361,24 @@ const Sidebar = () => {
         to: "/bottom-navigation-color-setting",
         icon: <IoColorPaletteOutline />,
         text: "Bottom Navigation Color Setting",
+      },
+      {
+        key: "home-page-content-color-setting",
+        to: "/home-page-content-color-setting",
+        icon: <IoColorPaletteOutline />,
+        text: "Home Page Content Color Setting",
+      },
+      {
+        key: "forget-password-modal-setting",
+        to: "/forget-password-modal-setting",
+        icon: <MdPassword />,
+        text: "Forget Password Modal Setting",
+      },
+      {
+        key: "social-link",
+        to: "/social-link",
+        icon: <FaShareAlt />,
+        text: "Social Link",
       },
     ],
     [],

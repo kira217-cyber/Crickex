@@ -11,14 +11,57 @@ import {
   selectGlobalGameLoading,
   selectGlobalGameLoaded,
 } from "../../features/globalGame/globalGameSelectors";
+import { selectHomePageContentColorSetting } from "../../features/global/globalSelectors";
 
 const PER_PAGE = 24;
+
+const defaultContentColors = {
+  pageBg: "#f1f1f1",
+  sectionBg: "transparent",
+  sectionTitleText: "#111111",
+  sectionBarBg: "#0b66a8",
+
+  cardBg: "#ffffff",
+  cardBorder: "transparent",
+  cardText: "#111111",
+  cardHoverShadow: "rgba(0,0,0,0.12)",
+
+  imageBoxBg: "#0b4f83",
+  imagePlaceholderText: "#ffffff",
+
+  skeletonBg: "#e5e7eb",
+
+  buttonBg: "#005eb8",
+  buttonText: "#ffffff",
+  inactiveButtonBg: "#ffffff",
+  inactiveButtonText: "#333333",
+
+  inputBg: "#ffffff",
+  inputText: "#333333",
+  inputBorder: "transparent",
+  inputFocusBorder: "#005eb8",
+
+  emptyText: "#555555",
+
+  paginationBg: "#ffffff",
+  paginationText: "#333333",
+  paginationDisabledOpacity: "0.50",
+};
 
 const Games = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isBangla } = useLanguage();
+
+  const homePageContentColorSetting = useSelector(
+    selectHomePageContentColorSetting,
+  );
+
+  const colors = {
+    ...defaultContentColors,
+    ...(homePageContentColorSetting || {}),
+  };
 
   const categoryId = searchParams.get("categoryId") || "";
   const providerDbId = searchParams.get("providerDbId") || "all";
@@ -121,18 +164,27 @@ const Games = () => {
   const showSkeleton = loading || !loaded;
 
   return (
-    <section className="w-full bg-[#f1f1f1] pb-6 pt-3">
+    <section
+      className="w-full pb-6 pt-3"
+      style={{ backgroundColor: colors.pageBg }}
+    >
       <div className="mx-auto w-full max-w-[480px] px-2 md:max-w-[1200px] md:px-0">
         <div className="mb-4 flex items-center gap-2">
           <div className="no-scrollbar flex flex-1 gap-[10px] overflow-x-auto">
             <button
               type="button"
               onClick={() => handleProviderChange("all")}
-              className={`h-[30px] min-w-[94px] cursor-pointer rounded-[3px] text-[13px] font-medium ${
-                providerDbId === "all"
-                  ? "bg-[#005eb8] text-white"
-                  : "bg-white text-[#333]"
-              }`}
+              className="h-[30px] min-w-[94px] cursor-pointer rounded-[3px] text-[13px] font-medium"
+              style={{
+                backgroundColor:
+                  providerDbId === "all"
+                    ? colors.buttonBg
+                    : colors.inactiveButtonBg,
+                color:
+                  providerDbId === "all"
+                    ? colors.buttonText
+                    : colors.inactiveButtonText,
+              }}
             >
               ALL
             </button>
@@ -141,7 +193,8 @@ const Games = () => {
               ? Array.from({ length: 8 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-[30px] min-w-[94px] animate-pulse rounded-[3px] bg-white"
+                    className="h-[30px] min-w-[94px] animate-pulse rounded-[3px]"
+                    style={{ backgroundColor: colors.skeletonBg }}
                   />
                 ))
               : providers.map((provider) => {
@@ -153,11 +206,15 @@ const Games = () => {
                       key={id}
                       type="button"
                       onClick={() => handleProviderChange(id)}
-                      className={`h-[30px] min-w-[94px] cursor-pointer truncate rounded-[3px] px-2 text-[13px] font-medium ${
-                        active
-                          ? "bg-[#005eb8] text-white"
-                          : "bg-white text-[#333]"
-                      }`}
+                      className="h-[30px] min-w-[94px] cursor-pointer truncate rounded-[3px] px-2 text-[13px] font-medium"
+                      style={{
+                        backgroundColor: active
+                          ? colors.buttonBg
+                          : colors.inactiveButtonBg,
+                        color: active
+                          ? colors.buttonText
+                          : colors.inactiveButtonText,
+                      }}
                     >
                       {provider?.providerName || provider?.providerCode}
                     </button>
@@ -167,7 +224,11 @@ const Games = () => {
 
           <button
             type="button"
-            className="flex h-[40px] w-[48px] shrink-0 cursor-pointer items-center justify-center rounded-[3px] bg-[#005eb8] text-white"
+            className="flex h-[40px] w-[48px] shrink-0 cursor-pointer items-center justify-center rounded-[3px]"
+            style={{
+              backgroundColor: colors.buttonBg,
+              color: colors.buttonText,
+            }}
           >
             <Search size={20} />
           </button>
@@ -175,14 +236,33 @@ const Games = () => {
 
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex h-[30px] items-center">
-            <span className="mr-1 h-[15px] w-[4px] rounded-full bg-[#0b66a8]" />
-            <h2 className="text-[14px] font-semibold text-[#111]">{title}</h2>
+            <span
+              className="mr-1 h-[15px] w-[4px] rounded-full"
+              style={{ backgroundColor: colors.sectionBarBg }}
+            />
+            <h2
+              className="text-[14px] font-semibold"
+              style={{ color: colors.sectionTitleText }}
+            >
+              {title}
+            </h2>
           </div>
 
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="h-[28px] w-[120px] rounded-[3px] bg-white px-2 text-[12px] text-[#333] outline-none"
+            className="h-[28px] w-[120px] rounded-[3px] px-2 text-[12px] outline-none"
+            style={{
+              backgroundColor: colors.inputBg,
+              color: colors.inputText,
+              border: `1px solid ${colors.inputBorder}`,
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = colors.inputFocusBorder;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = colors.inputBorder;
+            }}
           >
             <option value="">Filter</option>
             <option value="isHot">Hot</option>
@@ -197,7 +277,18 @@ const Games = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={isBangla ? "গেম সার্চ করুন..." : "Search game..."}
-            className="h-[34px] w-full rounded-[3px] bg-white px-3 text-[13px] text-[#333] outline-none"
+            className="h-[34px] w-full rounded-[3px] px-3 text-[13px] outline-none"
+            style={{
+              backgroundColor: colors.inputBg,
+              color: colors.inputText,
+              border: `1px solid ${colors.inputBorder}`,
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = colors.inputFocusBorder;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = colors.inputBorder;
+            }}
           />
         </div>
 
@@ -206,11 +297,21 @@ const Games = () => {
             ? Array.from({ length: 24 }).map((_, index) => (
                 <div
                   key={index}
-                  className="overflow-hidden rounded-[3px] bg-white"
+                  className="overflow-hidden rounded-[3px]"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    border: `1px solid ${colors.cardBorder}`,
+                  }}
                 >
-                  <div className="h-[100px] animate-pulse bg-gray-300 md:h-[120px]" />
+                  <div
+                    className="h-[100px] animate-pulse md:h-[120px]"
+                    style={{ backgroundColor: colors.skeletonBg }}
+                  />
                   <div className="h-[34px] px-2 py-[7px]">
-                    <div className="h-[13px] w-[80%] animate-pulse rounded bg-gray-300" />
+                    <div
+                      className="h-[13px] w-[80%] animate-pulse rounded"
+                      style={{ backgroundColor: colors.skeletonBg }}
+                    />
                   </div>
                 </div>
               ))
@@ -227,24 +328,43 @@ const Games = () => {
                     key={game?.gameId || game?._id}
                     type="button"
                     onClick={() => handleGameClick(game)}
-                    className="block cursor-pointer overflow-hidden rounded-[3px] bg-white text-left transition hover:shadow-sm"
+                    className="block cursor-pointer overflow-hidden rounded-[3px] text-left transition"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      border: `1px solid ${colors.cardBorder}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${colors.cardHoverShadow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    <div className="h-[100px] w-full overflow-hidden bg-[#0b4f83] md:h-[120px]">
+                    <div
+                      className="h-[100px] w-full overflow-hidden md:h-[120px]"
+                      style={{ backgroundColor: colors.imageBoxBg }}
+                    >
                       {game?.imageUrl ? (
                         <img
                           src={game.imageUrl}
                           alt={gameName}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full"
                           draggable="false"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[12px] text-white">
+                        <div
+                          className="flex h-full w-full items-center justify-center text-[12px]"
+                          style={{ color: colors.imagePlaceholderText }}
+                        >
                           No Image
                         </div>
                       )}
                     </div>
 
-                    <p className="h-[34px] w-full truncate px-2 py-[7px] text-[13px] leading-none text-[#111] md:text-[14px]">
+                    <p
+                      className="h-[34px] w-full truncate px-2 py-[7px] text-[13px] leading-none md:text-[14px]"
+                      style={{ color: colors.cardText }}
+                    >
                       {gameName}
                     </p>
                   </button>
@@ -253,7 +373,10 @@ const Games = () => {
         </div>
 
         {!showSkeleton && paginatedGames.length === 0 && (
-          <div className="py-10 text-center text-[14px] text-[#555]">
+          <div
+            className="py-10 text-center text-[14px]"
+            style={{ color: colors.emptyText }}
+          >
             {isBangla ? "কোনো গেম পাওয়া যায়নি" : "No games found"}
           </div>
         )}
@@ -264,12 +387,21 @@ const Games = () => {
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              className="h-[32px] cursor-pointer rounded-[3px] bg-white px-3 text-[13px] text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-[32px] cursor-pointer rounded-[3px] px-3 text-[13px] disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: colors.paginationBg,
+                color: colors.paginationText,
+                opacity:
+                  page <= 1 ? colors.paginationDisabledOpacity || "0.50" : "1",
+              }}
             >
               Prev
             </button>
 
-            <span className="text-[13px] text-[#333]">
+            <span
+              className="text-[13px]"
+              style={{ color: colors.paginationText }}
+            >
               {page} / {totalPages}
             </span>
 
@@ -277,7 +409,15 @@ const Games = () => {
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              className="h-[32px] cursor-pointer rounded-[3px] bg-white px-3 text-[13px] text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-[32px] cursor-pointer rounded-[3px] px-3 text-[13px] disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: colors.paginationBg,
+                color: colors.paginationText,
+                opacity:
+                  page >= totalPages
+                    ? colors.paginationDisabledOpacity || "0.50"
+                    : "1",
+              }}
             >
               Next
             </button>

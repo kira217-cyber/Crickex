@@ -27,6 +27,7 @@ import AccountModal from "../AccountModal/AccountModal";
 import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
 import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
+import ForgetPasswordModal from "../ForgetPasswordModal/ForgetPasswordModal";
 
 const flagUrl = {
   Bangla: "https://flagcdn.com/w40/bd.png",
@@ -110,6 +111,7 @@ const BottomNavbar = () => {
   const [openWithdraw, setOpenWithdraw] = useState(false);
   const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
   const [openPasswordChange, setOpenPasswordChange] = useState(false);
+  const [openForgetPassword, setOpenForgetPassword] = useState(false);
 
   const [depositData, setDepositData] = useState(null);
 
@@ -129,6 +131,7 @@ const BottomNavbar = () => {
     setOpenWithdraw(false);
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
+    setOpenForgetPassword(false);
   };
 
   const closeAllModals = () => {
@@ -517,6 +520,10 @@ const BottomNavbar = () => {
           closeAllModals();
           setOpenRegister(true);
         }}
+        onForgotClick={() => {
+          setOpenLogin(false);
+          setOpenForgetPassword(true);
+        }}
       />
 
       <PromotionModal
@@ -588,6 +595,15 @@ const BottomNavbar = () => {
       <PasswordChangeModal
         open={openPasswordChange}
         onClose={() => setOpenPasswordChange(false)}
+      />
+
+      <ForgetPasswordModal
+        open={openForgetPassword}
+        onClose={() => setOpenForgetPassword(false)}
+        onLoginClick={() => {
+          setOpenForgetPassword(false);
+          setOpenLogin(true);
+        }}
       />
     </>
   );

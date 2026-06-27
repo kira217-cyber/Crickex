@@ -13,6 +13,47 @@ const router = express.Router();
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const cleanText = (value = "") => String(value || "").trim();
+
+const colorFields = [
+  "sectionBg",
+  "desktopSectionBg",
+  "slideBg",
+  "arrowColor",
+  "arrowHoverColor",
+  "paginationBg",
+  "paginationActiveBg",
+  "mobileSkeletonBg",
+  "desktopSkeletonBg",
+  "skeletonDotBg",
+  "skeletonDotActiveBg",
+];
+
+const defaultColors = {
+  sectionBg: "#0B66A8",
+  desktopSectionBg: "#f5f5f5",
+  slideBg: "#082056",
+  arrowColor: "#9ca3af",
+  arrowHoverColor: "#4b5563",
+  paginationBg: "#7aa7d9",
+  paginationActiveBg: "#2f79c9",
+  mobileSkeletonBg: "rgba(255,255,255,0.2)",
+  desktopSkeletonBg: "#d1d5db",
+  skeletonDotBg: "rgba(122,167,217,0.5)",
+  skeletonDotActiveBg: "#7aa7d9",
+};
+
+const buildColorPayload = (body = {}, fallback = {}) => {
+  const payload = {};
+
+  colorFields.forEach((field) => {
+    payload[field] =
+      cleanText(body?.[field]) || fallback?.[field] || defaultColors[field];
+  });
+
+  return payload;
+};
+
 const filePath = (file) => {
   if (!file) return "";
   return file.path.replace(/\\/g, "/");
@@ -86,6 +127,7 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
       mobileImage: filePath(mobileImageFile),
       order: Number.isFinite(order) ? order : 0,
       status,
+      ...buildColorPayload(req.body, defaultColors),
     });
 
     return successResponse(
@@ -237,11 +279,16 @@ router.put("/:id", protectAdmin, uploadFields, async (req, res) => {
     const status = req.body?.status === "inactive" ? "inactive" : "active";
 
     const removeDesktopImage = String(req.body?.removeDesktopImage) === "true";
-
     const removeMobileImage = String(req.body?.removeMobileImage) === "true";
 
     slider.order = Number.isFinite(order) ? order : 0;
     slider.status = status;
+
+    const colorPayload = buildColorPayload(req.body, slider);
+
+    colorFields.forEach((field) => {
+      slider[field] = colorPayload[field];
+    });
 
     if (desktopImageFile) {
       slider.desktopImage = filePath(desktopImageFile);
@@ -303,6 +350,39 @@ router.put("/:id", protectAdmin, uploadFields, async (req, res) => {
     if (desktopImageFile) deleteLocalFile(desktopImageFile.path);
     if (mobileImageFile) deleteLocalFile(mobileImageFile.path);
 
+    return errorResponse(res, error.message || "Server error", 500);
+  }
+});
+
+/* ======================================================
+   RESET SLIDER COLORS ONLY
+   PATCH /api/sliders/:id/reset-colors
+====================================================== */
+
+router.patch("/:id/reset-colors", protectAdmin, async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return errorResponse(res, "Invalid slider id", 400);
+    }
+
+    const slider = await Slider.findById(req.params.id);
+
+    if (!slider) {
+      return errorResponse(res, "Slider not found", 404);
+    }
+
+    colorFields.forEach((field) => {
+      slider[field] = defaultColors[field];
+    });
+
+    await slider.save();
+
+    return successResponse(
+      res,
+      "Slider colors reset successfully",
+      formatSlider(req, slider),
+    );
+  } catch (error) {
     return errorResponse(res, error.message || "Server error", 500);
   }
 });

@@ -2,8 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Eye, EyeOff, Search, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+
 import { useLanguage } from "../../Context/LanguageProvider";
 import api from "../../api/axios";
+import { selectForgetPasswordModalSetting } from "../../features/global/globalSelectors";
 
 const fallbackLogoUrl =
   "https://img.c88rx.com/cx/h5/assets/images/member-logo.png?v=1780386038573";
@@ -60,8 +63,13 @@ const ForgetPasswordModal = ({
 }) => {
   const { isBangla } = useLanguage();
 
+  const forgetPasswordModalSetting = useSelector(
+    selectForgetPasswordModalSetting,
+  );
+
   const setting = {
     ...defaultSetting,
+    ...(forgetPasswordModalSetting || {}),
     ...(customSetting || {}),
   };
 
@@ -188,6 +196,18 @@ const ForgetPasswordModal = ({
     setSearch("");
   };
 
+  const handleBackToLogin = () => {
+    if (otpSending || otpVerifying || resetting) return;
+
+    resetForm();
+
+    if (onLoginClick) {
+      onLoginClick();
+    } else {
+      onClose?.();
+    }
+  };
+
   useEffect(() => {
     if (!open) return;
 
@@ -278,6 +298,12 @@ const ForgetPasswordModal = ({
 
     return () => clearTimeout(timer);
   }, [otpExpiresAt]);
+
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open]);
 
   const filteredCountries = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -442,7 +468,6 @@ const ForgetPasswordModal = ({
       }
 
       toast.success(data?.message || text.success);
-
       resetForm();
 
       if (onLoginClick) {
@@ -864,7 +889,7 @@ const ForgetPasswordModal = ({
               >
                 <button
                   type="button"
-                  onClick={onLoginClick || handleClose}
+                  onClick={handleBackToLogin}
                   disabled={otpSending || otpVerifying || resetting}
                   className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                   style={{ color: setting.linkText }}

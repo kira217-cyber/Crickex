@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectFooterSetting } from "../../features/global/globalSelectors";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const makeImageUrl = (path = "") => {
   if (!path) return "";
@@ -13,6 +13,7 @@ const makeImageUrl = (path = "") => {
   ) {
     return path;
   }
+
   return `${API_URL}/${String(path).replace(/^\/+/, "")}`;
 };
 
@@ -30,6 +31,10 @@ const openLink = (link = "") => {
   }
 
   window.location.href = link;
+};
+
+const getColor = (setting, key, fallback) => {
+  return setting?.[key] || fallback;
 };
 
 const Footer = () => {
@@ -57,13 +62,59 @@ const Footer = () => {
 
   const links = Array.isArray(footerSetting.links) ? footerSetting.links : [];
 
+  const colors = {
+    footerBg: getColor(footerSetting, "footerBg", "#ffffff"),
+    footerText: getColor(footerSetting, "footerText", "#111111"),
+    sectionTitleText: getColor(footerSetting, "sectionTitleText", "#111111"),
+    dividerBg: getColor(footerSetting, "dividerBg", "#d6d6d6"),
+
+    socialIconBg: getColor(footerSetting, "socialIconBg", "#0b66a8"),
+    socialIconText: getColor(footerSetting, "socialIconText", "#ffffff"),
+
+    linkBorder: getColor(footerSetting, "linkBorder", "#0b66a8"),
+    linkText: getColor(footerSetting, "linkText", "#005daa"),
+
+    descriptionTitleText: getColor(
+      footerSetting,
+      "descriptionTitleText",
+      "#444444",
+    ),
+    descriptionText: getColor(footerSetting, "descriptionText", "#999999"),
+
+    readMoreButtonBg: getColor(footerSetting, "readMoreButtonBg", "#006bb6"),
+    readMoreButtonText: getColor(
+      footerSetting,
+      "readMoreButtonText",
+      "#ffffff",
+    ),
+
+    qualityTitleText: getColor(footerSetting, "qualityTitleText", "#005daa"),
+    copyrightTextColor: getColor(
+      footerSetting,
+      "copyrightTextColor",
+      "#888888",
+    ),
+
+    itemTitleText: getColor(footerSetting, "itemTitleText", "#111111"),
+    itemSubText: getColor(footerSetting, "itemSubText", "#111111"),
+  };
+
   return (
-    <footer className="mb-14 w-full text-[#111] md:mb-0">
+    <footer
+      className="mb-14 w-full md:mb-0"
+      style={{
+        backgroundColor: colors.footerBg,
+        color: colors.footerText,
+      }}
+    >
       <div className="mx-auto w-full max-w-[480px] px-3 py-4 md:max-w-[1140px]">
         <div className="grid gap-4 md:grid-cols-2">
           {paymentMethods.length > 0 && (
             <div>
-              <h3 className="mb-2 text-[14px] font-medium">
+              <h3
+                className="mb-2 text-[14px] font-medium"
+                style={{ color: colors.sectionTitleText }}
+              >
                 {getText(
                   footerSetting.paymentTitle,
                   isBangla,
@@ -74,7 +125,6 @@ const Footer = () => {
               <div className="flex flex-wrap items-center gap-2">
                 {paymentMethods.map((item, index) => {
                   const img = item.imageUrl || makeImageUrl(item.image);
-
                   if (!img) return null;
 
                   return (
@@ -93,7 +143,10 @@ const Footer = () => {
 
           {socials.length > 0 && (
             <div>
-              <h3 className="mb-2 text-[14px] font-medium">
+              <h3
+                className="mb-2 text-[14px] font-medium"
+                style={{ color: colors.sectionTitleText }}
+              >
                 {getText(
                   footerSetting.socialTitle,
                   isBangla,
@@ -108,7 +161,11 @@ const Footer = () => {
                     type="button"
                     onClick={() => openLink(item.link)}
                     title={item.label || ""}
-                    className="flex h-[23px] w-[23px] cursor-pointer items-center justify-center rounded-full bg-[#0b66a8] text-[13px] font-bold text-white"
+                    className="flex h-[23px] w-[23px] cursor-pointer items-center justify-center rounded-full text-[13px] font-bold"
+                    style={{
+                      backgroundColor: colors.socialIconBg,
+                      color: colors.socialIconText,
+                    }}
                   >
                     {item.iconText || "•"}
                   </button>
@@ -121,7 +178,10 @@ const Footer = () => {
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {sponsors.length > 0 && (
             <div>
-              <h3 className="mb-2 text-[14px] font-medium">
+              <h3
+                className="mb-2 text-[14px] font-medium"
+                style={{ color: colors.sectionTitleText }}
+              >
                 {getText(
                   footerSetting.sponsorTitle,
                   isBangla,
@@ -144,15 +204,24 @@ const Footer = () => {
                         />
                       )}
 
-                      <h4 className="truncate text-[12px] font-bold leading-none">
+                      <h4
+                        className="truncate text-[12px] font-bold leading-none"
+                        style={{ color: colors.itemTitleText }}
+                      >
                         {getText(item.name, isBangla)}
                       </h4>
 
-                      <p className="text-[11px] italic leading-none">
+                      <p
+                        className="text-[11px] italic leading-none"
+                        style={{ color: colors.itemSubText }}
+                      >
                         {getText(item.sub, isBangla)}
                       </p>
 
-                      <p className="text-[11px] italic leading-none">
+                      <p
+                        className="text-[11px] italic leading-none"
+                        style={{ color: colors.itemSubText }}
+                      >
                         {item.year}
                       </p>
                     </div>
@@ -165,7 +234,10 @@ const Footer = () => {
           {(footerSetting.officialPartnerImage ||
             footerSetting.officialPartnerImageUrl) && (
             <div>
-              <h3 className="mb-2 text-[14px] font-medium">
+              <h3
+                className="mb-2 text-[14px] font-medium"
+                style={{ color: colors.sectionTitleText }}
+              >
                 {getText(
                   footerSetting.officialPartnerTitle,
                   isBangla,
@@ -194,7 +266,10 @@ const Footer = () => {
 
         {ambassadors.length > 0 && (
           <div className="mt-5">
-            <h3 className="mb-2 text-[14px] font-medium">
+            <h3
+              className="mb-2 text-[14px] font-medium"
+              style={{ color: colors.sectionTitleText }}
+            >
               {getText(
                 footerSetting.ambassadorTitle,
                 isBangla,
@@ -217,15 +292,24 @@ const Footer = () => {
                       />
                     )}
 
-                    <h4 className="truncate text-[12px] font-bold leading-none">
+                    <h4
+                      className="truncate text-[12px] font-bold leading-none"
+                      style={{ color: colors.itemTitleText }}
+                    >
                       {getText(item.name, isBangla)}
                     </h4>
 
-                    <p className="text-[11px] italic leading-none">
+                    <p
+                      className="text-[11px] italic leading-none"
+                      style={{ color: colors.itemSubText }}
+                    >
                       {getText(item.sub, isBangla)}
                     </p>
 
-                    <p className="text-[11px] italic leading-none">
+                    <p
+                      className="text-[11px] italic leading-none"
+                      style={{ color: colors.itemSubText }}
+                    >
                       {item.year}
                     </p>
                   </div>
@@ -237,7 +321,10 @@ const Footer = () => {
 
         {links.length > 0 && (
           <>
-            <div className="my-5 h-px w-full bg-[#d6d6d6]" />
+            <div
+              className="my-5 h-px w-full"
+              style={{ backgroundColor: colors.dividerBg }}
+            />
 
             <div className="flex flex-wrap gap-y-2">
               {links.map((item, index) => (
@@ -245,7 +332,11 @@ const Footer = () => {
                   key={item._id || index}
                   type="button"
                   onClick={() => openLink(item.link)}
-                  className="cursor-pointer border-l-2 border-[#0b66a8] px-3 text-[13px] text-[#005daa]"
+                  className="cursor-pointer border-l-2 px-3 text-[13px]"
+                  style={{
+                    borderColor: colors.linkBorder,
+                    color: colors.linkText,
+                  }}
                 >
                   {getText(item.title, isBangla)}
                 </button>
@@ -256,17 +347,24 @@ const Footer = () => {
 
         {(footerSetting.descriptionTitle || footerSetting.description) && (
           <>
-            <div className="my-5 h-px w-full bg-[#d6d6d6]" />
+            <div
+              className="my-5 h-px w-full"
+              style={{ backgroundColor: colors.dividerBg }}
+            />
 
             <div>
-              <h2 className="mb-3 text-[18px] font-bold text-[#444]">
+              <h2
+                className="mb-3 text-[18px] font-bold"
+                style={{ color: colors.descriptionTitleText }}
+              >
                 {getText(footerSetting.descriptionTitle, isBangla)}
               </h2>
 
               <p
-                className={`text-[14px] leading-[20px] text-[#999] ${
+                className={`text-[14px] leading-[20px] ${
                   open ? "" : "line-clamp-2"
                 }`}
+                style={{ color: colors.descriptionText }}
               >
                 {getText(footerSetting.description, isBangla)}
               </p>
@@ -274,7 +372,11 @@ const Footer = () => {
               <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="mt-5 cursor-pointer rounded-[3px] bg-[#006bb6] px-4 py-2 text-[13px] font-medium text-white"
+                className="mt-5 cursor-pointer rounded-[3px] px-4 py-2 text-[13px] font-medium"
+                style={{
+                  backgroundColor: colors.readMoreButtonBg,
+                  color: colors.readMoreButtonText,
+                }}
               >
                 {open
                   ? getText(
@@ -293,7 +395,10 @@ const Footer = () => {
           </>
         )}
 
-        <div className="my-5 h-px w-full bg-[#d6d6d6]" />
+        <div
+          className="my-5 h-px w-full"
+          style={{ backgroundColor: colors.dividerBg }}
+        />
 
         <div className="flex items-center gap-4 pb-1">
           {(footerSetting.footerLogo || footerSetting.footerLogoUrl) && (
@@ -309,7 +414,10 @@ const Footer = () => {
           )}
 
           <div>
-            <h4 className="text-[13px] font-bold text-[#005daa]">
+            <h4
+              className="text-[13px] font-bold"
+              style={{ color: colors.qualityTitleText }}
+            >
               {getText(
                 footerSetting.footerQualityTitle,
                 isBangla,
@@ -317,7 +425,10 @@ const Footer = () => {
               )}
             </h4>
 
-            <p className="text-[12px] text-[#888]">
+            <p
+              className="text-[12px]"
+              style={{ color: colors.copyrightTextColor }}
+            >
               {footerSetting.copyrightText}
             </p>
           </div>

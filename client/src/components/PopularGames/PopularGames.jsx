@@ -9,9 +9,26 @@ import {
   selectGlobalGameLoading,
   selectGlobalGameLoaded,
 } from "../../features/globalGame/globalGameSelectors";
+import { selectHomePageContentColorSetting } from "../../features/global/globalSelectors";
 
 import "swiper/css";
 import "swiper/css/free-mode";
+
+const defaultContentColors = {
+  sectionBg: "transparent",
+  sectionTitleText: "#111111",
+  sectionBarBg: "#0b66a8",
+
+  cardBg: "#ffffff",
+  cardBorder: "transparent",
+  cardText: "#111111",
+  cardHoverShadow: "rgba(0,0,0,0.12)",
+
+  imageBoxBg: "#0b4f83",
+  imagePlaceholderText: "#ffffff",
+
+  skeletonBg: "#e5e7eb",
+};
 
 const PopularGames = () => {
   const navigate = useNavigate();
@@ -20,6 +37,15 @@ const PopularGames = () => {
   const popularGames = useSelector(selectPopularGames);
   const loading = useSelector(selectGlobalGameLoading);
   const loaded = useSelector(selectGlobalGameLoaded);
+
+  const homePageContentColorSetting = useSelector(
+    selectHomePageContentColorSetting,
+  );
+
+  const colors = {
+    ...defaultContentColors,
+    ...(homePageContentColorSetting || {}),
+  };
 
   const showSkeleton = loading || !loaded;
 
@@ -66,11 +92,20 @@ const PopularGames = () => {
   };
 
   return (
-    <section className="w-full pb-2 px-2 md:px-0 mt-6">
+    <section
+      className="mt-6 w-full px-2 pb-2 md:px-0"
+      style={{ backgroundColor: colors.sectionBg }}
+    >
       <div className="mx-auto w-full max-w-[480px] md:max-w-[1130px]">
         <div className="flex h-[30px] items-center">
-          <span className="mr-2 h-[15px] w-[4px] rounded-full bg-[#0b66a8]" />
-          <h2 className="text-[14px] font-semibold text-[#111]">
+          <span
+            className="mr-2 h-[15px] w-[4px] rounded-full"
+            style={{ backgroundColor: colors.sectionBarBg }}
+          />
+          <h2
+            className="text-[14px] font-semibold"
+            style={{ color: colors.sectionTitleText }}
+          >
             {isBangla ? "জনপ্রিয় গেমস" : "Popular Games"}
           </h2>
         </div>
@@ -80,11 +115,21 @@ const PopularGames = () => {
             {Array.from({ length: 12 }).map((_, index) => (
               <div
                 key={index}
-                className="block w-full overflow-hidden rounded-[3px] bg-white text-left"
+                className="block w-full overflow-hidden rounded-[3px] text-left"
+                style={{
+                  backgroundColor: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
               >
-                <div className="h-[100px] w-full animate-pulse bg-gray-200 md:h-[120px]" />
+                <div
+                  className="h-[100px] w-full animate-pulse md:h-[120px]"
+                  style={{ backgroundColor: colors.skeletonBg }}
+                />
                 <div className="h-[34px] px-2 py-[7px]">
-                  <div className="h-[13px] w-[80%] animate-pulse rounded bg-gray-200" />
+                  <div
+                    className="h-[13px] w-[80%] animate-pulse rounded"
+                    style={{ backgroundColor: colors.skeletonBg }}
+                  />
                 </div>
               </div>
             ))}
@@ -125,9 +170,22 @@ const PopularGames = () => {
                   <button
                     type="button"
                     onClick={() => handleGameClick(item)}
-                    className="block w-full cursor-pointer overflow-hidden rounded-[3px] bg-white text-left"
+                    className="block w-full cursor-pointer overflow-hidden rounded-[3px] text-left transition"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      border: `1px solid ${colors.cardBorder}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${colors.cardHoverShadow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    <div className="h-[100px] w-full overflow-hidden bg-[#0b4f83] md:h-[120px]">
+                    <div
+                      className="h-[100px] w-full overflow-hidden md:h-[120px]"
+                      style={{ backgroundColor: colors.imageBoxBg }}
+                    >
                       {image ? (
                         <img
                           src={image}
@@ -136,13 +194,19 @@ const PopularGames = () => {
                           draggable="false"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[12px] text-white">
+                        <div
+                          className="flex h-full w-full items-center justify-center text-[12px]"
+                          style={{ color: colors.imagePlaceholderText }}
+                        >
                           No Image
                         </div>
                       )}
                     </div>
 
-                    <p className="h-[34px] w-full truncate px-2 py-[7px] text-[13px] leading-none text-[#111] md:text-[14px]">
+                    <p
+                      className="h-[34px] w-full truncate px-2 py-[7px] text-[13px] leading-none md:text-[14px]"
+                      style={{ color: colors.cardText }}
+                    >
                       {gameName}
                     </p>
                   </button>

@@ -13,6 +13,9 @@ import LoginModalSetting from "../models/LoginModalSetting.js";
 import ModalColorSetting from "../models/ModalColorSetting.js";
 import TransactionHistoryColorSetting from "../models/TransactionHistoryColorSetting.js";
 import BottomNavigationColorSetting from "../models/BottomNavigationColorSetting.js";
+import HomePageContentColorSetting from "../models/HomePageContentColorSetting.js";
+import ForgetPasswordModalSetting from "../models/ForgetPasswordModalSetting.js";
+import SocialLink from "../models/SocialLink.js";
 
 const router = express.Router();
 
@@ -157,6 +160,24 @@ const formatLoginModalSetting = (req, item) => {
   };
 };
 
+const formatForgetPasswordModalSetting = (req, item) => {
+  if (!item) return null;
+
+  return {
+    ...item,
+    logoUrl: item.logo ? buildFileUrl(req, item.logo) : "",
+  };
+};
+
+const formatSocialLink = (req, item) => {
+  if (!item) return null;
+
+  return {
+    ...item,
+    iconUrl: item.icon ? buildFileUrl(req, item.icon) : "",
+  };
+};
+
 router.get("/site-data", async (req, res) => {
   try {
     const [
@@ -173,6 +194,9 @@ router.get("/site-data", async (req, res) => {
       modalColorSetting,
       transactionHistoryColorSetting,
       bottomNavigationColorSetting,
+      homePageContentColorSetting,
+      forgetPasswordModalSetting,
+      socialLinks,
     ] = await Promise.all([
       SiteIdentify.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
       Notice.findOne({ status: "active" }).sort({ createdAt: -1 }).lean(),
@@ -209,6 +233,21 @@ router.get("/site-data", async (req, res) => {
       BottomNavigationColorSetting.findOne({ status: "active" })
         .sort({ createdAt: -1 })
         .lean(),
+      HomePageContentColorSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+      ForgetPasswordModalSetting.findOne({ status: "active" })
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      SocialLink.find({
+        status: "active",
+      })
+        .sort({
+          order: 1,
+          createdAt: -1,
+        })
+        .lean(),
     ]);
 
     return res.status(200).json({
@@ -233,9 +272,15 @@ router.get("/site-data", async (req, res) => {
           registerModalSetting,
         ),
         loginModalSetting: formatLoginModalSetting(req, loginModalSetting),
+        forgetPasswordModalSetting: formatForgetPasswordModalSetting(
+          req,
+          forgetPasswordModalSetting,
+        ),
+        socialLinks: socialLinks.map((item) => formatSocialLink(req, item)),
         modalColorSetting,
         transactionHistoryColorSetting,
         bottomNavigationColorSetting,
+        homePageContentColorSetting,
       },
     });
   } catch (error) {

@@ -52,6 +52,9 @@ import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
 import ModalColorSetting from "../pages/ModalColorSetting/ModalColorSetting";
 import TransactionHistoryColorSetting from "../pages/TransactionHistoryColorSetting/TransactionHistoryColorSetting";
 import BottomNavigationColorSetting from "../pages/BottomNavigationColorSetting/BottomNavigationColorSetting";
+import HomePageContentColorSetting from "../pages/HomePageContentColorSetting/HomePageContentColorSetting";
+import ForgetPasswordModalSetting from "../pages/ForgetPasswordModalSetting/ForgetPasswordModalSetting";
+import AddSocialLink from "../pages/AddSocialLink/AddSocialLink";
 
 export const routes = createBrowserRouter([
   {
@@ -422,6 +425,30 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="bottom-navigation-color-setting">
             <BottomNavigationColorSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "home-page-content-color-setting",
+        element: (
+          <PrivateRoute permKey="home-page-content-color-setting">
+            <HomePageContentColorSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "forget-password-modal-setting",
+        element: (
+          <PrivateRoute permKey="forget-password-modal-setting">
+            <ForgetPasswordModalSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "social-link",
+        element: (
+          <PrivateRoute permKey="social-link">
+            <AddSocialLink />
           </PrivateRoute>
         ),
       },

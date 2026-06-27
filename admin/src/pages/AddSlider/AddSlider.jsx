@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   Edit,
   ImagePlus,
   Loader2,
   PlusCircle,
   RefreshCw,
+  RotateCcw,
   Save,
   Sliders,
   Trash2,
@@ -15,18 +18,74 @@ import { api } from "../../api/axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+const defaultColors = {
+  sectionBg: "#0B66A8",
+  desktopSectionBg: "#f5f5f5",
+  slideBg: "#082056",
+  arrowColor: "#9ca3af",
+  arrowHoverColor: "#4b5563",
+  paginationBg: "#7aa7d9",
+  paginationActiveBg: "#2f79c9",
+  mobileSkeletonBg: "rgba(255,255,255,0.2)",
+  desktopSkeletonBg: "#d1d5db",
+  skeletonDotBg: "rgba(122,167,217,0.5)",
+  skeletonDotActiveBg: "#7aa7d9",
+};
+
 const emptyForm = {
   desktopImage: null,
   mobileImage: null,
   order: "",
   status: "active",
+  ...defaultColors,
 };
+
+const colorFields = [
+  ["sectionBg", "Mobile Section BG"],
+  ["desktopSectionBg", "Desktop Section BG"],
+  ["slideBg", "Slide BG"],
+  ["arrowColor", "Arrow Color"],
+  ["arrowHoverColor", "Arrow Hover Color"],
+  ["paginationBg", "Pagination BG"],
+  ["paginationActiveBg", "Pagination Active BG"],
+  ["mobileSkeletonBg", "Mobile Skeleton BG"],
+  ["desktopSkeletonBg", "Desktop Skeleton BG"],
+  ["skeletonDotBg", "Skeleton Dot BG"],
+  ["skeletonDotActiveBg", "Skeleton Dot Active BG"],
+];
 
 const fileUrl = (path = "") => {
   if (!path) return "";
   if (String(path).startsWith("http")) return path;
   return `${API_URL}${String(path).startsWith("/") ? path : `/${path}`}`;
 };
+
+const inputClass =
+  "w-full rounded-xl border border-[#1A79D3]/25 bg-black/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#3ea0ff] focus:ring-2 focus:ring-[#1A79D3]/20";
+
+const labelClass = "mb-2 block text-sm font-bold text-blue-100";
+
+const normalizeSliderToForm = (slider = null) => ({
+  desktopImage: null,
+  mobileImage: null,
+  order: slider?.order ? String(slider.order) : "",
+  status: slider?.status || "active",
+
+  sectionBg: slider?.sectionBg || defaultColors.sectionBg,
+  desktopSectionBg: slider?.desktopSectionBg || defaultColors.desktopSectionBg,
+  slideBg: slider?.slideBg || defaultColors.slideBg,
+  arrowColor: slider?.arrowColor || defaultColors.arrowColor,
+  arrowHoverColor: slider?.arrowHoverColor || defaultColors.arrowHoverColor,
+  paginationBg: slider?.paginationBg || defaultColors.paginationBg,
+  paginationActiveBg:
+    slider?.paginationActiveBg || defaultColors.paginationActiveBg,
+  mobileSkeletonBg: slider?.mobileSkeletonBg || defaultColors.mobileSkeletonBg,
+  desktopSkeletonBg:
+    slider?.desktopSkeletonBg || defaultColors.desktopSkeletonBg,
+  skeletonDotBg: slider?.skeletonDotBg || defaultColors.skeletonDotBg,
+  skeletonDotActiveBg:
+    slider?.skeletonDotActiveBg || defaultColors.skeletonDotActiveBg,
+});
 
 const AddSlider = () => {
   const [form, setForm] = useState(emptyForm);
@@ -40,10 +99,9 @@ const AddSlider = () => {
   const [mobilePreview, setMobilePreview] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const inputClass =
-    "w-full rounded-xl border border-[#1A79D3]/25 bg-black/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#3ea0ff] focus:ring-2 focus:ring-[#1A79D3]/20";
-
-  const labelClass = "mb-2 block text-sm font-bold text-blue-100";
+  const setValue = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const loadSliders = async () => {
     try {
@@ -118,15 +176,14 @@ const AddSlider = () => {
 
   const startEdit = (slider) => {
     setEditing(slider);
-
-    setForm({
-      desktopImage: null,
-      mobileImage: null,
-      order: slider?.order ? String(slider.order) : "",
-      status: slider?.status || "active",
-    });
-
+    setForm(normalizeSliderToForm(slider));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const appendColors = (fd) => {
+    colorFields.forEach(([key]) => {
+      fd.append(key, form[key] || "");
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -147,6 +204,7 @@ const AddSlider = () => {
 
       fd.append("order", String(form.order || "0"));
       fd.append("status", form.status);
+      appendColors(fd);
 
       if (form.desktopImage instanceof File) {
         fd.append("desktopImage", form.desktopImage);
@@ -174,6 +232,36 @@ const AddSlider = () => {
       resetForm();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetColors = async () => {
+    if (!editing?._id) {
+      setForm((prev) => ({ ...prev, ...defaultColors }));
+      toast.success("Default colors applied");
+      return;
+    }
+
+    const ok = window.confirm("Are you sure you want to reset slider colors?");
+    if (!ok) return;
+
+    try {
+      setLoading(true);
+
+      const res = await api.patch(`/api/sliders/${editing._id}/reset-colors`);
+      const updated = res.data?.data || null;
+
+      if (updated) {
+        setEditing(updated);
+        setForm(normalizeSliderToForm(updated));
+      }
+
+      await loadSliders();
+      toast.success("Slider colors reset successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to reset colors");
     } finally {
       setLoading(false);
     }
@@ -214,8 +302,8 @@ const AddSlider = () => {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm text-slate-300">
-              Upload separate desktop and mobile slider images. Both previews
-              are landscape, mobile preview is smaller.
+              Upload desktop/mobile slider images and control slider colors from
+              admin panel.
             </p>
           </div>
 
@@ -232,81 +320,117 @@ const AddSlider = () => {
         onSubmit={handleSubmit}
         className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]"
       >
-        <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
-          <div className="mb-6 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-black">
-                {editing ? "Update Slider" : "Create Slider"}
-              </h2>
-              <p className="text-sm text-slate-400">
-                Desktop image and mobile image both are required when creating.
-              </p>
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black">
+                  {editing ? "Update Slider" : "Create Slider"}
+                </h2>
+                <p className="text-sm text-slate-400">
+                  Desktop image and mobile image both are required when
+                  creating.
+                </p>
+              </div>
+
+              {editing && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-500/20"
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </button>
+              )}
             </div>
 
-            {editing && (
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className={labelClass}>Order Number</label>
+                <input
+                  type="number"
+                  min={0}
+                  className={inputClass}
+                  value={form.order}
+                  onChange={(e) => setValue("order", e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setValue("status", e.target.value)}
+                  className={`${inputClass} cursor-pointer`}
+                >
+                  <option className="bg-[#050607]" value="active">
+                    Active
+                  </option>
+                  <option className="bg-[#050607]" value="inactive">
+                    Inactive
+                  </option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <LandscapeFileInput
+                  label="Desktop Slider Image"
+                  preview={desktopPreview}
+                  onChange={(file) => setValue("desktopImage", file)}
+                  helpText="Landscape desktop image"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <SmallLandscapeFileInput
+                  label="Mobile Slider Image"
+                  preview={mobilePreview}
+                  onChange={(file) => setValue("mobileImage", file)}
+                  helpText="Landscape mobile image"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+            <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-xl font-black">Slider Color Control</h2>
+                <p className="text-sm text-slate-400">
+                  Control section background, arrows, pagination and skeleton
+                  colors.
+                </p>
+              </div>
+
               <button
                 type="button"
-                onClick={resetForm}
-                className="flex cursor-pointer items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-500/20"
+                onClick={handleResetColors}
+                disabled={loading}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <X className="h-4 w-4" />
-                Cancel
+                <RotateCcw className="h-4 w-4" />
+                Reset Colors
               </button>
-            )}
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className={labelClass}>Order Number</label>
-              <input
-                type="number"
-                min={0}
-                className={inputClass}
-                value={form.order}
-                onChange={(e) => setForm({ ...form, order: e.target.value })}
-                placeholder="0"
-              />
             </div>
 
-            <div>
-              <label className={labelClass}>Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                className={`${inputClass} cursor-pointer`}
-              >
-                <option className="bg-[#050607]" value="active">
-                  Active
-                </option>
-                <option className="bg-[#050607]" value="inactive">
-                  Inactive
-                </option>
-              </select>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {colorFields.map(([key, label]) => (
+                <ColorInput
+                  key={key}
+                  label={label}
+                  value={form[key]}
+                  onChange={(value) => setValue(key, value)}
+                />
+              ))}
             </div>
-
-            <div className="md:col-span-2">
-              <LandscapeFileInput
-                label="Desktop Slider Image"
-                preview={desktopPreview}
-                onChange={(file) => setForm({ ...form, desktopImage: file })}
-                helpText="Landscape desktop image"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <SmallLandscapeFileInput
-                label="Mobile Slider Image"
-                preview={mobilePreview}
-                onChange={(file) => setForm({ ...form, mobileImage: file })}
-                helpText="Landscape mobile image"
-              />
-            </div>
-          </div>
+          </section>
 
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-[#1A79D3]/30 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-[#1A79D3]/30 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -325,57 +449,21 @@ const AddSlider = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
-            <h2 className="text-xl font-black">Desktop Preview</h2>
+          <SliderPreview
+            title="Desktop Preview"
+            mode="desktop"
+            form={form}
+            image={desktopPreview}
+          />
 
-            <div className="mt-5 aspect-video w-full overflow-hidden rounded-xl border border-[#1A79D3]/30 bg-[#06182a]">
-              {desktopPreview ? (
-                <img
-                  src={desktopPreview}
-                  alt="Desktop Slider"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <ImagePlus className="h-14 w-14 text-slate-500" />
-                </div>
-              )}
-            </div>
-          </div>
+          <SliderPreview
+            title="Mobile Preview"
+            mode="mobile"
+            form={form}
+            image={mobilePreview}
+          />
 
-          <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
-            <h2 className="text-xl font-black">Mobile Preview</h2>
-
-            <div className="mx-auto mt-5 aspect-video w-full max-w-[320px] overflow-hidden rounded-xl border border-[#1A79D3]/30 bg-[#06182a]">
-              {mobilePreview ? (
-                <img
-                  src={mobilePreview}
-                  alt="Mobile Slider"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <ImagePlus className="h-12 w-12 text-slate-500" />
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 flex justify-center gap-2">
-              <span className="rounded-lg bg-[#3ea0ff] px-3 py-1 text-xs font-black text-white">
-                #{form.order || 0}
-              </span>
-
-              <span
-                className={`rounded-lg px-3 py-1 text-xs font-black ${
-                  form.status === "active"
-                    ? "bg-emerald-500 text-white"
-                    : "bg-red-500 text-white"
-                }`}
-              >
-                {form.status.toUpperCase()}
-              </span>
-            </div>
-          </div>
+          <SkeletonPreview form={form} />
         </div>
       </form>
 
@@ -431,7 +519,10 @@ const AddSlider = () => {
                 key={slider._id}
                 className="overflow-hidden rounded-2xl border border-[#1A79D3]/20 bg-black/30 shadow-xl transition hover:-translate-y-1 hover:border-[#3ea0ff]/50"
               >
-                <div className="aspect-video w-full bg-[#06182a]">
+                <div
+                  className="aspect-video w-full"
+                  style={{ backgroundColor: slider.slideBg || "#06182a" }}
+                >
                   {slider.desktopImageUrl || slider.desktopImage ? (
                     <img
                       src={
@@ -448,7 +539,10 @@ const AddSlider = () => {
                 </div>
 
                 <div className="p-5 text-center">
-                  <div className="mx-auto mb-4 aspect-video w-full max-w-[220px] overflow-hidden rounded-xl border border-[#1A79D3]/25 bg-[#06182a]">
+                  <div
+                    className="mx-auto mb-4 aspect-video w-full max-w-[220px] overflow-hidden rounded-xl border border-[#1A79D3]/25"
+                    style={{ backgroundColor: slider.slideBg || "#06182a" }}
+                  >
                     {slider.mobileImageUrl || slider.mobileImage ? (
                       <img
                         src={
@@ -513,74 +607,219 @@ const AddSlider = () => {
   );
 };
 
-const LandscapeFileInput = ({ label, preview, onChange, helpText }) => {
+const ColorInput = ({ label, value, onChange }) => (
+  <div>
+    <label className={labelClass}>{label}</label>
+
+    <div className="flex gap-3">
+      <input
+        type="color"
+        value={String(value || "#000000").startsWith("#") ? value : "#000000"}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-[46px] w-[58px] cursor-pointer rounded-xl border border-[#1A79D3]/25 bg-black/40 p-1"
+      />
+
+      <input
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+        placeholder="#000000 or rgba(...)"
+      />
+    </div>
+  </div>
+);
+
+const SliderPreview = ({ title, mode, form, image }) => {
+  const isDesktop = mode === "desktop";
+  const bg = isDesktop ? form.desktopSectionBg : form.sectionBg;
+  const heightClass = isDesktop ? "h-[220px]" : "h-[130px]";
+  const maxWidth = isDesktop ? "max-w-full" : "max-w-[320px]";
+
   return (
-    <div>
-      <label className="mb-2 block text-sm font-bold text-blue-100">
-        {label}
-      </label>
+    <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+      <h2 className="text-xl font-black">{title}</h2>
 
-      <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#1A79D3]/40 bg-black/40 p-4 text-center transition hover:border-[#3ea0ff] hover:bg-[#1A79D3]/10">
-        {preview ? (
-          <img
-            src={preview}
-            alt="Desktop Preview"
-            className="aspect-video w-full rounded-xl object-cover"
-          />
-        ) : (
-          <div className="flex aspect-video w-full flex-col items-center justify-center rounded-xl bg-black/30">
-            <ImagePlus className="mb-3 h-10 w-10 text-[#3ea0ff]" />
-            <p className="text-sm font-black text-slate-100">
-              Click to upload desktop image
-            </p>
-            <p className="mt-1 text-xs text-slate-500">{helpText}</p>
+      <div className="mt-5 rounded-xl p-4" style={{ background: bg }}>
+        <div
+          className={`relative mx-auto w-full ${maxWidth} overflow-hidden rounded-xl`}
+        >
+          <button
+            type="button"
+            className="absolute left-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center"
+            style={{ color: form.arrowColor }}
+          >
+            <ChevronLeft size={26} />
+          </button>
+
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center"
+            style={{ color: form.arrowHoverColor }}
+          >
+            <ChevronRight size={26} />
+          </button>
+
+          <div
+            className={`w-full overflow-hidden rounded-[3px] ${heightClass}`}
+            style={{ backgroundColor: form.slideBg }}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <ImagePlus className="h-12 w-12 text-slate-500" />
+              </div>
+            )}
           </div>
-        )}
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onChange(e.target.files?.[0] || null)}
-          className="hidden"
-        />
-      </label>
+          <div className="mt-3 flex justify-center gap-[6px]">
+            <span
+              className="h-[2px] w-[28px] rounded-full"
+              style={{ backgroundColor: form.paginationActiveBg }}
+            />
+            <span
+              className="h-[2px] w-[20px] rounded-full"
+              style={{ backgroundColor: form.paginationBg }}
+            />
+            <span
+              className="h-[2px] w-[20px] rounded-full"
+              style={{ backgroundColor: form.paginationBg }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex justify-center gap-2">
+        <span className="rounded-lg bg-[#3ea0ff] px-3 py-1 text-xs font-black text-white">
+          #{form.order || 0}
+        </span>
+
+        <span
+          className={`rounded-lg px-3 py-1 text-xs font-black ${
+            form.status === "active"
+              ? "bg-emerald-500 text-white"
+              : "bg-red-500 text-white"
+          }`}
+        >
+          {form.status.toUpperCase()}
+        </span>
+      </div>
     </div>
   );
 };
 
-const SmallLandscapeFileInput = ({ label, preview, onChange, helpText }) => {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-bold text-blue-100">
-        {label}
-      </label>
+const SkeletonPreview = ({ form }) => (
+  <div className="rounded-3xl border border-[#1A79D3]/20 bg-black/35 p-5 shadow-2xl md:p-6">
+    <h2 className="text-xl font-black">Skeleton Preview</h2>
 
-      <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#1A79D3]/40 bg-black/40 p-4 text-center transition hover:border-[#3ea0ff] hover:bg-[#1A79D3]/10">
-        {preview ? (
-          <img
-            src={preview}
-            alt="Mobile Preview"
-            className="mx-auto aspect-video w-full max-w-[320px] rounded-xl object-cover"
-          />
-        ) : (
-          <div className="mx-auto flex aspect-video w-full max-w-[320px] flex-col items-center justify-center rounded-xl bg-black/30">
-            <ImagePlus className="mb-3 h-10 w-10 text-[#3ea0ff]" />
-            <p className="text-sm font-black text-slate-100">
-              Click to upload mobile image
-            </p>
-            <p className="mt-1 text-xs text-slate-500">{helpText}</p>
-          </div>
-        )}
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onChange(e.target.files?.[0] || null)}
-          className="hidden"
+    <div className="mt-5 space-y-5">
+      <div className="rounded-xl p-4" style={{ background: form.sectionBg }}>
+        <div
+          className="h-[130px] w-full rounded-[3px]"
+          style={{ background: form.mobileSkeletonBg }}
         />
-      </label>
+        <SkeletonDots form={form} />
+      </div>
+
+      <div
+        className="rounded-xl p-4"
+        style={{ background: form.desktopSectionBg }}
+      >
+        <div
+          className="h-[160px] w-full rounded-[3px]"
+          style={{ background: form.desktopSkeletonBg }}
+        />
+        <SkeletonDots form={form} />
+      </div>
     </div>
-  );
-};
+  </div>
+);
+
+const SkeletonDots = ({ form }) => (
+  <div className="mt-3 flex justify-center gap-[6px]">
+    <span
+      className="h-[2px] w-[20px] rounded-full"
+      style={{ backgroundColor: form.skeletonDotActiveBg }}
+    />
+    <span
+      className="h-[2px] w-[20px] rounded-full"
+      style={{ backgroundColor: form.skeletonDotBg }}
+    />
+    <span
+      className="h-[2px] w-[20px] rounded-full"
+      style={{ backgroundColor: form.skeletonDotBg }}
+    />
+  </div>
+);
+
+const LandscapeFileInput = ({ label, preview, onChange, helpText }) => (
+  <div>
+    <label className="mb-2 block text-sm font-bold text-blue-100">
+      {label}
+    </label>
+
+    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#1A79D3]/40 bg-black/40 p-4 text-center transition hover:border-[#3ea0ff] hover:bg-[#1A79D3]/10">
+      {preview ? (
+        <img
+          src={preview}
+          alt="Desktop Preview"
+          className="aspect-video w-full rounded-xl object-cover"
+        />
+      ) : (
+        <div className="flex aspect-video w-full flex-col items-center justify-center rounded-xl bg-black/30">
+          <ImagePlus className="mb-3 h-10 w-10 text-[#3ea0ff]" />
+          <p className="text-sm font-black text-slate-100">
+            Click to upload desktop image
+          </p>
+          <p className="mt-1 text-xs text-slate-500">{helpText}</p>
+        </div>
+      )}
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        className="hidden"
+      />
+    </label>
+  </div>
+);
+
+const SmallLandscapeFileInput = ({ label, preview, onChange, helpText }) => (
+  <div>
+    <label className="mb-2 block text-sm font-bold text-blue-100">
+      {label}
+    </label>
+
+    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#1A79D3]/40 bg-black/40 p-4 text-center transition hover:border-[#3ea0ff] hover:bg-[#1A79D3]/10">
+      {preview ? (
+        <img
+          src={preview}
+          alt="Mobile Preview"
+          className="mx-auto aspect-video w-full max-w-[320px] rounded-xl object-cover"
+        />
+      ) : (
+        <div className="mx-auto flex aspect-video w-full max-w-[320px] flex-col items-center justify-center rounded-xl bg-black/30">
+          <ImagePlus className="mb-3 h-10 w-10 text-[#3ea0ff]" />
+          <p className="text-sm font-black text-slate-100">
+            Click to upload mobile image
+          </p>
+          <p className="mt-1 text-xs text-slate-500">{helpText}</p>
+        </div>
+      )}
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        className="hidden"
+      />
+    </label>
+  </div>
+);
 
 export default AddSlider;

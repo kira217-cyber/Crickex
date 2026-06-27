@@ -4,7 +4,7 @@ import { X, Clock } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectTransactionHistoryColorSetting } from "../../features/global/globalSelectors";
-import TransactionTab from "./TransactionTab";
+// import TransactionTab from "../TransactionTab/TransactionTab";
 import AutoDepositModalHistory from "../AutoDepositModalHistory/AutoDepositModalHistory";
 
 const defaultHistoryColors = {
@@ -121,7 +121,7 @@ const ComingSoonHistoryModal = ({
               </button>
             </div>
 
-            <TransactionTab activeTab={activeTab} onChange={onTabChange} />
+            {/* <TransactionTab activeTab={activeTab} onChange={onTabChange} /> */}
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {renderBody()}
