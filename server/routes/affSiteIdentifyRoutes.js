@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 
 import AffSiteIdentify from "../models/AffSiteIdentify.js";
-
 import upload from "../config/multer.js";
 import { protectAdmin } from "../middleware/protectAdmin.js";
 import { successResponse, errorResponse } from "../utils/response.js";
@@ -21,7 +20,7 @@ const buildFileUrl = (req, filePath = "") => {
   if (!filePath) return "";
   if (String(filePath).startsWith("http")) return filePath;
 
-  const normalized = filePath.replace(/\\/g, "/");
+  const normalized = String(filePath).replace(/\\/g, "/").replace(/^\/+/, "");
   return `${req.protocol}://${req.get("host")}/${normalized}`;
 };
 
@@ -43,9 +42,10 @@ const deleteLocalFile = (filePath = "") => {
 const uploadFields = upload.fields([
   { name: "logoImage", maxCount: 1 },
   { name: "faviconImage", maxCount: 1 },
+  { name: "backgroundImage", maxCount: 1 },
 ]);
 
-const formatAffSiteIdentify = (req, item) => {
+export const formatAffSiteIdentify = (req, item) => {
   if (!item) return null;
 
   const obj = item.toObject ? item.toObject() : item;
@@ -56,6 +56,9 @@ const formatAffSiteIdentify = (req, item) => {
     faviconImageUrl: obj.faviconImage
       ? buildFileUrl(req, obj.faviconImage)
       : "",
+    backgroundImageUrl: obj.backgroundImage
+      ? buildFileUrl(req, obj.backgroundImage)
+      : "",
   };
 };
 
@@ -63,7 +66,6 @@ const formatAffSiteIdentify = (req, item) => {
    CREATE OR UPDATE SINGLE AFFILIATE SITE IDENTIFY
    POST /api/aff-site-identify
 ====================================================== */
-
 router.post("/", protectAdmin, uploadFields, async (req, res) => {
   try {
     const siteNameBn = cleanText(req.body?.siteNameBn);
@@ -72,10 +74,12 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
 
     const logoFile = req.files?.logoImage?.[0];
     const faviconFile = req.files?.faviconImage?.[0];
+    const backgroundFile = req.files?.backgroundImage?.[0];
 
     if (!siteNameBn || !siteNameEn) {
       if (logoFile) deleteLocalFile(logoFile.path);
       if (faviconFile) deleteLocalFile(faviconFile.path);
+      if (backgroundFile) deleteLocalFile(backgroundFile.path);
 
       return errorResponse(
         res,
@@ -85,12 +89,12 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
     }
 
     const existing = await AffSiteIdentify.findOne();
-
     let affSiteIdentify;
 
     if (existing) {
       const oldLogo = existing.logoImage;
       const oldFavicon = existing.faviconImage;
+      const oldBackground = existing.backgroundImage;
 
       existing.siteName = {
         bn: siteNameBn,
@@ -107,6 +111,10 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
         existing.faviconImage = filePath(faviconFile);
       }
 
+      if (backgroundFile) {
+        existing.backgroundImage = filePath(backgroundFile);
+      }
+
       await existing.save();
 
       if (logoFile && oldLogo && !String(oldLogo).startsWith("http")) {
@@ -115,6 +123,14 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
 
       if (faviconFile && oldFavicon && !String(oldFavicon).startsWith("http")) {
         deleteLocalFile(oldFavicon);
+      }
+
+      if (
+        backgroundFile &&
+        oldBackground &&
+        !String(oldBackground).startsWith("http")
+      ) {
+        deleteLocalFile(oldBackground);
       }
 
       affSiteIdentify = existing;
@@ -126,6 +142,7 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
         },
         logoImage: logoFile ? filePath(logoFile) : "",
         faviconImage: faviconFile ? filePath(faviconFile) : "",
+        backgroundImage: backgroundFile ? filePath(backgroundFile) : "",
         status,
       });
     }
@@ -138,9 +155,11 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
   } catch (error) {
     const logoFile = req.files?.logoImage?.[0];
     const faviconFile = req.files?.faviconImage?.[0];
+    const backgroundFile = req.files?.backgroundImage?.[0];
 
     if (logoFile) deleteLocalFile(logoFile.path);
     if (faviconFile) deleteLocalFile(faviconFile.path);
+    if (backgroundFile) deleteLocalFile(backgroundFile.path);
 
     return errorResponse(res, error.message || "Server error", 500);
   }
@@ -150,7 +169,6 @@ router.post("/", protectAdmin, uploadFields, async (req, res) => {
    GET AFFILIATE SITE IDENTIFY - ADMIN
    GET /api/aff-site-identify
 ====================================================== */
-
 router.get("/", protectAdmin, async (req, res) => {
   try {
     const affSiteIdentify = await AffSiteIdentify.findOne().sort({
@@ -171,14 +189,11 @@ router.get("/", protectAdmin, async (req, res) => {
    GET ACTIVE AFFILIATE SITE IDENTIFY - PUBLIC
    GET /api/aff-site-identify/active
 ====================================================== */
-
 router.get("/active", async (req, res) => {
   try {
     const affSiteIdentify = await AffSiteIdentify.findOne({
       status: "active",
-    }).sort({
-      createdAt: -1,
-    });
+    }).sort({ createdAt: -1 });
 
     return successResponse(
       res,
@@ -191,10 +206,8 @@ router.get("/active", async (req, res) => {
 });
 
 /* ======================================================
-   REMOVE AFFILIATE LOGO
-   PATCH /api/aff-site-identify/remove-logo
+   REMOVE LOGO
 ====================================================== */
-
 router.patch("/remove-logo", protectAdmin, async (req, res) => {
   try {
     const affSiteIdentify = await AffSiteIdentify.findOne();
@@ -223,10 +236,8 @@ router.patch("/remove-logo", protectAdmin, async (req, res) => {
 });
 
 /* ======================================================
-   REMOVE AFFILIATE FAVICON
-   PATCH /api/aff-site-identify/remove-favicon
+   REMOVE FAVICON
 ====================================================== */
-
 router.patch("/remove-favicon", protectAdmin, async (req, res) => {
   try {
     const affSiteIdentify = await AffSiteIdentify.findOne();
@@ -255,10 +266,38 @@ router.patch("/remove-favicon", protectAdmin, async (req, res) => {
 });
 
 /* ======================================================
-   DELETE AFFILIATE SITE IDENTIFY
-   DELETE /api/aff-site-identify
+   REMOVE BACKGROUND
 ====================================================== */
+router.patch("/remove-background", protectAdmin, async (req, res) => {
+  try {
+    const affSiteIdentify = await AffSiteIdentify.findOne();
 
+    if (!affSiteIdentify) {
+      return errorResponse(res, "Affiliate site identify not found", 404);
+    }
+
+    const oldBackground = affSiteIdentify.backgroundImage;
+    affSiteIdentify.backgroundImage = "";
+
+    await affSiteIdentify.save();
+
+    if (oldBackground && !String(oldBackground).startsWith("http")) {
+      deleteLocalFile(oldBackground);
+    }
+
+    return successResponse(
+      res,
+      "Affiliate background image removed successfully",
+      formatAffSiteIdentify(req, affSiteIdentify),
+    );
+  } catch (error) {
+    return errorResponse(res, error.message || "Server error", 500);
+  }
+});
+
+/* ======================================================
+   DELETE AFFILIATE SITE IDENTIFY
+====================================================== */
 router.delete("/", protectAdmin, async (req, res) => {
   try {
     const affSiteIdentify = await AffSiteIdentify.findOneAndDelete();
@@ -279,6 +318,13 @@ router.delete("/", protectAdmin, async (req, res) => {
       !String(affSiteIdentify.faviconImage).startsWith("http")
     ) {
       deleteLocalFile(affSiteIdentify.faviconImage);
+    }
+
+    if (
+      affSiteIdentify.backgroundImage &&
+      !String(affSiteIdentify.backgroundImage).startsWith("http")
+    ) {
+      deleteLocalFile(affSiteIdentify.backgroundImage);
     }
 
     return successResponse(

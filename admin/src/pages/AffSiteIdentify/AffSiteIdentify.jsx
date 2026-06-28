@@ -18,6 +18,7 @@ const emptyForm = {
   siteNameEn: "",
   logoImage: null,
   faviconImage: null,
+  backgroundImage: null,
   status: "active",
 };
 
@@ -36,11 +37,38 @@ const AffSiteIdentify = () => {
 
   const [logoPreview, setLogoPreview] = useState("");
   const [faviconPreview, setFaviconPreview] = useState("");
+  const [backgroundPreview, setBackgroundPreview] = useState("");
 
   const inputClass =
     "w-full rounded-xl border border-[#1A79D3]/25 bg-black/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#3ea0ff] focus:ring-2 focus:ring-[#1A79D3]/20";
 
   const labelClass = "mb-2 block text-sm font-bold text-blue-100";
+
+  const setDataToState = (data) => {
+    if (data) {
+      setForm({
+        siteNameBn: data?.siteName?.bn || "",
+        siteNameEn: data?.siteName?.en || "",
+        logoImage: null,
+        faviconImage: null,
+        backgroundImage: null,
+        status: data?.status || "active",
+      });
+
+      setLogoPreview(data?.logoImageUrl || fileUrl(data?.logoImage || ""));
+      setFaviconPreview(
+        data?.faviconImageUrl || fileUrl(data?.faviconImage || ""),
+      );
+      setBackgroundPreview(
+        data?.backgroundImageUrl || fileUrl(data?.backgroundImage || ""),
+      );
+    } else {
+      setForm(emptyForm);
+      setLogoPreview("");
+      setFaviconPreview("");
+      setBackgroundPreview("");
+    }
+  };
 
   const loadSiteIdentify = async () => {
     try {
@@ -50,25 +78,7 @@ const AffSiteIdentify = () => {
       const data = res.data?.data || null;
 
       setSiteIdentify(data);
-
-      if (data) {
-        setForm({
-          siteNameBn: data?.siteName?.bn || "",
-          siteNameEn: data?.siteName?.en || "",
-          logoImage: null,
-          faviconImage: null,
-          status: data?.status || "active",
-        });
-
-        setLogoPreview(data?.logoImageUrl || fileUrl(data?.logoImage || ""));
-        setFaviconPreview(
-          data?.faviconImageUrl || fileUrl(data?.faviconImage || ""),
-        );
-      } else {
-        setForm(emptyForm);
-        setLogoPreview("");
-        setFaviconPreview("");
-      }
+      setDataToState(data);
     } catch (error) {
       toast.error(
         error?.response?.data?.message ||
@@ -90,17 +100,9 @@ const AffSiteIdentify = () => {
       return () => URL.revokeObjectURL(url);
     }
 
-    if (siteIdentify?.logoImageUrl) {
-      setLogoPreview(siteIdentify.logoImageUrl);
-      return;
-    }
-
-    if (siteIdentify?.logoImage) {
-      setLogoPreview(fileUrl(siteIdentify.logoImage));
-      return;
-    }
-
-    setLogoPreview("");
+    setLogoPreview(
+      siteIdentify?.logoImageUrl || fileUrl(siteIdentify?.logoImage || ""),
+    );
   }, [form.logoImage, siteIdentify]);
 
   useEffect(() => {
@@ -110,42 +112,27 @@ const AffSiteIdentify = () => {
       return () => URL.revokeObjectURL(url);
     }
 
-    if (siteIdentify?.faviconImageUrl) {
-      setFaviconPreview(siteIdentify.faviconImageUrl);
-      return;
-    }
-
-    if (siteIdentify?.faviconImage) {
-      setFaviconPreview(fileUrl(siteIdentify.faviconImage));
-      return;
-    }
-
-    setFaviconPreview("");
+    setFaviconPreview(
+      siteIdentify?.faviconImageUrl ||
+        fileUrl(siteIdentify?.faviconImage || ""),
+    );
   }, [form.faviconImage, siteIdentify]);
 
-  const resetForm = () => {
-    if (siteIdentify) {
-      setForm({
-        siteNameBn: siteIdentify?.siteName?.bn || "",
-        siteNameEn: siteIdentify?.siteName?.en || "",
-        logoImage: null,
-        faviconImage: null,
-        status: siteIdentify?.status || "active",
-      });
-
-      setLogoPreview(
-        siteIdentify?.logoImageUrl || fileUrl(siteIdentify?.logoImage || ""),
-      );
-
-      setFaviconPreview(
-        siteIdentify?.faviconImageUrl ||
-          fileUrl(siteIdentify?.faviconImage || ""),
-      );
-    } else {
-      setForm(emptyForm);
-      setLogoPreview("");
-      setFaviconPreview("");
+  useEffect(() => {
+    if (form.backgroundImage instanceof File) {
+      const url = URL.createObjectURL(form.backgroundImage);
+      setBackgroundPreview(url);
+      return () => URL.revokeObjectURL(url);
     }
+
+    setBackgroundPreview(
+      siteIdentify?.backgroundImageUrl ||
+        fileUrl(siteIdentify?.backgroundImage || ""),
+    );
+  }, [form.backgroundImage, siteIdentify]);
+
+  const resetForm = () => {
+    setDataToState(siteIdentify);
   };
 
   const handleSubmit = async (e) => {
@@ -172,6 +159,10 @@ const AffSiteIdentify = () => {
         fd.append("faviconImage", form.faviconImage);
       }
 
+      if (form.backgroundImage instanceof File) {
+        fd.append("backgroundImage", form.backgroundImage);
+      }
+
       const res = await api.post("/api/aff-site-identify", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -179,19 +170,7 @@ const AffSiteIdentify = () => {
       const data = res.data?.data || null;
 
       setSiteIdentify(data);
-
-      setForm({
-        siteNameBn: data?.siteName?.bn || "",
-        siteNameEn: data?.siteName?.en || "",
-        logoImage: null,
-        faviconImage: null,
-        status: data?.status || "active",
-      });
-
-      setLogoPreview(data?.logoImageUrl || fileUrl(data?.logoImage || ""));
-      setFaviconPreview(
-        data?.faviconImageUrl || fileUrl(data?.faviconImage || ""),
-      );
+      setDataToState(data);
 
       toast.success("Affiliate site identify saved successfully");
     } catch (error) {
@@ -214,10 +193,7 @@ const AffSiteIdentify = () => {
       const data = res.data?.data || null;
 
       setSiteIdentify(data);
-      setForm((prev) => ({
-        ...prev,
-        logoImage: null,
-      }));
+      setForm((prev) => ({ ...prev, logoImage: null }));
       setLogoPreview("");
 
       toast.success("Affiliate logo removed successfully");
@@ -240,16 +216,37 @@ const AffSiteIdentify = () => {
       const data = res.data?.data || null;
 
       setSiteIdentify(data);
-      setForm((prev) => ({
-        ...prev,
-        faviconImage: null,
-      }));
+      setForm((prev) => ({ ...prev, faviconImage: null }));
       setFaviconPreview("");
 
       toast.success("Affiliate favicon removed successfully");
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Failed to remove affiliate favicon",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!siteIdentify) return;
+
+    try {
+      setLoading(true);
+
+      const res = await api.patch("/api/aff-site-identify/remove-background");
+      const data = res.data?.data || null;
+
+      setSiteIdentify(data);
+      setForm((prev) => ({ ...prev, backgroundImage: null }));
+      setBackgroundPreview("");
+
+      toast.success("Affiliate background removed successfully");
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to remove affiliate background",
       );
     } finally {
       setLoading(false);
@@ -271,6 +268,7 @@ const AffSiteIdentify = () => {
       setForm(emptyForm);
       setLogoPreview("");
       setFaviconPreview("");
+      setBackgroundPreview("");
 
       toast.success("Affiliate site identify deleted successfully");
     } catch (error) {
@@ -302,8 +300,8 @@ const AffSiteIdentify = () => {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm text-slate-300">
-              Manage affiliate site logo, favicon and Bangla/English site name.
-              Only one setting will be saved.
+              Manage affiliate site logo, favicon, background image and
+              Bangla/English site name. Only one setting will be saved.
             </p>
           </div>
 
@@ -337,7 +335,7 @@ const AffSiteIdentify = () => {
                   : "Add Affiliate Site Identify"}
               </h2>
               <p className="text-sm text-slate-400">
-                Upload affiliate logo/favicon and add site names.
+                Upload affiliate logo, favicon, background and add site names.
               </p>
             </div>
 
@@ -424,6 +422,16 @@ const AffSiteIdentify = () => {
               small
               onChange={(file) => setForm({ ...form, faviconImage: file })}
             />
+
+            <div className="md:col-span-2">
+              <ImageUploadBox
+                label="Affiliate Website Background Image"
+                preview={backgroundPreview}
+                placeholder="Upload affiliate website background image"
+                wide
+                onChange={(file) => setForm({ ...form, backgroundImage: file })}
+              />
+            </div>
           </div>
 
           <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -452,7 +460,7 @@ const AffSiteIdentify = () => {
             </button>
           </div>
 
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
             <button
               type="button"
               onClick={handleRemoveLogo}
@@ -470,6 +478,15 @@ const AffSiteIdentify = () => {
             >
               Remove Affiliate Favicon
             </button>
+
+            <button
+              type="button"
+              onClick={handleRemoveBackground}
+              disabled={loading || !backgroundPreview}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-yellow-300/20 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Remove Background
+            </button>
           </div>
         </div>
 
@@ -479,8 +496,17 @@ const AffSiteIdentify = () => {
             Preview affiliate site identity before saving.
           </p>
 
-          <div className="mt-5 rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-6 text-center">
-            <div className="mx-auto flex min-h-[110px] w-full max-w-[280px] items-center justify-center rounded-xl border border-[#1A79D3]/30 bg-[#06182a] p-4">
+          <div
+            className="mt-5 overflow-hidden rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-6 text-center"
+            style={{
+              backgroundImage: backgroundPreview
+                ? `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.75)), url(${backgroundPreview})`
+                : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="mx-auto flex min-h-[110px] w-full max-w-[280px] items-center justify-center rounded-xl border border-[#1A79D3]/30 bg-[#06182a]/90 p-4">
               {logoPreview ? (
                 <img
                   src={logoPreview}
@@ -492,7 +518,7 @@ const AffSiteIdentify = () => {
               )}
             </div>
 
-            <div className="mx-auto mt-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-[#1A79D3]/30 bg-[#06182a] p-2">
+            <div className="mx-auto mt-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-[#1A79D3]/30 bg-[#06182a]/90 p-2">
               {faviconPreview ? (
                 <img
                   src={faviconPreview}
@@ -508,7 +534,7 @@ const AffSiteIdentify = () => {
               {form.siteNameEn || "Affiliate Site Name English"}
             </h3>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-300">
               {form.siteNameBn || "অ্যাফিলিয়েট সাইটের নাম বাংলা"}
             </p>
 
@@ -524,13 +550,38 @@ const AffSiteIdentify = () => {
               </span>
             </div>
           </div>
+
+          <div className="mt-5 rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-4">
+            <p className="mb-3 text-sm font-black text-blue-100">
+              Background Preview
+            </p>
+
+            <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-xl border border-[#1A79D3]/25 bg-[#06182a]">
+              {backgroundPreview ? (
+                <img
+                  src={backgroundPreview}
+                  alt="Affiliate Background"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <ImagePlus className="h-12 w-12 text-slate-500" />
+              )}
+            </div>
+          </div>
         </div>
       </form>
     </div>
   );
 };
 
-const ImageUploadBox = ({ label, preview, onChange, placeholder, small }) => {
+const ImageUploadBox = ({
+  label,
+  preview,
+  onChange,
+  placeholder,
+  small,
+  wide,
+}) => {
   return (
     <div>
       <label className="mb-2 block text-sm font-bold text-blue-100">
@@ -543,9 +594,11 @@ const ImageUploadBox = ({ label, preview, onChange, placeholder, small }) => {
             src={preview}
             alt="Preview"
             className={
-              small
-                ? "h-20 w-20 rounded-xl object-contain"
-                : "h-24 w-full rounded-xl object-contain"
+              wide
+                ? "h-40 w-full rounded-xl object-cover"
+                : small
+                  ? "h-20 w-20 rounded-xl object-contain"
+                  : "h-24 w-full rounded-xl object-contain"
             }
           />
         ) : (
@@ -553,14 +606,14 @@ const ImageUploadBox = ({ label, preview, onChange, placeholder, small }) => {
             <ImagePlus className="mb-3 h-9 w-9 text-[#3ea0ff]" />
             <p className="text-sm font-black text-slate-100">{placeholder}</p>
             <p className="mt-1 text-xs text-slate-500">
-              PNG, JPG, WEBP, SVG, ICO
+              PNG, JPG, JPEG, WEBP, SVG, AVIF, GIF
             </p>
           </>
         )}
 
         <input
           type="file"
-          accept="image/*,.ico"
+          accept="image/*"
           onChange={(e) => onChange(e.target.files?.[0] || null)}
           className="hidden"
         />

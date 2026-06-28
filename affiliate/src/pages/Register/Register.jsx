@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Eye,
   EyeOff,
@@ -11,12 +11,81 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import api from "../../api/axios";
+import { fetchAffiliateGlobalData } from "../../features/global/globalSlice";
+import {
+  selectAffiliateRegisterSetting,
+  selectGlobalLoaded,
+  selectGlobalLoading,
+} from "../../features/global/globalSelectors";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const makeImageUrl = (path = "") => {
+  if (!path) return "";
+  if (
+    String(path).startsWith("http://") ||
+    String(path).startsWith("https://")
+  ) {
+    return path;
+  }
+  return `${API_URL}/${String(path).replace(/^\/+/, "")}`;
+};
+
+const getText = (obj, isBangla, fallback = "") => {
+  if (!obj) return fallback;
+  return isBangla ? obj.bn || obj.en || fallback : obj.en || obj.bn || fallback;
+};
+
+const getColor = (setting, key, fallback) => setting?.[key] || fallback;
+
+const RegisterSkeleton = () => (
+  <div className="min-h-screen bg-[#061532] px-4 py-10 text-white">
+    <div className="mx-auto grid max-w-[1120px] items-center gap-8 lg:grid-cols-2">
+      <div className="hidden animate-pulse rounded-[28px] border border-white/10 bg-white/5 p-8 shadow-2xl md:block">
+        <div className="h-9 w-40 rounded-full bg-white/15" />
+        <div className="mt-6 h-12 w-full rounded-xl bg-white/15" />
+        <div className="mt-3 h-12 w-4/5 rounded-xl bg-white/15" />
+        <div className="mt-5 h-5 w-full rounded bg-white/15" />
+        <div className="mt-2 h-5 w-3/4 rounded bg-white/15" />
+        <div className="mt-6 h-24 rounded-2xl bg-white/15" />
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="h-12 rounded-xl bg-white/15" />
+          <div className="h-12 rounded-xl bg-white/15" />
+          <div className="h-12 rounded-xl bg-white/15" />
+        </div>
+      </div>
+
+      <div className="animate-pulse rounded-[28px] border border-white/10 bg-white p-5 shadow-2xl md:p-7">
+        <div className="mx-auto h-[42px] w-[160px] rounded bg-gray-200" />
+        <div className="mx-auto mt-4 h-8 w-32 rounded bg-gray-200" />
+
+        <div className="mt-6 space-y-4">
+          {[1, 2, 3, 4, 5].map((item) => (
+            <div key={item}>
+              <div className="mb-2 h-4 w-28 rounded bg-gray-200" />
+              <div className="h-[50px] rounded-xl bg-gray-200" />
+            </div>
+          ))}
+
+          <div className="h-[52px] rounded-xl bg-gray-200" />
+          <div className="mx-auto h-4 w-56 rounded bg-gray-200" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const Register = () => {
   const { isBangla } = useLanguage();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const globalLoading = useSelector(selectGlobalLoading);
+  const globalLoaded = useSelector(selectGlobalLoaded);
+  const setting = useSelector(selectAffiliateRegisterSetting);
 
   const [form, setForm] = useState({
     username: "",
@@ -30,26 +99,79 @@ const Register = () => {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  useEffect(() => {
+    if (!globalLoaded && !globalLoading) {
+      dispatch(fetchAffiliateGlobalData());
+    }
+  }, [dispatch, globalLoaded, globalLoading]);
+
   const text = useMemo(
     () => ({
-      badge: isBangla ? "ক্রিকেক্স অ্যাফিলিয়েট" : "Crickex Affiliate",
-      title: isBangla ? "অ্যাফিলিয়েট অ্যাকাউন্ট তৈরি করুন" : "Create Affiliate Account",
-      sub: isBangla
-        ? "আজই জয়েন করুন এবং লাইফটাইম কমিশন আয়ের সুযোগ নিন।"
-        : "Join today and start earning lifetime commission.",
-      commission: isBangla ? "৫০% লাইফটাইম কমিশন" : "50% Lifetime Commission",
-      username: isBangla ? "ইউজারনেম" : "Username",
-      phone: isBangla ? "ফোন নম্বর" : "Phone",
-      email: isBangla ? "ইমেইল" : "Email",
-      password: isBangla ? "পাসওয়ার্ড" : "Password",
-      confirmPassword: isBangla ? "কনফার্ম পাসওয়ার্ড" : "Confirm Password",
-      submit: isBangla ? "রেজিস্টার করুন" : "Register",
-      submitting: isBangla ? "রেজিস্টার হচ্ছে..." : "Registering...",
-      already: isBangla ? "আগেই অ্যাকাউন্ট আছে?" : "Already have an account?",
-      login: isBangla ? "লগইন" : "Login",
-      note1: isBangla ? "ফ্রি অ্যাকাউন্ট" : "Free Account",
-      note2: isBangla ? "জিরো ইনভেস্টমেন্ট" : "Zero Investment",
-      note3: isBangla ? "দ্রুত সাপোর্ট" : "Fast Support",
+      badge: getText(
+        setting?.badgeText,
+        isBangla,
+        isBangla ? "ক্রিকেক্স অ্যাফিলিয়েট" : "Crickex Affiliate",
+      ),
+      title: getText(
+        setting?.title,
+        isBangla,
+        isBangla
+          ? "অ্যাফিলিয়েট অ্যাকাউন্ট তৈরি করুন"
+          : "Create Affiliate Account",
+      ),
+      sub: getText(
+        setting?.subTitle,
+        isBangla,
+        isBangla
+          ? "আজই জয়েন করুন এবং লাইফটাইম কমিশন আয়ের সুযোগ নিন।"
+          : "Join today and start earning lifetime commission.",
+      ),
+      commission: getText(
+        setting?.commissionText,
+        isBangla,
+        isBangla ? "৫০% লাইফটাইম কমিশন" : "50% Lifetime Commission",
+      ),
+      username: getText(
+        setting?.usernameLabel,
+        isBangla,
+        isBangla ? "ইউজারনেম" : "Username",
+      ),
+      phone: getText(
+        setting?.phoneLabel,
+        isBangla,
+        isBangla ? "ফোন নম্বর" : "Phone",
+      ),
+      email: getText(
+        setting?.emailLabel,
+        isBangla,
+        isBangla ? "ইমেইল" : "Email",
+      ),
+      password: getText(
+        setting?.passwordLabel,
+        isBangla,
+        isBangla ? "পাসওয়ার্ড" : "Password",
+      ),
+      confirmPassword: getText(
+        setting?.confirmPasswordLabel,
+        isBangla,
+        isBangla ? "কনফার্ম পাসওয়ার্ড" : "Confirm Password",
+      ),
+      submit: getText(
+        setting?.submitText,
+        isBangla,
+        isBangla ? "রেজিস্টার করুন" : "Register",
+      ),
+      submitting: getText(
+        setting?.submittingText,
+        isBangla,
+        isBangla ? "রেজিস্টার হচ্ছে..." : "Registering...",
+      ),
+      already: getText(
+        setting?.alreadyText,
+        isBangla,
+        isBangla ? "আগেই অ্যাকাউন্ট আছে?" : "Already have an account?",
+      ),
+      login: getText(setting?.loginText, isBangla, isBangla ? "লগইন" : "Login"),
 
       usernameRequired: isBangla ? "ইউজারনেম দিন" : "Enter username",
       usernameInvalid: isBangla
@@ -72,8 +194,57 @@ const Register = () => {
         ? "রেজিস্ট্রেশন সফল হয়েছে। অ্যাডমিন approve করলে আপনি লগইন করতে পারবেন।"
         : "Registration successful. You can login after admin approval.",
     }),
-    [isBangla],
+    [isBangla, setting],
   );
+
+  const notes = useMemo(() => {
+    const list = Array.isArray(setting?.notes) ? setting.notes : [];
+
+    if (list.length) {
+      return list
+        .filter((item) => item?.status !== "inactive")
+        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+        .map((item) => getText(item.text, isBangla))
+        .filter(Boolean);
+    }
+
+    return isBangla
+      ? ["ফ্রি অ্যাকাউন্ট", "জিরো ইনভেস্টমেন্ট", "দ্রুত সাপোর্ট"]
+      : ["Free Account", "Zero Investment", "Fast Support"];
+  }, [isBangla, setting]);
+
+  const colors = {
+    pageBg: getColor(setting, "pageBg", "#061532"),
+    leftCardBg: getColor(setting, "leftCardBg", "rgba(255,255,255,0.05)"),
+    leftCardBorder: getColor(
+      setting,
+      "leftCardBorder",
+      "rgba(255,255,255,0.10)",
+    ),
+    badgeBg: getColor(setting, "badgeBg", "#ffcc18"),
+    badgeTextColor: getColor(setting, "badgeTextColor", "#061532"),
+    titleColor: getColor(setting, "titleColor", "#ffffff"),
+    subTitleColor: getColor(setting, "subTitleColor", "rgba(255,255,255,0.75)"),
+    commissionBg: getColor(setting, "commissionBg", "#ffcc18"),
+    commissionTextColor: getColor(setting, "commissionTextColor", "#061532"),
+    noteBg: getColor(setting, "noteBg", "#0c2c62"),
+    noteTextColor: getColor(setting, "noteTextColor", "#ffffff"),
+    noteIconColor: getColor(setting, "noteIconColor", "#ffcc18"),
+
+    formCardBg: getColor(setting, "formCardBg", "#ffffff"),
+    formTextColor: getColor(setting, "formTextColor", "#111111"),
+    formTitleColor: getColor(setting, "formTitleColor", "#061532"),
+    labelColor: getColor(setting, "labelColor", "#061532"),
+    inputBg: getColor(setting, "inputBg", "#f4f7fb"),
+    inputBorder: getColor(setting, "inputBorder", "#d9e2ef"),
+    inputFocusBorder: getColor(setting, "inputFocusBorder", "#ffcc18"),
+    inputIconColor: getColor(setting, "inputIconColor", "#0b66a8"),
+    submitBg: getColor(setting, "submitBg", "#ffcc18"),
+    submitTextColor: getColor(setting, "submitTextColor", "#061532"),
+    loginLinkColor: getColor(setting, "loginLinkColor", "#0b66a8"),
+  };
+
+  const logo = setting?.logoUrl || makeImageUrl(setting?.logo);
 
   const handleChange = (key, value) => {
     if (key === "username") {
@@ -188,47 +359,97 @@ const Register = () => {
     },
   ];
 
+  if (!globalLoaded && globalLoading) {
+    return <RegisterSkeleton />;
+  }
+
   return (
-    <div className="min-h-screen bg-[#061532] px-4 py-10 text-white">
+    <div
+      className="min-h-screen px-4 py-10 text-white"
+      style={{ backgroundColor: colors.pageBg }}
+    >
       <div className="mx-auto grid max-w-[1120px] items-center gap-8 lg:grid-cols-2">
-        <div className="hidden md:block rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur md:p-8">
-          <span className="inline-flex rounded-full bg-[#ffcc18] px-4 py-2 text-sm font-bold text-[#061532]">
+        <div
+          className="hidden rounded-[28px] border p-6 shadow-2xl backdrop-blur md:block md:p-8"
+          style={{
+            backgroundColor: colors.leftCardBg,
+            borderColor: colors.leftCardBorder,
+          }}
+        >
+          <span
+            className="inline-flex rounded-full px-4 py-2 text-sm font-bold"
+            style={{
+              backgroundColor: colors.badgeBg,
+              color: colors.badgeTextColor,
+            }}
+          >
             {text.badge}
           </span>
 
-          <h1 className="mt-6 text-3xl font-black leading-tight md:text-5xl">
+          <h1
+            className="mt-6 text-3xl font-black leading-tight md:text-5xl"
+            style={{ color: colors.titleColor }}
+          >
             {text.title}
           </h1>
 
-          <p className="mt-4 max-w-[520px] text-base text-white/75">
+          <p
+            className="mt-4 max-w-[520px] text-base"
+            style={{ color: colors.subTitleColor }}
+          >
             {text.sub}
           </p>
 
-          <div className="mt-6 rounded-2xl bg-[#ffcc18] p-5 text-[#061532]">
+          <div
+            className="mt-6 rounded-2xl p-5"
+            style={{
+              backgroundColor: colors.commissionBg,
+              color: colors.commissionTextColor,
+            }}
+          >
             <p className="text-2xl font-black md:text-4xl">{text.commission}</p>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {[text.note1, text.note2, text.note3].map((item) => (
+            {notes.map((item) => (
               <div
                 key={item}
-                className="flex items-center gap-2 rounded-xl bg-[#0c2c62] px-3 py-3 text-sm font-bold"
+                className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-bold"
+                style={{
+                  backgroundColor: colors.noteBg,
+                  color: colors.noteTextColor,
+                }}
               >
-                <CheckCircle size={17} className="text-[#ffcc18]" />
+                <CheckCircle
+                  size={17}
+                  style={{ color: colors.noteIconColor }}
+                />
                 {item}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-white p-5 text-[#111] shadow-2xl md:p-7">
+        <div
+          className="rounded-[28px] border border-white/10 p-5 shadow-2xl md:p-7"
+          style={{
+            backgroundColor: colors.formCardBg,
+            color: colors.formTextColor,
+          }}
+        >
           <div className="mb-6 text-center">
-            <img
-              src="https://crickexpartner.com/wp-content/uploads/2024/03/logo-2.png"
-              alt="Crickex"
-              className="mx-auto h-[42px] object-contain"
-            />
-            <h2 className="mt-4 text-2xl font-black text-[#061532]">
+            {logo ? (
+              <img
+                src={logo}
+                alt="Crickex"
+                className="mx-auto h-[42px] object-contain"
+              />
+            ) : null}
+
+            <h2
+              className="mt-4 text-2xl font-black"
+              style={{ color: colors.formTitleColor }}
+            >
               {text.submit}
             </h2>
           </div>
@@ -239,12 +460,28 @@ const Register = () => {
 
               return (
                 <div key={field.key}>
-                  <label className="mb-2 block text-sm font-bold text-[#061532]">
+                  <label
+                    className="mb-2 block text-sm font-bold"
+                    style={{ color: colors.labelColor }}
+                  >
                     {field.label}
                   </label>
 
-                  <div className="flex h-[50px] items-center rounded-xl border border-[#d9e2ef] bg-[#f4f7fb] px-4 focus-within:border-[#ffcc18]">
-                    <Icon size={18} className="text-[#0b66a8]" />
+                  <div
+                    className="flex h-[50px] items-center rounded-xl border px-4"
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      borderColor: colors.inputBorder,
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        colors.inputFocusBorder;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = colors.inputBorder;
+                    }}
+                  >
+                    <Icon size={18} style={{ color: colors.inputIconColor }} />
                     <input
                       type={field.type}
                       value={form[field.key]}
@@ -259,12 +496,27 @@ const Register = () => {
             })}
 
             <div>
-              <label className="mb-2 block text-sm font-bold text-[#061532]">
+              <label
+                className="mb-2 block text-sm font-bold"
+                style={{ color: colors.labelColor }}
+              >
                 {text.password}
               </label>
 
-              <div className="flex h-[50px] items-center rounded-xl border border-[#d9e2ef] bg-[#f4f7fb] px-4 focus-within:border-[#ffcc18]">
-                <Lock size={18} className="text-[#0b66a8]" />
+              <div
+                className="flex h-[50px] items-center rounded-xl border px-4"
+                style={{
+                  backgroundColor: colors.inputBg,
+                  borderColor: colors.inputBorder,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.inputFocusBorder;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.inputBorder;
+                }}
+              >
+                <Lock size={18} style={{ color: colors.inputIconColor }} />
                 <input
                   type={showPass ? "text" : "password"}
                   value={form.password}
@@ -285,12 +537,27 @@ const Register = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-bold text-[#061532]">
+              <label
+                className="mb-2 block text-sm font-bold"
+                style={{ color: colors.labelColor }}
+              >
                 {text.confirmPassword}
               </label>
 
-              <div className="flex h-[50px] items-center rounded-xl border border-[#d9e2ef] bg-[#f4f7fb] px-4 focus-within:border-[#ffcc18]">
-                <Lock size={18} className="text-[#0b66a8]" />
+              <div
+                className="flex h-[50px] items-center rounded-xl border px-4"
+                style={{
+                  backgroundColor: colors.inputBg,
+                  borderColor: colors.inputBorder,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.inputFocusBorder;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.inputBorder;
+                }}
+              >
+                <Lock size={18} style={{ color: colors.inputIconColor }} />
                 <input
                   type={showConfirm ? "text" : "password"}
                   value={form.confirmPassword}
@@ -317,7 +584,11 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#ffcc18] text-base font-black text-[#061532] transition hover:bg-[#ffd83d] disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-base font-black transition disabled:cursor-not-allowed disabled:opacity-70"
+              style={{
+                backgroundColor: colors.submitBg,
+                color: colors.submitTextColor,
+              }}
             >
               {loading ? (
                 <>
@@ -334,7 +605,8 @@ const Register = () => {
             {text.already}{" "}
             <Link
               to="/login"
-              className="cursor-pointer font-bold text-[#0b66a8] hover:underline"
+              className="cursor-pointer font-bold hover:underline"
+              style={{ color: colors.loginLinkColor }}
             >
               {text.login}
             </Link>

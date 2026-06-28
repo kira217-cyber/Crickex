@@ -27,6 +27,12 @@ const AffSiteIdentifySchema = new mongoose.Schema(
       trim: true,
     },
 
+    backgroundImage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive"],

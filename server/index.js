@@ -56,6 +56,21 @@ import bottomNavigationColorSettingRoutes from "./routes/bottomNavigationColorSe
 import homePageContentColorSettingRoutes from "./routes/homePageContentColorSettingRoutes.js";
 import forgetPasswordModalSettingRoutes from "./routes/forgetPasswordModalSettingRoutes.js";
 import socialLinkRoutes from "./routes/socialLinkRoutes.js";
+import affiliateRegisterSettingRoutes from "./routes/affiliateRegisterSettingRoutes.js";
+import affiliateGlobalRoutes from "./routes/affiliateGlobalRoutes.js";
+import affiliateLoginSettingRoutes from "./routes/affiliateLoginSettingRoutes.js";
+import affiliateSliderSettingRoutes from "./routes/affiliateSliderSettingRoutes.js";
+import affiliateAgentSettingRoutes from "./routes/affiliateAgentSettingRoutes.js";
+import affiliateAboutSettingRoutes from "./routes/affiliateAboutSettingRoutes.js";
+import affiliateSponsorshipSettingRoutes from "./routes/affiliateSponsorshipSettingRoutes.js";
+import affiliateCommissionSettingRoutes from "./routes/affiliateCommissionSettingRoutes.js";
+import affiliateAdvantageSettingRoutes from "./routes/affiliateAdvantageSettingRoutes.js";
+import affiliateRegistrationGuideSettingRoutes from "./routes/affiliateRegistrationGuideSettingRoutes.js";
+import affiliateWatchSettingRoutes from "./routes/affiliateWatchSettingRoutes.js";
+import affiliateReviewSettingRoutes from "./routes/affiliateReviewSettingRoutes.js";
+import affiliateFooterSettingRoutes from "./routes/affiliateFooterSettingRoutes.js";
+import affiliateNavbarSettingRoutes from "./routes/affiliateNavbarSettingRoutes.js";
+import affiliateSocialLinkRoutes from "./routes/affiliateSocialLinkRoutes.js";
 
 
 dotenv.config();
@@ -149,9 +164,32 @@ app.use(
 );
 app.use("/api/social-link", socialLinkRoutes);
 
-
 // Affiliate Site Controller
 app.use("/api/aff-site-identify", affSiteIdentifyRoutes);
+app.use("/api/affiliate-register-settings", affiliateRegisterSettingRoutes);
+app.use("/api/affiliate-login-settings", affiliateLoginSettingRoutes);
+app.use("/api/affiliate-slider-settings", affiliateSliderSettingRoutes);
+app.use("/api/affiliate-agent-settings", affiliateAgentSettingRoutes);
+app.use("/api/affiliate-about-settings", affiliateAboutSettingRoutes);
+app.use(
+  "/api/affiliate-sponsorship-settings",
+  affiliateSponsorshipSettingRoutes,
+);
+app.use("/api/affiliate-commission-settings", affiliateCommissionSettingRoutes);
+app.use("/api/affiliate-advantage-settings", affiliateAdvantageSettingRoutes);
+app.use(
+  "/api/affiliate-registration-guide-settings",
+  affiliateRegistrationGuideSettingRoutes,
+);
+app.use("/api/affiliate-watch-settings", affiliateWatchSettingRoutes);
+app.use("/api/affiliate-review-settings", affiliateReviewSettingRoutes);
+app.use("/api/affiliate-footer-settings", affiliateFooterSettingRoutes);
+app.use("/api/affiliate-navbar-settings", affiliateNavbarSettingRoutes);
+app.use("/api/affiliate-social-link", affiliateSocialLinkRoutes);
+
+
+// Affiliate site Global Routes
+app.use("/api/affiliate-global", affiliateGlobalRoutes);
 
 // global client site Routes
 app.use("/api/global/client", globalClientRoutes);

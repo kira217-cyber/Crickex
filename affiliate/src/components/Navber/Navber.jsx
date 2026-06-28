@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Check, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { fetchAffiliateGlobalData } from "../../features/global/globalSlice";
+import {
+  selectAffiliateNavbarSetting,
+  selectGlobalLoaded,
+  selectGlobalLoading,
+} from "../../features/global/globalSelectors";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const LOGO_URL =
   "https://crickexpartner.com/wp-content/uploads/2024/03/logo-2.png";
@@ -12,16 +21,79 @@ const flagUrl = {
   English: "https://flagcdn.com/w40/us.png",
 };
 
+const makeImageUrl = (path = "") => {
+  if (!path) return "";
+  if (
+    String(path).startsWith("http://") ||
+    String(path).startsWith("https://")
+  ) {
+    return path;
+  }
+
+  return `${API_URL}/${String(path).replace(/^\/+/, "")}`;
+};
+
+const getText = (obj, isBangla, fallback = "") => {
+  if (!obj) return fallback;
+  return isBangla ? obj.bn || obj.en || fallback : obj.en || obj.bn || fallback;
+};
+
+const getColor = (setting, key, fallback) => setting?.[key] || fallback;
+
+const NavbarSkeleton = () => (
+  <header className="sticky top-0 z-50 w-full border-t border-[#0b1f33] bg-[#dff8ff] shadow-sm">
+    <nav className="mx-auto flex h-[95px] w-full max-w-[1500px] animate-pulse items-center justify-between px-4 sm:px-8 lg:px-24">
+      <div className="h-[44px] w-[150px] rounded bg-slate-300" />
+
+      <div className="hidden items-center gap-9 lg:flex">
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-8 rounded-full bg-slate-300" />
+          <div className="h-5 w-20 rounded bg-slate-300" />
+          <div className="h-4 w-4 rounded bg-slate-300" />
+        </div>
+
+        <div className="h-10 w-[90px] rounded-[7px] bg-slate-300" />
+        <div className="h-10 w-[110px] rounded-[7px] bg-slate-300" />
+      </div>
+
+      <div className="flex h-11 w-11 rounded-lg bg-slate-300 lg:hidden" />
+    </nav>
+  </header>
+);
+
 const Navber = () => {
   const { language, changeLanguage, isBangla } = useLanguage();
+  const dispatch = useDispatch();
+
+  const globalLoading = useSelector(selectGlobalLoading);
+  const globalLoaded = useSelector(selectGlobalLoaded);
+  const setting = useSelector(selectAffiliateNavbarSetting);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
+  useEffect(() => {
+    if (!globalLoaded && !globalLoading) {
+      dispatch(fetchAffiliateGlobalData());
+    }
+  }, [dispatch, globalLoaded, globalLoading]);
+
   const texts = {
-    login: isBangla ? "প্রবেশ করুন" : "Login",
-    register: isBangla ? "নিবন্ধন করুন" : "Register",
-    selectLanguage: isBangla ? "ভাষা নির্বাচন করুন" : "Select Language",
+    login: getText(
+      setting?.loginText,
+      isBangla,
+      isBangla ? "প্রবেশ করুন" : "Login",
+    ),
+    register: getText(
+      setting?.registerText,
+      isBangla,
+      isBangla ? "নিবন্ধন করুন" : "Register",
+    ),
+    selectLanguage: getText(
+      setting?.selectLanguageText,
+      isBangla,
+      isBangla ? "ভাষা নির্বাচন করুন" : "Select Language",
+    ),
   };
 
   const languages = [
@@ -29,26 +101,74 @@ const Navber = () => {
     { key: "English", label: "English", flag: flagUrl.English },
   ];
 
+  const colors = {
+    navbarBg: getColor(setting, "navbarBg", "#dff8ff"),
+    navbarBorderColor: getColor(setting, "navbarBorderColor", "#0b1f33"),
+    textColor: getColor(setting, "textColor", "#18344d"),
+
+    loginButtonBg: getColor(setting, "loginButtonBg", "#2069b7"),
+    loginButtonHoverBg: getColor(setting, "loginButtonHoverBg", "#175ba3"),
+    loginButtonBorderColor: getColor(
+      setting,
+      "loginButtonBorderColor",
+      "#0e62b8",
+    ),
+
+    registerButtonBg: getColor(setting, "registerButtonBg", "#48b948"),
+    registerButtonHoverBg: getColor(
+      setting,
+      "registerButtonHoverBg",
+      "#37a937",
+    ),
+
+    buttonTextColor: getColor(setting, "buttonTextColor", "#ffffff"),
+  };
+
+  const contentMaxWidth = setting?.contentMaxWidth || "1500px";
+  const navbarHeight = setting?.navbarHeight || "95px";
+  const logoHeight = setting?.logoHeight || "44px";
+
+  const logo = setting?.logoUrl || makeImageUrl(setting?.logo) || LOGO_URL;
+
+  const loginPath = setting?.loginPath || "/login";
+  const registerPath = setting?.registerPath || "/register";
+
   const handleLanguageChange = (lang) => {
     changeLanguage(lang);
     setLangOpen(false);
+    setMobileOpen(false);
   };
 
+  if (!globalLoaded && globalLoading) {
+    return <NavbarSkeleton />;
+  }
+
   return (
-    <header className="sticky top-0 z-50 w-full border-t border-[#0b1f33] bg-[#dff8ff] shadow-sm">
-      <nav className="mx-auto flex h-[95px] w-full max-w-[1500px] items-center justify-between px-4 sm:px-8 lg:px-24">
-        {/* Logo */}
+    <header
+      className="sticky top-0 z-50 w-full border-t shadow-sm"
+      style={{
+        backgroundColor: colors.navbarBg,
+        borderColor: colors.navbarBorderColor,
+      }}
+    >
+      <nav
+        className="mx-auto flex w-full items-center justify-between px-4 sm:px-8 lg:px-24"
+        style={{
+          maxWidth: contentMaxWidth,
+          height: navbarHeight,
+        }}
+      >
         <Link to="/" className="flex cursor-pointer items-center">
           <img
-            src={LOGO_URL}
+            src={logo}
             alt="Crickex Partner"
-            className="h-[44px] w-auto cursor-pointer object-contain"
+            className="w-auto cursor-pointer object-contain"
+            style={{ height: logoHeight }}
+            draggable={false}
           />
         </Link>
 
-        {/* Desktop Right Side */}
         <div className="hidden items-center gap-9 lg:flex">
-          {/* Language Dropdown */}
           <div
             className="relative cursor-pointer"
             onMouseEnter={() => setLangOpen(true)}
@@ -56,7 +176,8 @@ const Navber = () => {
           >
             <button
               type="button"
-              className="flex cursor-pointer items-center gap-4 px-2 py-4 text-[17px] font-medium text-[#18344d]"
+              className="flex cursor-pointer items-center gap-4 px-2 py-4 text-[17px] font-medium"
+              style={{ color: colors.textColor }}
             >
               <img
                 src={flagUrl[language]}
@@ -114,21 +235,42 @@ const Navber = () => {
           </div>
 
           <Link
-            to="/login"
-            className="cursor-pointer rounded-[7px] border border-[#0e62b8] bg-[#2069b7] px-5 py-[8px] text-[16px] font-semibold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)] transition hover:bg-[#175ba3]"
+            to={loginPath}
+            className="cursor-pointer rounded-[7px] border px-5 py-[8px] text-[16px] font-semibold shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)] transition"
+            style={{
+              backgroundColor: colors.loginButtonBg,
+              borderColor: colors.loginButtonBorderColor,
+              color: colors.buttonTextColor,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.loginButtonHoverBg;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.loginButtonBg;
+            }}
           >
             {texts.login}
           </Link>
 
           <Link
-            to="/register"
-            className="cursor-pointer rounded-[7px] bg-[#48b948] px-5 py-[9px] text-[16px] font-semibold text-white shadow-sm transition hover:bg-[#37a937]"
+            to={registerPath}
+            className="cursor-pointer rounded-[7px] px-5 py-[9px] text-[16px] font-semibold shadow-sm transition"
+            style={{
+              backgroundColor: colors.registerButtonBg,
+              color: colors.buttonTextColor,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                colors.registerButtonHoverBg;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.registerButtonBg;
+            }}
           >
             {texts.register}
           </Link>
         </div>
 
-        {/* Mobile Toggle */}
         <button
           type="button"
           onClick={() => setMobileOpen((prev) => !prev)}
@@ -138,7 +280,6 @@ const Navber = () => {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -146,11 +287,15 @@ const Navber = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.22 }}
-            className="overflow-hidden border-t border-[#bfe8f5] bg-[#dff8ff] lg:hidden"
+            className="overflow-hidden border-t border-[#bfe8f5] lg:hidden"
+            style={{ backgroundColor: colors.navbarBg }}
           >
             <div className="mx-auto flex w-full max-w-[480px] flex-col gap-3 px-4 py-5">
               <div className="rounded-xl border border-[#b5dbff] bg-white p-2">
-                <p className="mb-2 px-2 text-sm font-semibold text-[#18344d]">
+                <p
+                  className="mb-2 px-2 text-sm font-semibold"
+                  style={{ color: colors.textColor }}
+                >
                   {texts.selectLanguage}
                 </p>
 
@@ -184,17 +329,26 @@ const Navber = () => {
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <Link
-                  to="/login"
+                  to={loginPath}
                   onClick={() => setMobileOpen(false)}
-                  className="cursor-pointer rounded-lg border border-[#0e62b8] bg-[#2069b7] px-4 py-3 text-center text-[15px] font-semibold text-white"
+                  className="cursor-pointer rounded-lg border px-4 py-3 text-center text-[15px] font-semibold"
+                  style={{
+                    backgroundColor: colors.loginButtonBg,
+                    borderColor: colors.loginButtonBorderColor,
+                    color: colors.buttonTextColor,
+                  }}
                 >
                   {texts.login}
                 </Link>
 
                 <Link
-                  to="/register"
+                  to={registerPath}
                   onClick={() => setMobileOpen(false)}
-                  className="cursor-pointer rounded-lg bg-[#48b948] px-4 py-3 text-center text-[15px] font-semibold text-white"
+                  className="cursor-pointer rounded-lg px-4 py-3 text-center text-[15px] font-semibold"
+                  style={{
+                    backgroundColor: colors.registerButtonBg,
+                    color: colors.buttonTextColor,
+                  }}
                 >
                   {texts.register}
                 </Link>

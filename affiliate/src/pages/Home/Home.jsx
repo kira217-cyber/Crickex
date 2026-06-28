@@ -21,7 +21,6 @@ const Home = () => {
       <RegistrationGuide />
       <Watch />
       <AboutCrickex />
-    
     </div>
   );
 };

@@ -18,14 +18,288 @@ const CreateAdmin = () => {
   const allPerms = useMemo(
     () => [
       { key: "dashboard", label: "Dashboard", path: "/" },
-      { key: "deposit", label: "Deposit", path: "/deposit" },
-      { key: "withdraw", label: "Withdraw", path: "/withdraw" },
       { key: "profile", label: "Profile", path: "/profile" },
-      { key: "create-admin", label: "Create Admin", path: "/create-admin" },
+
+      { key: "all-users", label: "Users", path: "/all-users" },
+      {
+        key: "all-affiliate-users",
+        label: "Affiliates",
+        path: "/all-affiliate-users",
+      },
+      {
+        key: "single-affiliate-details",
+        label: "Single Affiliate Details",
+        path: "/single-affiliate-details/:id",
+      },
+      {
+        key: "single-user-details",
+        label: "Single User Details",
+        path: "/single-user-details/:id",
+      },
+      {
+        key: "bulk-adjustment",
+        label: "Bulk Adjustment",
+        path: "/bulk-adjustment",
+      },
+      {
+        key: "user-refer-redeem",
+        label: "Refer & Redeem",
+        path: "/user-refer-redeem",
+      },
+
+      {
+        key: "add-deposit-method",
+        label: "Add Deposit Method",
+        path: "/add-deposit-method",
+      },
+      {
+        key: "add-deposit-field",
+        label: "Deposit Field",
+        path: "/add-deposit-field",
+      },
+      {
+        key: "add-deposit-bonus-turnover",
+        label: "Bonus & Turnover",
+        path: "/add-deposit-bonus-turnover",
+      },
+      {
+        key: "manual-deposit",
+        label: "Manual Deposit",
+        path: "/manual-deposit",
+      },
+      {
+        key: "deposit-requests",
+        label: "Deposit Requests",
+        path: "/deposit-requests",
+      },
+      {
+        key: "deposit-request-details",
+        label: "Deposit Request Details",
+        path: "/deposit-request-details/:id",
+      },
+      {
+        key: "auto-deposit-settings",
+        label: "Auto Deposit",
+        path: "/auto-deposit-settings",
+      },
+      {
+        key: "auto-deposit-history",
+        label: "Auto Deposit History",
+        path: "/auto-deposit-history",
+      },
+      {
+        key: "add-turnover-history",
+        label: "All Turnover History",
+        path: "/all-turnover-history",
+      },
+
+      {
+        key: "add-withdraw",
+        label: "Add Withdraw",
+        path: "/add-withdraw",
+      },
+      {
+        key: "withdraw-requests",
+        label: "Withdraw Requests",
+        path: "/withdraw-requests",
+      },
+      {
+        key: "add-aff-withdraw-method",
+        label: "Add Aff Withdraw",
+        path: "/add-aff-withdraw-method",
+      },
+      {
+        key: "aff-withdraw-requests",
+        label: "Aff Withdraw Request",
+        path: "/aff-withdraw-requests",
+      },
+      {
+        key: "aff-withdraw-requests-details",
+        label: "Aff Withdraw Request Details",
+        path: "/aff-withdraw-requests-details/:id",
+      },
+
+      { key: "add-category", label: "Add Category", path: "/add-category" },
+      { key: "add-provider", label: "Add Provider", path: "/add-provider" },
+      { key: "add-game", label: "Add Game", path: "/add-game" },
+      {
+        key: "add-sport-game",
+        label: "Add Sport Game",
+        path: "/add-sport-game",
+      },
+      {
+        key: "add-popular-game",
+        label: "Add Popular Game",
+        path: "/add-popular-game",
+      },
+      { key: "add-hot-game", label: "Add Hot Game", path: "/add-hot-game" },
+      {
+        key: "add-game-history",
+        label: "All Game History",
+        path: "/all-game-history",
+      },
+
+      {
+        key: "add-promotion",
+        label: "Add Promotion",
+        path: "/add-promotion",
+      },
+
+      {
+        key: "client-site-identify",
+        label: "Site Identify",
+        path: "/client-site-identify",
+      },
+      {
+        key: "client-slider-control",
+        label: "Slider Control",
+        path: "/client-slider-control",
+      },
+      {
+        key: "add-favorite-banner",
+        label: "Add Favourite Control",
+        path: "/add-favorite-banner",
+      },
+      {
+        key: "add-notice-control",
+        label: "Add Notice Control",
+        path: "/add-notice-control",
+      },
+      {
+        key: "footer-setting",
+        label: "Footer Setting",
+        path: "/footer-setting",
+      },
+      {
+        key: "navbar-color-setting",
+        label: "Navbar Color Setting",
+        path: "/navbar-color-setting",
+      },
+      {
+        key: "sidebar-color-setting",
+        label: "Sidebar Color Setting",
+        path: "/sidebar-color-setting",
+      },
+      {
+        key: "category-section-setting",
+        label: "Category Section Setting",
+        path: "/category-section-setting",
+      },
+      {
+        key: "register-modal-setting",
+        label: "Register Modal Setting",
+        path: "/register-modal-setting",
+      },
+      {
+        key: "login-modal-setting",
+        label: "Login Modal Setting",
+        path: "/login-modal-setting",
+      },
+      {
+        key: "modal-color-setting",
+        label: "Modal Color Setting",
+        path: "/modal-color-setting",
+      },
+      {
+        key: "transaction-history-color-setting",
+        label: "Transaction History Color Setting",
+        path: "/transaction-history-color-setting",
+      },
+      {
+        key: "bottom-navigation-color-setting",
+        label: "Bottom Navigation Color Setting",
+        path: "/bottom-navigation-color-setting",
+      },
+      {
+        key: "home-page-content-color-setting",
+        label: "Home Page Content Color Setting",
+        path: "/home-page-content-color-setting",
+      },
+      {
+        key: "forget-password-modal-setting",
+        label: "Forget Password Modal Setting",
+        path: "/forget-password-modal-setting",
+      },
+      { key: "social-link", label: "Social Link", path: "/social-link" },
+
+      {
+        key: "client-aff-site-identify",
+        label: "Aff Site Identify",
+        path: "/client-aff-site-identify",
+      },
+      {
+        key: "client-aff-social-link",
+        label: "Aff Social Link",
+        path: "/client-aff-social-link",
+      },
+      {
+        key: "affiliate-register-setting",
+        label: "Affiliate Register Setting",
+        path: "/affiliate-register-setting",
+      },
+      {
+        key: "affiliate-login-setting",
+        label: "Affiliate Login Setting",
+        path: "/affiliate-login-setting",
+      },
+      {
+        key: "affiliate-slider-setting",
+        label: "Affiliate Slider Setting",
+        path: "/affiliate-slider-setting",
+      },
+      {
+        key: "affiliate-agent-setting",
+        label: "Affiliate Agent Setting",
+        path: "/affiliate-agent-setting",
+      },
+      {
+        key: "affiliate-about-setting",
+        label: "Affiliate About Setting",
+        path: "/affiliate-about-setting",
+      },
+      {
+        key: "affiliate-sponsorship-setting",
+        label: "Affiliate Sponsorship Setting",
+        path: "/affiliate-sponsorship-setting",
+      },
+      {
+        key: "affiliate-commission-setting",
+        label: "Affiliate Commission Setting",
+        path: "/affiliate-commission-setting",
+      },
+      {
+        key: "affiliate-advantage-setting",
+        label: "Affiliate Advantage Setting",
+        path: "/affiliate-advantage-setting",
+      },
+      {
+        key: "affiliate-registration-guide-setting",
+        label: "Registration Guide Setting",
+        path: "/affiliate-registration-guide-setting",
+      },
+      {
+        key: "affiliate-watch-setting",
+        label: "Affiliate Watch Setting",
+        path: "/affiliate-watch-setting",
+      },
+      {
+        key: "affiliate-review-setting",
+        label: "Affiliate Review Setting",
+        path: "/affiliate-review-setting",
+      },
+      {
+        key: "affiliate-footer-setting",
+        label: "Affiliate Footer Setting",
+        path: "/affiliate-footer-setting",
+      },
+      {
+        key: "affiliate-navbar-setting",
+        label: "Affiliate Navbar Setting",
+        path: "/affiliate-navbar-setting",
+      },
     ],
     [],
   );
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("sub");

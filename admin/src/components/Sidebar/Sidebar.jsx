@@ -27,8 +27,23 @@ import {
   FaReceipt,
   FaHotjar,
   FaGift,
+  FaLink,
 } from "react-icons/fa";
 import { FaShareAlt } from "react-icons/fa";
+import {
+  IoCashOutline,
+  IoChatbubbleEllipsesOutline,
+  IoClipboardOutline,
+  IoCreateOutline,
+  IoDiamondOutline,
+  IoImagesOutline,
+  IoInformationCircleOutline,
+  IoLogInOutline,
+  IoMenuOutline,
+  IoPeopleOutline,
+  IoPlayCircleOutline,
+  IoRibbonOutline,
+} from "react-icons/io5";
 import { MdOutlineLogin, MdPassword } from "react-icons/md";
 import { IoFootstepsOutline } from "react-icons/io5";
 import { IoColorPaletteOutline } from "react-icons/io5";
@@ -391,6 +406,90 @@ const Sidebar = () => {
         to: "/client-aff-site-identify",
         icon: <FaHandshake />,
         text: "Aff Site Identify",
+      },
+      {
+        key: "client-aff-social-link",
+        to: "/client-aff-social-link",
+        icon: <FaLink />,
+        text: "Aff Social Link",
+      },
+      {
+        key: "affiliate-register-setting",
+        to: "/affiliate-register-setting",
+        icon: <IoCreateOutline />,
+        text: "Affiliate Register Setting",
+      },
+      {
+        key: "affiliate-login-setting",
+        to: "/affiliate-login-setting",
+        icon: <IoLogInOutline />,
+        text: "Affiliate Login Setting",
+      },
+      {
+        key: "affiliate-slider-setting",
+        to: "/affiliate-slider-setting",
+        icon: <IoImagesOutline />,
+        text: "Affiliate Slider Setting",
+      },
+      {
+        key: "affiliate-agent-setting",
+        to: "/affiliate-agent-setting",
+        icon: <IoPeopleOutline />,
+        text: "Affiliate Agent Setting",
+      },
+      {
+        key: "affiliate-about-setting",
+        to: "/affiliate-about-setting",
+        icon: <IoInformationCircleOutline />,
+        text: "Affiliate About Setting",
+      },
+      {
+        key: "affiliate-sponsorship-setting",
+        to: "/affiliate-sponsorship-setting",
+        icon: <IoRibbonOutline />,
+        text: "Affiliate Sponsorship Setting",
+      },
+      {
+        key: "affiliate-commission-setting",
+        to: "/affiliate-commission-setting",
+        icon: <IoCashOutline />,
+        text: "Affiliate Commission Setting",
+      },
+      {
+        key: "affiliate-advantage-setting",
+        to: "/affiliate-advantage-setting",
+        icon: <IoDiamondOutline />,
+        text: "Affiliate Advantage Setting",
+      },
+      {
+        key: "affiliate-registration-guide-setting",
+        to: "/affiliate-registration-guide-setting",
+        icon: <IoClipboardOutline />,
+        text: "Registration Guide Setting",
+      },
+      {
+        key: "affiliate-watch-setting",
+        to: "/affiliate-watch-setting",
+        icon: <IoPlayCircleOutline />,
+        text: "Affiliate Watch Setting",
+      },
+      {
+        key: "affiliate-review-setting",
+        to: "/affiliate-review-setting",
+        icon: <IoChatbubbleEllipsesOutline />,
+        text: "Affiliate Review Setting",
+      },
+      {
+        key: "affiliate-footer-setting",
+        to: "/affiliate-footer-setting",
+        icon: <IoFootstepsOutline />,
+        text: "Affiliate Footer Setting",
+      },
+      {
+        key: "affiliate-navbar-setting",
+        to: "/affiliate-navbar-setting",
+        icon: <IoMenuOutline />,
+        text: "Affiliate Navbar Setting",
       },
       // {
       //   key: "affiliate-color-control",

@@ -55,6 +55,20 @@ import BottomNavigationColorSetting from "../pages/BottomNavigationColorSetting/
 import HomePageContentColorSetting from "../pages/HomePageContentColorSetting/HomePageContentColorSetting";
 import ForgetPasswordModalSetting from "../pages/ForgetPasswordModalSetting/ForgetPasswordModalSetting";
 import AddSocialLink from "../pages/AddSocialLink/AddSocialLink";
+import AffiliateRegisterSetting from "../pages/AffiliateRegisterSetting/AffiliateRegisterSetting";
+import AffiliateLoginSetting from "../pages/AffiliateLoginSetting/AffiliateLoginSetting";
+import AffiliateSliderSetting from "../pages/AffiliateSliderSetting/AffiliateSliderSetting";
+import AffiliateAgentSetting from "../pages/AffiliateAgentSetting/AffiliateAgentSetting";
+import AffiliateAboutSetting from "../pages/AffiliateAboutSetting/AffiliateAboutSetting";
+import AffiliateSponsorshipSetting from "../pages/AffiliateSponsorshipSetting/AffiliateSponsorshipSetting";
+import AffiliateCommissionSetting from "../pages/AffiliateCommissionSetting/AffiliateCommissionSetting";
+import AffiliateAdvantageSetting from "../pages/AffiliateAdvantageSetting/AffiliateAdvantageSetting";
+import AffiliateRegistrationGuideSetting from "../pages/AffiliateRegistrationGuideSetting/AffiliateRegistrationGuideSetting";
+import AffiliateWatchSetting from "../pages/AffiliateWatchSetting/AffiliateWatchSetting";
+import AffiliateReviewSetting from "../pages/AffiliateReviewSetting/AffiliateReviewSetting";
+import AffiliateFooterSetting from "../pages/AffiliateFooterSetting/AffiliateFooterSetting";
+import AffiliateNavbarSetting from "../pages/AffiliateNavbarSetting/AffiliateNavbarSetting";
+import AddAffiliateSocialLink from "../pages/AddAffiliateSocialLink/AddAffiliateSocialLink";
 
 export const routes = createBrowserRouter([
   {
@@ -457,6 +471,118 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="client-aff-site-identify">
             <AffSiteIdentify />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "client-aff-social-link",
+        element: (
+          <PrivateRoute permKey="client-aff-social-link">
+            <AddAffiliateSocialLink />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-register-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-register-setting">
+            <AffiliateRegisterSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-login-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-login-setting">
+            <AffiliateLoginSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-slider-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-slider-setting">
+            <AffiliateSliderSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-agent-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-agent-setting">
+            <AffiliateAgentSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-about-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-about-setting">
+            <AffiliateAboutSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-sponsorship-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-sponsorship-setting">
+            <AffiliateSponsorshipSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-commission-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-commission-setting">
+            <AffiliateCommissionSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-advantage-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-advantage-setting">
+            <AffiliateAdvantageSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-registration-guide-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-registration-guide-setting">
+            <AffiliateRegistrationGuideSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-watch-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-watch-setting">
+            <AffiliateWatchSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-review-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-review-setting">
+            <AffiliateReviewSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-footer-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-footer-setting">
+            <AffiliateFooterSetting />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "affiliate-navbar-setting",
+        element: (
+          <PrivateRoute permKey="affiliate-navbar-setting">
+            <AffiliateNavbarSetting />
           </PrivateRoute>
         ),
       },
