@@ -575,7 +575,7 @@ const Sidebar = () => {
           <RxHamburgerMenu className="text-2xl text-white" />
         </button>
 
-        <h2 className="text-lg font-black">Crickex Admin</h2>
+        <h2 className="text-lg font-black">Admin</h2>
 
         <NavLink to="/profile">
           <FaUserCircle className="text-2xl text-white hover:text-blue-100 transition-colors cursor-pointer" />
@@ -605,7 +605,7 @@ const Sidebar = () => {
 
                 <div>
                   <h2 className="text-2xl font-black text-white tracking-tight">
-                    CRICKEX
+                    ADMIN
                   </h2>
                   <p className="text-sm text-blue-100/80 font-medium">
                     {isMother ? "Mother Panel" : "Sub Admin Panel"}
