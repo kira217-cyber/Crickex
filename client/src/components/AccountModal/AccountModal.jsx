@@ -9,7 +9,7 @@ import {
   Lock,
   Inbox,
   MessageCircle,
-  Mail,
+  Send,
   LogOut,
   X,
   Landmark,
@@ -206,7 +206,7 @@ const AccountModal = ({
 
     contact: isBangla ? "যোগাযোগ" : "Contact",
     whatsapp: isBangla ? "হোয়াটসঅ্যাপ" : "WhatsApp",
-    email: isBangla ? "ইমেইল" : "Email",
+    telegram: isBangla ? "টেলিগ্রাম" : "Telegram",
 
     logout: isBangla ? setting.logoutTextBn : setting.logoutTextEn,
     logoutSuccess: isBangla ? "সফলভাবে লগআউট হয়েছে" : "Logged out successfully",
@@ -405,29 +405,23 @@ const AccountModal = ({
     [t.personalInfo, t.resetPassword, t.inbox],
   );
 
-  const contactItems = useMemo(() => {
-    const arr = [];
-
-    if (setting.whatsappLink) {
-      arr.push({
+  const contactItems = useMemo(
+    () => [
+      {
         title: t.whatsapp,
         icon: MessageCircle,
-        to: setting.whatsappLink,
+        to: "https://wa.me/447311133922",
         external: true,
-      });
-    }
-
-    if (setting.emailLink) {
-      arr.push({
-        title: t.email,
-        icon: Mail,
-        to: setting.emailLink,
+      },
+      {
+        title: t.telegram,
+        icon: Send,
+        to: "https://t.me/+447311133922",
         external: true,
-      });
-    }
-
-    return arr;
-  }, [setting.whatsappLink, setting.emailLink, t.whatsapp, t.email]);
+      },
+    ],
+    [t.whatsapp, t.telegram],
+  );
 
   const Section = ({ title, children }) => (
     <div
@@ -525,7 +519,7 @@ const AccountModal = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ duration: 0.2 }}
-              className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+              className="relative flex h-dvh w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
               style={{ backgroundColor: colors.accountModalBg }}
             >
               {loadingSetting ? (
@@ -938,7 +932,7 @@ const HistoryShellModal = ({ open, title, onClose, colors, children }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[430px] sm:rounded-[8px]"
+            className="relative flex h-dvh w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[430px] sm:rounded-[8px]"
             style={{ backgroundColor: colors.modalBg }}
           >
             <div

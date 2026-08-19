@@ -83,8 +83,8 @@ const normalizePhone = (value) => String(value || "").replace(/[^\d]/g, "");
 
 const walletTypes = [
   { key: "personal", bn: "পার্সোনাল", en: "Personal" },
-  { key: "agent", bn: "এজেন্ট", en: "Agent" },
-  { key: "merchant", bn: "মার্চেন্ট", en: "Merchant" },
+  // { key: "agent", bn: "এজেন্ট", en: "Agent" },
+  // { key: "merchant", bn: "মার্চেন্ট", en: "Merchant" },
 ];
 
 const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
@@ -474,7 +474,7 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
+            className="relative flex h-dvh w-full flex-col overflow-hidden shadow-2xl sm:h-[700px] sm:max-w-[375px] sm:rounded-[8px]"
             style={{ backgroundColor: colors.modalBg }}
           >
             <div

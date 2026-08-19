@@ -7,6 +7,9 @@ export const selectNotice = (state) => state.global.notice;
 export const selectSliders = (state) => state.global.sliders;
 export const selectFavouriteBanners = (state) => state.global.favouriteBanners;
 export const selectSocialLinks = (state) => state.global.socialLinks;
+export const selectCheckInReward = (state) => state.global.checkInReward;
+export const selectWheelReward = (state) => state.global.wheelReward;
+export const selectDownloadHeader = (state) => state.global.downloadHeader;
 
 export const selectFooterSetting = (state) => state.global.footerSetting;
 

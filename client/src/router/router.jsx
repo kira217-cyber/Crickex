@@ -9,6 +9,7 @@ import Deposit from "../pages/Deposit/Deposit";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
 import Games from "../pages/Games/Games";
 import PlayGame from "../pages/PlayGame/PlayGame";
+import WheelSpin from "../pages/Reward/WheelSpin";
 
 export const routes = createBrowserRouter([
   {
@@ -54,5 +55,10 @@ export const routes = createBrowserRouter([
         element: <Register />,
       },
     ],
+  },
+  {
+    path: "/wheel-of-fortune",
+    element: <WheelSpin />,
+    errorElement: <NotFoundPage />,
   },
 ]);

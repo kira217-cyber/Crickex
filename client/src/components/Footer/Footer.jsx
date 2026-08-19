@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectFooterSetting } from "../../features/global/globalSelectors";
+import ContactUsModal from "../ContactUsModal/ContactUsModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -37,10 +38,17 @@ const getColor = (setting, key, fallback) => {
   return setting?.[key] || fallback;
 };
 
-const Footer = () => {
+const isContactLink = (item) => {
+  const en = String(item?.title?.en || "").toLowerCase();
+  const bn = String(item?.title?.bn || "");
+  return en.includes("contact") || bn.includes("যোগাযোগ");
+};
+
+const Footer = ({ desktopOpen }) => {
   const { isBangla } = useLanguage();
   const footerSetting = useSelector(selectFooterSetting);
   const [open, setOpen] = useState(false);
+  const [contactUsOpen, setContactUsOpen] = useState(false);
 
   if (!footerSetting) return null;
 
@@ -101,7 +109,9 @@ const Footer = () => {
 
   return (
     <footer
-      className="mb-14 w-full md:mb-0"
+      className={`mb-14 w-full transition-all duration-300 ease-in-out md:mb-0 ${
+        desktopOpen ? "lg:pl-[250px]" : ""
+      }`}
       style={{
         backgroundColor: colors.footerBg,
         color: colors.footerText,
@@ -331,7 +341,11 @@ const Footer = () => {
                 <button
                   key={item._id || index}
                   type="button"
-                  onClick={() => openLink(item.link)}
+                  onClick={() =>
+                    isContactLink(item)
+                      ? setContactUsOpen(true)
+                      : openLink(item.link)
+                  }
                   className="cursor-pointer border-l-2 px-3 text-[13px]"
                   style={{
                     borderColor: colors.linkBorder,
@@ -434,6 +448,11 @@ const Footer = () => {
           </div>
         </div>
       </div>
+
+      <ContactUsModal
+        open={contactUsOpen}
+        onClose={() => setContactUsOpen(false)}
+      />
     </footer>
   );
 };

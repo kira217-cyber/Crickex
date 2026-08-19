@@ -3,10 +3,11 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Loader2, RefreshCcw, X } from "lucide-react";
+import { RefreshCcw, X } from "lucide-react";
 
 import { useLanguage } from "../../Context/LanguageProvider";
 import { selectIsAuth, selectUser } from "../../features/auth/authSelectors";
+import Loading from "../../components/Loading/Loading";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -130,7 +131,9 @@ const PlayGame = () => {
   }, [gameId, uidFromQuery, isAuth, token, isActiveUser]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black">
+    <div
+      className={`fixed inset-0 z-9999 ${loading ? "bg-transparent" : "bg-black"}`}
+    >
       {/* Small Close Button */}
       <button
         type="button"
@@ -142,17 +145,10 @@ const PlayGame = () => {
       </button>
 
       {/* Loading */}
-      {loading && (
-        <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center text-white">
-          <Loader2 size={42} className="mb-4 animate-spin" />
-          <p className="text-base font-medium">
-            {t("গেম প্রস্তুত করা হচ্ছে...", "Preparing your game...")}
-          </p>
-          <p className="mt-2 text-sm text-white/70">
-            {t("অনুগ্রহ করে একটু অপেক্ষা করুন", "Please wait a moment")}
-          </p>
-        </div>
-      )}
+      <Loading
+        open={loading}
+        text={t("গেম প্রস্তুত করা হচ্ছে...", "Preparing your game...")}
+      />
 
       {/* Error State */}
       {!loading && !launchUrl && (

@@ -58,7 +58,16 @@ const PopularGames = () => {
   };
 
   const getGameName = (item) => {
+    const title = item?.gameTitle || item?.game?.gameTitle;
+    const localizedTitle =
+      typeof title === "string"
+        ? title
+        : isBangla
+          ? title?.bn || title?.en
+          : title?.en || title?.bn;
+
     return (
+      localizedTitle ||
       item?.game?.oracleGame?.name ||
       item?.game?.name ||
       item?.game?.gameName ||

@@ -87,7 +87,7 @@ const defaultColors = {
   mobileMenuIconColor: "#ffffff",
 };
 
-const Navber = ({ setOpen }) => {
+const Navber = ({ setOpen, desktopOpen }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { language, changeLanguage, isBangla } = useLanguage();
@@ -439,7 +439,9 @@ const Navber = ({ setOpen }) => {
   return (
     <>
       <header
-        className="fixed left-0 right-0 top-0 z-30 h-[56px] shadow-sm lg:h-[64px]"
+        className={`fixed left-0 right-0 top-0 z-30 h-[56px] shadow-sm transition-all duration-300 ease-in-out lg:h-[64px] ${
+          desktopOpen ? "lg:pl-[250px]" : ""
+        }`}
         style={{ backgroundColor: colors.headerBg }}
       >
         <div className="mx-auto flex h-full max-w-[1230px] items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -454,12 +456,12 @@ const Navber = ({ setOpen }) => {
 
           <Link to="/" className="flex cursor-pointer items-center lg:flex-1">
             {pageLoading ? (
-              <div className="h-[24px] w-[105px] animate-pulse rounded bg-white/30 lg:h-[28px] lg:w-[125px]" />
+              <div className="h-[24px] w-[120px] animate-pulse rounded bg-white/30 lg:h-[28px] lg:w-[140px]" />
             ) : logoUrl ? (
               <img
                 src={logoUrl}
                 alt="logo"
-                className="h-[24px] object-contain lg:h-[28px]"
+                className="h-[24px] lg:h-[28px]"
               />
             ) : (
               <div className="h-[24px] w-[105px] rounded bg-white/30 lg:h-[28px] lg:w-[125px]" />

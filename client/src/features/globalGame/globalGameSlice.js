@@ -1,46 +1,48 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { api } from "../../api/axios";
 
+const GAME_PROXY_API = "/api/admin/game-api-key/client";
+
 export const fetchGlobalGameData = createAsyncThunk(
   "globalGame/fetchGlobalGameData",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get("/api/global/client/game-data");
+      const res = await api.get(`${GAME_PROXY_API}/game-data`);
       return res?.data?.data || {};
     } catch (error) {
       return rejectWithValue(
-        error?.response?.data?.message || "Failed to load game data"
+        error?.response?.data?.message || "Failed to load game data",
       );
     }
-  }
+  },
 );
 
 export const fetchGameList = createAsyncThunk(
   "globalGame/fetchGameList",
   async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await api.get("/api/global/client/game-list", { params });
+      const res = await api.get(`${GAME_PROXY_API}/game-list`, { params });
       return res?.data?.data || {};
     } catch (error) {
       return rejectWithValue(
-        error?.response?.data?.message || "Failed to load games"
+        error?.response?.data?.message || "Failed to load games",
       );
     }
-  }
+  },
 );
 
 export const fetchPlayGameDetails = createAsyncThunk(
   "globalGame/fetchPlayGameDetails",
   async (gameId, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/api/global/client/play-game/${gameId}`);
+      const res = await api.get(`${GAME_PROXY_API}/play-game/${gameId}`);
       return res?.data?.data || null;
     } catch (error) {
       return rejectWithValue(
-        error?.response?.data?.message || "Failed to load play game"
+        error?.response?.data?.message || "Failed to load play game",
       );
     }
-  }
+  },
 );
 
 const initialState = {
@@ -93,6 +95,7 @@ const globalGameSlice = createSlice({
       state.playGameLoading = false;
     },
   },
+
   extraReducers: (builder) => {
     builder
       .addCase(fetchGlobalGameData.pending, (state) => {
@@ -105,7 +108,9 @@ const globalGameSlice = createSlice({
         state.loading = false;
         state.loaded = true;
 
-        state.categories = Array.isArray(data.categories) ? data.categories : [];
+        state.categories = Array.isArray(data.categories)
+          ? data.categories
+          : [];
         state.providers = Array.isArray(data.providers) ? data.providers : [];
         state.homeProviders = Array.isArray(data.homeProviders)
           ? data.homeProviders

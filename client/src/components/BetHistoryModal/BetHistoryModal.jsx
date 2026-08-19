@@ -287,7 +287,7 @@ const BetHistoryModal = () => {
                         className="truncate text-[14px] font-bold"
                         style={{ color: colors.normalText }}
                       >
-                        {t.game}: {item?.game_uid || "—"}
+                        {t.game}: {item?.game_name || item?.game_uid || "—"}
                       </p>
 
                       <p

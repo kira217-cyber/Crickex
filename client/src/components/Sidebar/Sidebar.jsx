@@ -19,10 +19,18 @@ import {
   Gamepad2,
   Fish,
   Crown,
+  Percent,
+  ShieldCheck,
+  MessageCircle,
+  Download,
 } from "lucide-react";
 
 import { useLanguage } from "../../Context/LanguageProvider";
 import PromotionModal from "./../PromotionModal/PromotionModal";
+import ReferAndRedeemModal from "../ReferAndRedeemModal/ReferAndRedeemModal";
+import LoginModal from "../LoginModal/LoginModal";
+import ContactUsModal from "../ContactUsModal/ContactUsModal";
+import { selectIsAuth } from "../../features/auth/authSelectors";
 
 import {
   selectGameCategories,
@@ -31,9 +39,19 @@ import {
   selectHotGames,
 } from "../../features/globalGame/globalGameSelectors";
 
-import { selectSidebarColorSetting } from "../../features/global/globalSelectors";
+import {
+  selectSidebarColorSetting,
+  selectSocialLinks,
+} from "../../features/global/globalSelectors";
+
+const APP_DOWNLOAD_URL =
+  import.meta.env.VITE_APP_DOWNLOAD_URL ||
+  import.meta.env.VITE_CLIENT_URL ||
+  "/";
 
 const AFFILIATE_URL = import.meta.env.VITE_AFFILIATE_URL || "/";
+const BRAND_URL = import.meta.env.VITE_BRAND_URL || "/";
+const GUIDE_URL = import.meta.env.VITE_GUIDE_URL || "/";
 
 const defaultColors = {
   desktopBg: "#0b66a8",
@@ -77,7 +95,7 @@ const defaultColors = {
   overlayBg: "rgba(0,0,0,0.60)",
 };
 
-const Sidebar = ({ open, setOpen }) => {
+const Sidebar = ({ open, setOpen, desktopOpen, setDesktopOpen }) => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
 
@@ -86,17 +104,21 @@ const Sidebar = ({ open, setOpen }) => {
   const sports = useSelector(selectSports);
   const hotGames = useSelector(selectHotGames);
   const sidebarColorSetting = useSelector(selectSidebarColorSetting);
+  const isAuth = useSelector(selectIsAuth);
+  const socialLinks = useSelector(selectSocialLinks);
 
   const colors = {
     ...defaultColors,
     ...(sidebarColorSetting || {}),
   };
 
-  const [desktopOpen, setDesktopOpen] = useState(false);
   const [activeKey, setActiveKey] = useState("home");
   const [desktopExpandedKey, setDesktopExpandedKey] = useState("");
   const [mobilePanel, setMobilePanel] = useState(null);
   const [promotionOpen, setPromotionOpen] = useState(false);
+  const [referRedeemOpen, setReferRedeemOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [contactUsOpen, setContactUsOpen] = useState(false);
 
   const [desktopHoverKey, setDesktopHoverKey] = useState("");
   const [desktopChildHover, setDesktopChildHover] = useState("");
@@ -118,13 +140,20 @@ const Sidebar = ({ open, setOpen }) => {
         bn: "রেফারেল",
         en: "Referral",
         icon: Users,
-        path: "/",
+        path: "__referral__",
       },
       {
         key: "sponsor",
         bn: "স্পনসরশিপ",
         en: "Sponsorship",
         icon: Handshake,
+        path: "__brand__",
+      },
+      {
+        key: "affiliate",
+        bn: "অ্যাফিলিয়েট",
+        en: "Affiliate",
+        icon: Percent,
         path: "__affiliate__",
       },
       {
@@ -135,11 +164,25 @@ const Sidebar = ({ open, setOpen }) => {
         path: "/",
       },
       {
+        key: "guide",
+        bn: "CX গাইড",
+        en: "CX Guide",
+        icon: ShieldCheck,
+        path: "__guide__",
+      },
+      {
         key: "winner",
         bn: "বিজয়ীদের তালিকা",
         en: "Winner List",
         icon: Award,
         path: "/",
+      },
+      {
+        key: "app-download",
+        bn: "অ্যাপ ডাউনলোড",
+        en: "App Download",
+        icon: Download,
+        path: APP_DOWNLOAD_URL,
       },
     ],
     [],
@@ -169,7 +212,16 @@ const Sidebar = ({ open, setOpen }) => {
           const gameUId =
             game?.gameUId || item?.gameUId || item?.gameId || gameId || "";
 
+          const title = item?.gameTitle || game?.gameTitle;
+          const localizedTitle =
+            typeof title === "string"
+              ? title
+              : isBangla
+                ? title?.bn || title?.en
+                : title?.en || title?.bn;
+
           const gameName =
+            localizedTitle ||
             game?.oracleGame?.name ||
             game?.name ||
             game?.gameName ||
@@ -250,12 +302,28 @@ const Sidebar = ({ open, setOpen }) => {
       },
       ...dynamicCategories,
     ];
-  }, [dbCategories, providersByCategory, sports, hotGames]);
+  }, [dbCategories, providersByCategory, sports, hotGames, isBangla]);
 
   const otherMenus = useMemo(
     () => [{ key: "vip", bn: "ভিআইপি", en: "VIP", icon: Crown, path: "/" }],
     [],
   );
+
+  const contactMenu = useMemo(() => {
+    const items = Array.isArray(socialLinks)
+      ? socialLinks.filter((item) => item?.url && item?.iconUrl)
+      : [];
+
+    if (!items.length) return null;
+
+    return {
+      key: "contact",
+      bn: "যোগাযোগ করুন",
+      en: "Contact Us",
+      icon: MessageCircle,
+      path: "__contactUs__",
+    };
+  }, [socialLinks]);
 
   const label = (item) => (isBangla ? item.bn : item.en);
 
@@ -278,8 +346,39 @@ const Sidebar = ({ open, setOpen }) => {
       return;
     }
 
+    if (path === "__referral__") {
+      closeMobile();
+      if (!isAuth) {
+        setLoginOpen(true);
+        return;
+      }
+      setReferRedeemOpen(true);
+      return;
+    }
+
     if (path === "__affiliate__") {
       window.open(AFFILIATE_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (path === "__brand__") {
+      window.open(BRAND_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (path === "__guide__") {
+      window.open(GUIDE_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (path === "__contactUs__") {
+      closeMobile();
+      setContactUsOpen(true);
+      return;
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+      window.open(path, "_blank", "noopener,noreferrer");
       return;
     }
 
@@ -315,7 +414,22 @@ const Sidebar = ({ open, setOpen }) => {
     ...topMenus.filter(
       (item) => item.key !== "home" && item.key !== "promotion",
     ),
+    contactMenu,
     topMenus.find((item) => item.key === "promotion"),
+    ...otherMenus,
+  ].filter(Boolean);
+
+  const mobileTopMenus = topMenus.filter((item) =>
+    ["home", "promotion", "referral", "affiliate"].includes(item.key),
+  );
+
+  const mobileOtherMenus = [
+    topMenus.find((item) => item.key === "sponsor"),
+    topMenus.find((item) => item.key === "leaderboard"),
+    topMenus.find((item) => item.key === "guide"),
+    contactMenu,
+    topMenus.find((item) => item.key === "winner"),
+    topMenus.find((item) => item.key === "app-download"),
     ...otherMenus,
   ].filter(Boolean);
 
@@ -324,6 +438,18 @@ const Sidebar = ({ open, setOpen }) => {
       <PromotionModal
         open={promotionOpen}
         onClose={() => setPromotionOpen(false)}
+      />
+
+      <ReferAndRedeemModal
+        open={referRedeemOpen}
+        onClose={() => setReferRedeemOpen(false)}
+      />
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+
+      <ContactUsModal
+        open={contactUsOpen}
+        onClose={() => setContactUsOpen(false)}
       />
 
       <div
@@ -539,7 +665,7 @@ const Sidebar = ({ open, setOpen }) => {
       >
         <div className="h-full overflow-y-auto overflow-x-hidden pb-5 pt-3 sidebar-scroll">
           <MenuGroup
-            items={topMenus}
+            items={mobileTopMenus}
             label={label}
             activeKey={activeKey}
             onItem={(item) => handleItem(item, "mobile")}
@@ -563,7 +689,7 @@ const Sidebar = ({ open, setOpen }) => {
           <SectionTitle title="Others" colors={colors} />
 
           <MenuGroup
-            items={otherMenus}
+            items={mobileOtherMenus}
             label={label}
             activeKey={activeKey}
             onItem={(item) => handleItem(item, "mobile")}
