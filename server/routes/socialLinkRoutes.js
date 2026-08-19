@@ -102,7 +102,11 @@ CREATE
 
 router.post("/admin", protectAdmin, upload.single("icon"), async (req, res) => {
   try {
-    const { url, order = 0, status = "active" } = req.body;
+    const { url, nameBn, nameEn, order = 0, status = "active" } = req.body;
+
+    if (!nameBn?.trim() || !nameEn?.trim()) {
+      return errorResponse(res, "Name (Bangla & English) required", 400);
+    }
 
     if (!url?.trim()) {
       return errorResponse(res, "URL required", 400);
@@ -113,6 +117,7 @@ router.post("/admin", protectAdmin, upload.single("icon"), async (req, res) => {
     }
 
     const item = await SocialLink.create({
+      name: { bn: nameBn.trim(), en: nameEn.trim() },
       url: url.trim(),
       icon: filePath(req.file),
       order: Number(order),
@@ -145,6 +150,10 @@ router.put(
         return errorResponse(res, "Social link not found", 404);
       }
 
+      item.name = {
+        bn: req.body.nameBn?.trim() || item.name?.bn,
+        en: req.body.nameEn?.trim() || item.name?.en,
+      };
       item.url = req.body.url?.trim();
       item.order = Number(req.body.order || 0);
       item.status = req.body.status === "inactive" ? "inactive" : "active";

@@ -29,7 +29,6 @@ const gameHistorySchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
       index: true,
     },
     serial_number: {

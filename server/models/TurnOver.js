@@ -16,6 +16,7 @@ const TurnOverSchema = new mongoose.Schema(
         "auto-personal-deposit",
         "register-bonus",
         "admin-manual-deposit",
+        "redeem",
       ],
       required: true,
       index: true,

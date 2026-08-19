@@ -419,90 +419,121 @@ router.get("/admin/:id", protectAdmin, async (req, res) => {
 
 /* ---------------- ADMIN: APPROVE ---------------- */
 router.post("/admin/:id/approve", protectAdmin, async (req, res) => {
-  const session = await mongoose.startSession();
+  /*
+   * Standalone MongoDB (no replica set) does not support multi-document
+   * transactions, so this uses an atomic single-document claim on the
+   * DepositRequest (status: "pending" -> "approved") to prevent double
+   * approval, followed by sequential updates with a best-effort manual
+   * rollback in the catch block if anything after the claim fails.
+   */
+  let approvedDoc = null;
+  let creditedUserId = null;
+  let creditedAmountApplied = 0;
+  let affiliateId = null;
+  let affiliateAmountApplied = 0;
+  let turnoverCreated = false;
 
   try {
-    await session.withTransaction(async () => {
-      if (!isValidObjectId(req.params.id)) {
-        throw new Error("Invalid deposit request id");
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid deposit request id",
+      });
+    }
+
+    approvedDoc = await DepositRequest.findOneAndUpdate(
+      { _id: req.params.id, status: "pending" },
+      {
+        $set: {
+          status: "approved",
+          adminNote: req.body?.adminNote || "",
+          approvedBy: req.admin._id,
+          approvedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    );
+
+    if (!approvedDoc) {
+      const exists = await DepositRequest.exists({ _id: req.params.id });
+
+      return res.status(exists ? 400 : 404).json({
+        success: false,
+        message: exists
+          ? "Only pending request can be approved"
+          : "Deposit request not found",
+      });
+    }
+
+    const user = await User.findById(approvedDoc.user);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (!user.isActive) {
+      throw new Error("User account is inactive");
+    }
+
+    const creditedAmount = n(approvedDoc.calc?.creditedAmount);
+    const targetTurnover = n(approvedDoc.calc?.targetTurnover);
+
+    user.balance = n(user.balance) + creditedAmount;
+    await user.save();
+
+    creditedUserId = user._id;
+    creditedAmountApplied = creditedAmount;
+
+    const affCom = approvedDoc.calc?.affiliateDepositCommission || {};
+    const affAmount = n(affCom.commissionAmount);
+
+    if (affAmount > 0 && affCom.affiliatorId) {
+      const affiliator = await User.findById(affCom.affiliatorId);
+
+      if (affiliator) {
+        affiliator.commissionBalance =
+          n(affiliator.commissionBalance) + affAmount;
+        affiliator.depositCommissionBalance =
+          n(affiliator.depositCommissionBalance) + affAmount;
+
+        await affiliator.save();
+
+        affiliateId = affiliator._id;
+        affiliateAmountApplied = affAmount;
       }
+    }
 
-      const doc = await DepositRequest.findById(req.params.id).session(session);
+    if (targetTurnover > 0) {
+      const existingTurnover = await TurnOver.exists({
+        user: user._id,
+        sourceType: "deposit",
+        sourceId: approvedDoc._id,
+      });
 
-      if (!doc) {
-        throw new Error("Deposit request not found");
-      }
+      await TurnOver.findOneAndUpdate(
+        {
+          user: user._id,
+          sourceType: "deposit",
+          sourceId: approvedDoc._id,
+        },
+        {
+          user: user._id,
+          sourceType: "deposit",
+          sourceId: approvedDoc._id,
+          required: targetTurnover,
+          progress: 0,
+          status: "running",
+          creditedAmount,
+        },
+        {
+          upsert: true,
+          returnDocument: "after",
+          setDefaultsOnInsert: true,
+        },
+      );
 
-      if (doc.status !== "pending") {
-        throw new Error("Only pending request can be approved");
-      }
-
-      const user = await User.findById(doc.user).session(session);
-
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      if (!user.isActive) {
-        throw new Error("User account is inactive");
-      }
-
-      const creditedAmount = n(doc.calc?.creditedAmount);
-      const targetTurnover = n(doc.calc?.targetTurnover);
-
-      user.balance = n(user.balance) + creditedAmount;
-      await user.save({ session });
-
-      const affCom = doc.calc?.affiliateDepositCommission || {};
-      const affAmount = n(affCom.commissionAmount);
-
-      if (affAmount > 0 && affCom.affiliatorId) {
-        const affiliator = await User.findById(affCom.affiliatorId).session(
-          session,
-        );
-
-        if (affiliator) {
-          affiliator.commissionBalance =
-            n(affiliator.commissionBalance) + affAmount;
-          affiliator.depositCommissionBalance =
-            n(affiliator.depositCommissionBalance) + affAmount;
-
-          await affiliator.save({ session });
-        }
-      }
-
-      doc.status = "approved";
-      doc.adminNote = req.body?.adminNote || "";
-      doc.approvedBy = req.admin._id;
-      doc.approvedAt = new Date();
-
-      await doc.save({ session });
-
-      if (targetTurnover > 0) {
-        await TurnOver.findOneAndUpdate(
-          {
-            user: user._id,
-            sourceType: "deposit",
-            sourceId: doc._id,
-          },
-          {
-            user: user._id,
-            sourceType: "deposit",
-            sourceId: doc._id,
-            required: targetTurnover,
-            progress: 0,
-            status: "running",
-            creditedAmount,
-          },
-          {
-            upsert: true,
-            new: true,
-            setDefaultsOnInsert: true,
-            session,
-          },
-        );
-      }
-    });
+      turnoverCreated = !existingTurnover;
+    }
 
     const data = await DepositRequest.findById(req.params.id)
       .populate("user", "userId phone email balance role isActive")
@@ -514,12 +545,75 @@ router.post("/admin/:id/approve", protectAdmin, async (req, res) => {
       data,
     });
   } catch (error) {
+    console.error("Approve deposit request error:", error);
+
+    if (affiliateId && affiliateAmountApplied > 0) {
+      try {
+        await User.updateOne(
+          { _id: affiliateId },
+          {
+            $inc: {
+              commissionBalance: -affiliateAmountApplied,
+              depositCommissionBalance: -affiliateAmountApplied,
+            },
+          },
+        );
+      } catch (rollbackError) {
+        console.error(
+          "Affiliate commission rollback failed:",
+          rollbackError,
+        );
+      }
+    }
+
+    if (creditedUserId && creditedAmountApplied > 0) {
+      try {
+        await User.updateOne(
+          { _id: creditedUserId },
+          { $inc: { balance: -creditedAmountApplied } },
+        );
+      } catch (rollbackError) {
+        console.error("User balance rollback failed:", rollbackError);
+      }
+    }
+
+    if (turnoverCreated && approvedDoc) {
+      try {
+        await TurnOver.deleteOne({
+          user: creditedUserId,
+          sourceType: "deposit",
+          sourceId: approvedDoc._id,
+        });
+      } catch (rollbackError) {
+        console.error("Turnover rollback failed:", rollbackError);
+      }
+    }
+
+    if (approvedDoc) {
+      try {
+        await DepositRequest.updateOne(
+          { _id: approvedDoc._id, status: "approved" },
+          {
+            $set: {
+              status: "pending",
+              adminNote: "",
+              approvedBy: null,
+              approvedAt: null,
+            },
+          },
+        );
+      } catch (rollbackError) {
+        console.error(
+          "Deposit request status rollback failed:",
+          rollbackError,
+        );
+      }
+    }
+
     return res.status(400).json({
       success: false,
       message: error.message || "Approve failed",
     });
-  } finally {
-    session.endSession();
   }
 });
 

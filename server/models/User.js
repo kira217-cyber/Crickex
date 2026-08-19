@@ -103,6 +103,11 @@ const userSchema = new Schema(
       default: 0,
     },
 
+    rewardCoin: {
+      type: Number,
+      default: 0,
+    },
+
     pendingRegisterBonus: {
       type: pendingRegisterBonusSchema,
       default: () => ({

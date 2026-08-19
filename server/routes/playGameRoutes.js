@@ -10,10 +10,7 @@ const ORACLE_GAME_LAUNCH_URL =
   process.env.ORACLE_GAME_LAUNCH_URL ||
   "https://oraclegames.net/api/getgameurl";
 
-const ORACLE_LAUNCH_KEY =
-  process.env.ORACLE_LAUNCH_KEY ||
-  process.env.ORACLE_KEY ||
-  "4895677890656568745";
+const ORACLE_LAUNCH_KEY = "665ec86d74fcb110d5a60421002b82df";
 
 const requireAuth = (req, res, next) => {
   try {

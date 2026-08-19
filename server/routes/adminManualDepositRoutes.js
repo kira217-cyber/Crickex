@@ -158,210 +158,205 @@ router.get("/options", protectAdmin, async (req, res) => {
 
 /* ---------------- ADMIN: MANUAL CREDIT ---------------- */
 router.post("/credit", protectAdmin, async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
-    let responseData = null;
-    let responseBalance = 0;
-    let responseCreditedAmount = 0;
+    const {
+      userId,
+      methodId,
+      channelId,
+      promoId = "none",
+      amount,
+      adminNote = "",
+    } = req.body || {};
 
-    await session.withTransaction(async () => {
-      const {
-        userId,
-        methodId,
-        channelId,
-        promoId = "none",
-        amount,
-        adminNote = "",
-      } = req.body || {};
+    if (!userId || !isValidObjectId(userId)) {
+      throw new Error("Valid userId is required");
+    }
 
-      if (!userId || !isValidObjectId(userId)) {
-        throw new Error("Valid userId is required");
-      }
+    const amountNum = n(amount);
 
-      const amountNum = n(amount);
+    if (amountNum <= 0) {
+      throw new Error("Valid amount is required");
+    }
 
-      if (amountNum <= 0) {
-        throw new Error("Valid amount is required");
-      }
+    if (!methodId || !channelId) {
+      throw new Error("methodId and channelId are required");
+    }
 
-      if (!methodId || !channelId) {
-        throw new Error("methodId and channelId are required");
-      }
+    const user = await User.findOne({
+      _id: userId,
+      role: "user",
+    });
 
-      const user = await User.findOne({
-        _id: userId,
-        role: "user",
-      }).session(session);
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+    if (!user.isActive) {
+      throw new Error("User account is inactive");
+    }
 
-      if (!user.isActive) {
-        throw new Error("User account is inactive");
-      }
+    const method = await DepositMethod.findOne({
+      methodId: String(methodId).toLowerCase().trim(),
+      isActive: true,
+    });
 
-      const method = await DepositMethod.findOne({
-        methodId: String(methodId).toLowerCase().trim(),
-        isActive: true,
-      }).session(session);
+    if (!method) {
+      throw new Error("Deposit method not found or inactive");
+    }
 
-      if (!method) {
-        throw new Error("Deposit method not found or inactive");
-      }
+    const minDeposit = n(method.minDepositAmount);
+    const maxDeposit = n(method.maxDepositAmount);
 
-      const minDeposit = n(method.minDepositAmount);
-      const maxDeposit = n(method.maxDepositAmount);
+    if (minDeposit > 0 && amountNum < minDeposit) {
+      throw new Error(`Minimum deposit amount is ${minDeposit}`);
+    }
 
-      if (minDeposit > 0 && amountNum < minDeposit) {
-        throw new Error(`Minimum deposit amount is ${minDeposit}`);
-      }
+    if (maxDeposit > 0 && amountNum > maxDeposit) {
+      throw new Error(`Maximum deposit amount is ${maxDeposit}`);
+    }
 
-      if (maxDeposit > 0 && amountNum > maxDeposit) {
-        throw new Error(`Maximum deposit amount is ${maxDeposit}`);
-      }
+    const config = await DepositBonusTurnover.findOne({
+      depositMethod: method._id,
+    });
 
-      const config = await DepositBonusTurnover.findOne({
-        depositMethod: method._id,
-      }).session(session);
+    const channels = Array.isArray(config?.channels) ? config.channels : [];
 
-      const channels = Array.isArray(config?.channels) ? config.channels : [];
+    const channel = channels.find(
+      (c) =>
+        String(c?.id || "").trim() === String(channelId || "").trim() &&
+        c?.isActive !== false,
+    );
 
-      const channel = channels.find(
-        (c) =>
-          String(c?.id || "").trim() === String(channelId || "").trim() &&
-          c?.isActive !== false,
+    if (!channel) {
+      throw new Error("Deposit channel not found or inactive");
+    }
+
+    const promotions = Array.isArray(config?.promotions)
+      ? config.promotions
+      : [];
+
+    let promo = null;
+
+    if (promoId && promoId !== "none") {
+      promo = promotions.find(
+        (p) =>
+          String(p?.id || "").toLowerCase() ===
+            String(promoId || "").toLowerCase() && p?.isActive !== false,
       );
 
-      if (!channel) {
-        throw new Error("Deposit channel not found or inactive");
+      if (!promo) {
+        throw new Error("Promotion not found or inactive");
       }
 
-      const promotions = Array.isArray(config?.promotions)
-        ? config.promotions
-        : [];
+      if (normalizePromoScope(promo?.bonusScope) === "first-deposit") {
+        const previousApproved = await DepositRequest.exists({
+          user: user._id,
+          status: "approved",
+        });
 
-      let promo = null;
-
-      if (promoId && promoId !== "none") {
-        promo = promotions.find(
-          (p) =>
-            String(p?.id || "").toLowerCase() ===
-              String(promoId || "").toLowerCase() && p?.isActive !== false,
-        );
-
-        if (!promo) {
-          throw new Error("Promotion not found or inactive");
-        }
-
-        if (normalizePromoScope(promo?.bonusScope) === "first-deposit") {
-          const previousApproved = await DepositRequest.exists({
-            user: user._id,
-            status: "approved",
-          }).session(session);
-
-          if (previousApproved) {
-            throw new Error("First deposit promotion already used");
-          }
+        if (previousApproved) {
+          throw new Error("First deposit promotion already used");
         }
       }
+    }
 
-      const channelPercent = getChannelPercent(channel);
-      const percentBonus = (amountNum * channelPercent) / 100;
-      const promoBonus = calcPromoBonus({ amount: amountNum, promo });
-      const totalBonus = percentBonus + promoBonus;
+    const channelPercent = getChannelPercent(channel);
+    const percentBonus = (amountNum * channelPercent) / 100;
+    const promoBonus = calcPromoBonus({ amount: amountNum, promo });
+    const totalBonus = percentBonus + promoBonus;
 
-      const turnoverMultiplier =
-        promo && promoId !== "none"
-          ? n(promo?.turnoverMultiplier) || 1
-          : n(config?.turnoverMultiplier) || 1;
+    const turnoverMultiplier =
+      promo && promoId !== "none"
+        ? n(promo?.turnoverMultiplier) || 1
+        : n(config?.turnoverMultiplier) || 1;
 
-      const creditedAmount = amountNum + totalBonus;
-      const targetTurnover = creditedAmount * turnoverMultiplier;
+    const creditedAmount = amountNum + totalBonus;
+    const targetTurnover = creditedAmount * turnoverMultiplier;
 
-      const activeContacts = Array.isArray(method.contacts)
-        ? method.contacts
-            .filter((c) => c?.isActive !== false)
-            .sort((a, b) => n(a?.sort) - n(b?.sort))
-        : [];
+    const activeContacts = Array.isArray(method.contacts)
+      ? method.contacts
+          .filter((c) => c?.isActive !== false)
+          .sort((a, b) => n(a?.sort) - n(b?.sort))
+      : [];
 
-      const contact = activeContacts[0] || null;
+    const contact = activeContacts[0] || null;
 
-      const affiliateDepositCommission = await getAffiliateDepositCommission({
-        user,
-        amount: amountNum,
-      });
+    const affiliateDepositCommission = await getAffiliateDepositCommission({
+      user,
+      amount: amountNum,
+    });
 
-      const depositRequest = await DepositRequest.create(
-        [
+    const doc = await DepositRequest.create({
+      user: user._id,
+      methodId: method.methodId,
+      channelId: String(channelId).trim(),
+      promoId: promoId || "none",
+      amount: amountNum,
+
+      fields: {
+        source: "admin_manual_credit",
+        adminMongoId: String(req.admin._id),
+        adminEmail: req.admin.email || "",
+      },
+
+      calc: {
+        channelPercent,
+        percentBonus,
+        promoBonus,
+        totalBonus,
+        turnoverMultiplier,
+        targetTurnover,
+        creditedAmount,
+        affiliateDepositCommission,
+      },
+
+      status: "approved",
+      adminNote,
+      approvedBy: req.admin._id,
+      approvedAt: new Date(),
+
+      display: {
+        methodName: pickText(method.methodName),
+        channelName: pickText(channel.name),
+        contactLabel: pickText(contact?.label),
+        channelTagText: channel?.tagText || "",
+        channelNumber: contact?.number || "",
+        source: "Admin Manual Credit",
+      },
+    });
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: user._id, role: "user", isActive: true },
+      { $inc: { balance: creditedAmount } },
+      { returnDocument: "after", runValidators: true },
+    );
+
+    if (!updatedUser) {
+      await DepositRequest.deleteOne({ _id: doc._id });
+      throw new Error("User not found or inactive");
+    }
+
+    const secondaryTasks = [];
+    const affCom = affiliateDepositCommission || {};
+    const affAmount = n(affCom.commissionAmount);
+
+    if (affAmount > 0 && affCom.affiliatorId) {
+      secondaryTasks.push(
+        User.updateOne(
+          { _id: affCom.affiliatorId, role: "aff-user" },
           {
-            user: user._id,
-            methodId: method.methodId,
-            channelId: String(channelId).trim(),
-            promoId: promoId || "none",
-            amount: amountNum,
-
-            fields: {
-              source: "admin_manual_credit",
-              adminMongoId: String(req.admin._id),
-              adminEmail: req.admin.email || "",
-            },
-
-            calc: {
-              channelPercent,
-              percentBonus,
-              promoBonus,
-              totalBonus,
-              turnoverMultiplier,
-              targetTurnover,
-              creditedAmount,
-              affiliateDepositCommission,
-            },
-
-            status: "approved",
-            adminNote,
-            approvedBy: req.admin._id,
-            approvedAt: new Date(),
-
-            display: {
-              methodName: pickText(method.methodName),
-              channelName: pickText(channel.name),
-              contactLabel: pickText(contact?.label),
-              channelTagText: channel?.tagText || "",
-              channelNumber: contact?.number || "",
-              source: "Admin Manual Credit",
+            $inc: {
+              commissionBalance: affAmount,
+              depositCommissionBalance: affAmount,
             },
           },
-        ],
-        { session },
+        ),
       );
+    }
 
-      const doc = depositRequest[0];
-
-      user.balance = n(user.balance) + creditedAmount;
-      await user.save({ session });
-
-      const affCom = affiliateDepositCommission || {};
-      const affAmount = n(affCom.commissionAmount);
-
-      if (affAmount > 0 && affCom.affiliatorId) {
-        const affiliator = await User.findById(affCom.affiliatorId).session(
-          session,
-        );
-
-        if (affiliator) {
-          affiliator.commissionBalance =
-            n(affiliator.commissionBalance) + affAmount;
-          affiliator.depositCommissionBalance =
-            n(affiliator.depositCommissionBalance) + affAmount;
-
-          await affiliator.save({ session });
-        }
-      }
-
-      if (targetTurnover > 0) {
-        await TurnOver.findOneAndUpdate(
+    if (targetTurnover > 0) {
+      secondaryTasks.push(
+        TurnOver.findOneAndUpdate(
           {
             user: user._id,
             sourceType: "admin-manual-deposit",
@@ -378,186 +373,184 @@ router.post("/credit", protectAdmin, async (req, res) => {
           },
           {
             upsert: true,
-            new: true,
+            returnDocument: "after",
             setDefaultsOnInsert: true,
-            session,
           },
-        );
-      }
+        ),
+      );
+    }
 
-      responseData = doc;
-      responseBalance = user.balance;
-      responseCreditedAmount = creditedAmount;
-    });
+    const secondaryResults = await Promise.allSettled(secondaryTasks);
+    const warnings = secondaryResults
+      .filter((result) => result.status === "rejected")
+      .map((result) => result.reason?.message || "Secondary update failed");
 
     return res.json({
       success: true,
       message: "Manual deposit credited successfully",
-      data: responseData,
-      balance: responseBalance,
-      creditedAmount: responseCreditedAmount,
+      data: doc,
+      balance: updatedUser.balance,
+      creditedAmount,
+      ...(warnings.length > 0 ? { warnings } : {}),
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
       message: error.message || "Manual deposit credit failed",
     });
-  } finally {
-    session.endSession();
   }
 });
 
 /* ---------------- ADMIN: SINGLE USER ALL DEPOSIT HISTORY ---------------- */
-router.get("/users/:userId/manual-deposit-history", protectAdmin, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const {
-      page = 1,
-      limit = 15,
-      status = "all",
-      search = "",
-    } = req.query;
+router.get(
+  "/users/:userId/manual-deposit-history",
+  protectAdmin,
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 15, status = "all", search = "" } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user id",
-      });
-    }
-
-    const pageNum = Math.max(Number(page) || 1, 1);
-    const limitNum = Math.min(Math.max(Number(limit) || 15, 1), 100);
-    const skip = (pageNum - 1) * limitNum;
-
-    const baseFilter = {
-      user: new mongoose.Types.ObjectId(userId),
-    };
-
-    const filter = { ...baseFilter };
-
-    if (["pending", "approved", "rejected"].includes(String(status))) {
-      filter.status = String(status);
-    }
-
-    if (String(search).trim()) {
-      const q = String(search).trim();
-      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-
-      filter.$or = [
-        { methodId: regex },
-        { channelId: regex },
-        { promoId: regex },
-        { adminNote: regex },
-
-        { "display.source": regex },
-        { "display.methodName.bn": regex },
-        { "display.methodName.en": regex },
-        { "display.channelName.bn": regex },
-        { "display.channelName.en": regex },
-        { "display.channelNumber": regex },
-        { "display.contactNumber": regex },
-
-        { "fields.source": regex },
-        { "fields.senderNumber": regex },
-        { "fields.phone": regex },
-        { "fields.number": regex },
-        { "fields.from": regex },
-        { "fields.walletNumber": regex },
-        { "fields.trxid": regex },
-        { "fields.trxId": regex },
-        { "fields.transactionId": regex },
-        { "fields.transaction_id": regex },
-        { "fields.ref": regex },
-        { "fields.reference": regex },
-      ];
-    }
-
-    const [rows, total, summaryAgg] = await Promise.all([
-      DepositRequest.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
-
-      DepositRequest.countDocuments(filter),
-
-      DepositRequest.aggregate([
-        { $match: baseFilter },
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
-            amount: { $sum: { $ifNull: ["$amount", 0] } },
-            bonusAmount: { $sum: { $ifNull: ["$calc.totalBonus", 0] } },
-            creditedAmount: {
-              $sum: { $ifNull: ["$calc.creditedAmount", 0] },
-            },
-            turnoverAmount: {
-              $sum: { $ifNull: ["$calc.targetTurnover", 0] },
-            },
-          },
-        },
-      ]),
-    ]);
-
-    const empty = {
-      count: 0,
-      amount: 0,
-      bonusAmount: 0,
-      creditedAmount: 0,
-      turnoverAmount: 0,
-    };
-
-    const summary = {
-      total: { ...empty },
-      pending: { ...empty },
-      approved: { ...empty },
-      rejected: { ...empty },
-    };
-
-    for (const item of summaryAgg) {
-      const key = item._id || "pending";
-
-      const value = {
-        count: item.count || 0,
-        amount: item.amount || 0,
-        bonusAmount: item.bonusAmount || 0,
-        creditedAmount: item.creditedAmount || 0,
-        turnoverAmount: item.turnoverAmount || 0,
-      };
-
-      if (summary[key]) {
-        summary[key] = value;
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user id",
+        });
       }
 
-      summary.total.count += value.count;
-      summary.total.amount += value.amount;
-      summary.total.bonusAmount += value.bonusAmount;
-      summary.total.creditedAmount += value.creditedAmount;
-      summary.total.turnoverAmount += value.turnoverAmount;
+      const pageNum = Math.max(Number(page) || 1, 1);
+      const limitNum = Math.min(Math.max(Number(limit) || 15, 1), 100);
+      const skip = (pageNum - 1) * limitNum;
+
+      const baseFilter = {
+        user: new mongoose.Types.ObjectId(userId),
+      };
+
+      const filter = { ...baseFilter };
+
+      if (["pending", "approved", "rejected"].includes(String(status))) {
+        filter.status = String(status);
+      }
+
+      if (String(search).trim()) {
+        const q = String(search).trim();
+        const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+
+        filter.$or = [
+          { methodId: regex },
+          { channelId: regex },
+          { promoId: regex },
+          { adminNote: regex },
+
+          { "display.source": regex },
+          { "display.methodName.bn": regex },
+          { "display.methodName.en": regex },
+          { "display.channelName.bn": regex },
+          { "display.channelName.en": regex },
+          { "display.channelNumber": regex },
+          { "display.contactNumber": regex },
+
+          { "fields.source": regex },
+          { "fields.senderNumber": regex },
+          { "fields.phone": regex },
+          { "fields.number": regex },
+          { "fields.from": regex },
+          { "fields.walletNumber": regex },
+          { "fields.trxid": regex },
+          { "fields.trxId": regex },
+          { "fields.transactionId": regex },
+          { "fields.transaction_id": regex },
+          { "fields.ref": regex },
+          { "fields.reference": regex },
+        ];
+      }
+
+      const [rows, total, summaryAgg] = await Promise.all([
+        DepositRequest.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+
+        DepositRequest.countDocuments(filter),
+
+        DepositRequest.aggregate([
+          { $match: baseFilter },
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+              amount: { $sum: { $ifNull: ["$amount", 0] } },
+              bonusAmount: { $sum: { $ifNull: ["$calc.totalBonus", 0] } },
+              creditedAmount: {
+                $sum: { $ifNull: ["$calc.creditedAmount", 0] },
+              },
+              turnoverAmount: {
+                $sum: { $ifNull: ["$calc.targetTurnover", 0] },
+              },
+            },
+          },
+        ]),
+      ]);
+
+      const empty = {
+        count: 0,
+        amount: 0,
+        bonusAmount: 0,
+        creditedAmount: 0,
+        turnoverAmount: 0,
+      };
+
+      const summary = {
+        total: { ...empty },
+        pending: { ...empty },
+        approved: { ...empty },
+        rejected: { ...empty },
+      };
+
+      for (const item of summaryAgg) {
+        const key = item._id || "pending";
+
+        const value = {
+          count: item.count || 0,
+          amount: item.amount || 0,
+          bonusAmount: item.bonusAmount || 0,
+          creditedAmount: item.creditedAmount || 0,
+          turnoverAmount: item.turnoverAmount || 0,
+        };
+
+        if (summary[key]) {
+          summary[key] = value;
+        }
+
+        summary.total.count += value.count;
+        summary.total.amount += value.amount;
+        summary.total.bonusAmount += value.bonusAmount;
+        summary.total.creditedAmount += value.creditedAmount;
+        summary.total.turnoverAmount += value.turnoverAmount;
+      }
+
+      return res.json({
+        success: true,
+        message: "Single user deposit history fetched successfully",
+        data: rows,
+        summary,
+        meta: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / limitNum)),
+        },
+      });
+    } catch (error) {
+      console.error("Single user deposit history error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch deposit history",
+        error: error.message,
+      });
     }
-
-    return res.json({
-      success: true,
-      message: "Single user deposit history fetched successfully",
-      data: rows,
-      summary,
-      meta: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / limitNum)),
-      },
-    });
-  } catch (error) {
-    console.error("Single user deposit history error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch deposit history",
-      error: error.message,
-    });
-  }
-});
+  },
+);
 
 export default router;

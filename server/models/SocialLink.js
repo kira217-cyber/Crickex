@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const SocialLinkSchema = new mongoose.Schema(
   {
+    name: {
+      bn: { type: String, required: true, trim: true },
+      en: { type: String, required: true, trim: true },
+    },
+
     url: {
       type: String,
       required: true,

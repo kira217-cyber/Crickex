@@ -156,7 +156,7 @@ router.patch("/me", protectUser, async (req, res) => {
       req.user.id,
       { $set: updateData },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).select("-password");

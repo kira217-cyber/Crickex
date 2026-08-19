@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import axios from "axios";
 import GameHistory from "../models/GameHistory.js";
 import User from "../models/User.js";
 import { protectAdmin } from "../middleware/protectAdmin.js";
@@ -7,9 +8,86 @@ import protectUser from "../middleware/protectUser.js";
 
 const router = express.Router();
 
+const ORACLE_WEBSITE_BASE =
+  process.env.ORACLE_WEBSITE_BASE || "https://oraclegames.net";
+
 const safePage = (value = 1) => Math.max(1, Number(value) || 1);
 const safeLimit = (value = 10) =>
   Math.min(100, Math.max(1, Number(value) || 10));
+
+/**
+ * oraclegames.net/all-games is a server-rendered (Inertia) page. The
+ * initial HTML embeds the page props as JSON in a `data-page="..."`
+ * attribute on the root element, HTML-entity encoded.
+ */
+const extractInertiaPageData = (html = "") => {
+  const match = String(html).match(/data-page="([^"]*)"/);
+  if (!match) return null;
+
+  const raw = match[1]
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * GameHistory only stores the raw `game_uid` string, not a game name.
+ * `?search=<game_uid>` on the public Oracle Games site matches games by
+ * game_uid directly, so the name can be resolved without first knowing
+ * which provider the game belongs to.
+ */
+const fetchOracleGameNameByUid = async (gameUId) => {
+  try {
+    const res = await axios.get(`${ORACLE_WEBSITE_BASE}/all-games`, {
+      params: { search: gameUId },
+      timeout: 20000,
+    });
+
+    const pageData = extractInertiaPageData(res.data);
+    const games = pageData?.props?.games?.data;
+
+    if (!Array.isArray(games)) return "";
+
+    const match = games.find(
+      (game) => String(game?.game_uid || "").trim() === gameUId,
+    );
+
+    return match?.name || "";
+  } catch (error) {
+    console.log("ORACLE GAME NAME SEARCH ERROR:", gameUId, error.message);
+    return "";
+  }
+};
+
+const withGameNames = async (items) => {
+  const gameUIds = [
+    ...new Set(items.map((item) => item.game_uid).filter(Boolean)),
+  ];
+
+  if (!gameUIds.length) return items;
+
+  const nameMap = new Map();
+
+  await Promise.all(
+    gameUIds.map(async (gameUId) => {
+      const name = await fetchOracleGameNameByUid(gameUId);
+      if (name) nameMap.set(gameUId, name);
+    }),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    game_name: nameMap.get(item.game_uid) || "",
+  }));
+};
 
 /* ---------------- USER: MY BET HISTORY ---------------- */
 router.get("/my", protectUser, async (req, res) => {
@@ -42,9 +120,11 @@ router.get("/my", protectUser, async (req, res) => {
       GameHistory.countDocuments(filter),
     ]);
 
+    const data = await withGameNames(items);
+
     return res.json({
       success: true,
-      data: items,
+      data,
       meta: {
         page,
         limit,
@@ -141,10 +221,11 @@ router.get("/admin", protectAdmin, async (req, res) => {
     ]);
 
     const summary = summaryAgg?.[0] || {};
+    const data = await withGameNames(items);
 
     return res.json({
       success: true,
-      data: items,
+      data,
       meta: {
         page,
         limit,
@@ -160,7 +241,7 @@ router.get("/admin", protectAdmin, async (req, res) => {
         totalWinCount: summary.totalWinCount || 0,
         totalLossCount: summary.totalLossCount || 0,
         totalPushCount: summary.totalPushCount || 0,
-        pageRecords: items.length,
+        pageRecords: data.length,
       },
     });
   } catch (error) {
@@ -232,10 +313,11 @@ router.get("/admin/user/:userId", protectAdmin, async (req, res) => {
     ]);
 
     const summary = summaryAgg?.[0] || {};
+    const data = await withGameNames(items);
 
     return res.json({
       success: true,
-      data: items,
+      data,
       summary: {
         totalBetAmount: summary.totalBetAmount || 0,
         totalWinAmount: summary.totalWinAmount || 0,

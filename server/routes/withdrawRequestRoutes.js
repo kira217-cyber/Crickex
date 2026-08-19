@@ -345,6 +345,44 @@ router.get("/admin/withdraw-requests", protectAdmin, async (req, res) => {
   }
 });
 
+/* ADMIN: SINGLE WITHDRAW REQUEST DETAILS */
+router.get("/admin/withdraw-requests/:id", protectAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid withdraw request id",
+      });
+    }
+
+    const doc = await WithdrawRequest.findById(id)
+      .populate("user", "userId phone email balance role isActive")
+      .populate(
+        "wallet",
+        "methodId walletType walletNumber label isDefault isActive",
+      );
+
+    if (!doc) {
+      return res.status(404).json({
+        success: false,
+        message: "Withdraw request not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: doc,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load withdraw request",
+    });
+  }
+});
+
 /* ADMIN: SINGLE USER WITHDRAW HISTORY */
 router.get(
   "/admin/users/:userId/withdraw-history",

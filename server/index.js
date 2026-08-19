@@ -71,11 +71,21 @@ import affiliateReviewSettingRoutes from "./routes/affiliateReviewSettingRoutes.
 import affiliateFooterSettingRoutes from "./routes/affiliateFooterSettingRoutes.js";
 import affiliateNavbarSettingRoutes from "./routes/affiliateNavbarSettingRoutes.js";
 import affiliateSocialLinkRoutes from "./routes/affiliateSocialLinkRoutes.js";
-
+import gameApiKeyRoutes from "./routes/gameApiKeyRoutes.js";
+import checkInRewardAdminRoutes from "./routes/checkInRewardAdminRoutes.js";
+import checkInRewardClientRoutes from "./routes/checkInRewardClientRoutes.js";
+import wheelRewardAdminRoutes from "./routes/wheelRewardAdminRoutes.js";
+import wheelSpinRoutes from "./routes/wheelSpinRoutes.js";
+import wheelTermsConditionRoutes from "./routes/wheelTermsConditionRoutes.js";
+import downloadHeaderRoutes from "./routes/downloadHeaderRoutes.js";
 
 dotenv.config();
 
 const app = express();
+
+// behind an nginx/Cloudflare reverse proxy — trust X-Forwarded-Proto so
+// req.protocol/req.secure resolve to "https" correctly instead of "http"
+app.set("trust proxy", 1);
 
 connectDB();
 
@@ -98,6 +108,12 @@ app.use("/api/affiliate", affiliateRoutes);
 app.use("/api/profile", affiliateProfileRoutes);
 app.use("/api", affWithdrawRoutes);
 app.use("/api", bulkAdjustmentRoutes);
+app.use("/api", checkInRewardAdminRoutes);
+app.use("/api", checkInRewardClientRoutes);
+app.use("/api", wheelRewardAdminRoutes);
+app.use("/api", wheelSpinRoutes);
+app.use("/api", wheelTermsConditionRoutes);
+app.use("/api", downloadHeaderRoutes);
 app.use("/api", affWithdrawRequestRoutes);
 
 /* ✅ Deposit System Routes */
@@ -191,11 +207,13 @@ app.use("/api/affiliate-social-link", affiliateSocialLinkRoutes);
 // Affiliate site Global Routes
 app.use("/api/affiliate-global", affiliateGlobalRoutes);
 
+
 // global client site Routes
 app.use("/api/global/client", globalClientRoutes);
 
 // global game routes client site
 app.use("/api/global/client", globalGameClientRoutes);
+app.use("/api/admin/game-api-key", gameApiKeyRoutes);
 
 // admin pannel Dashboard Routes
 app.use("/api/dashboard", dashboardRoutes);

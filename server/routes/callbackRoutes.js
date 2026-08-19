@@ -211,7 +211,7 @@ router.post("/", async (req, res) => {
     }
 
     const duplicate = await GameHistory.findOne({
-      $or: [{ serial_number: serialNumber }, { game_round: gameRound }],
+      serial_number: serialNumber,
     }).lean();
 
     if (duplicate) {
@@ -273,7 +273,7 @@ router.post("/", async (req, res) => {
     const updatedPlayer = await User.findByIdAndUpdate(
       player._id,
       { $set: { balance: newBalance } },
-      { new: true },
+      { returnDocument: "after" },
     );
 
     const finalBalance = money(updatedPlayer?.balance || 0);
