@@ -209,14 +209,14 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="relative min-h-full overflow-hidden text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(26,121,211,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(26,121,211,0.14),transparent_38%)]" />
+    <div className="relative min-h-full overflow-hidden text-slate-800">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(26,121,211,0.10),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(26,121,211,0.08),transparent_38%)]" />
 
-      <div className="relative z-10 rounded-[32px] border border-[#1A79D3]/20 bg-white/[0.05] shadow-2xl shadow-black/50 backdrop-blur-xl overflow-hidden">
-        <div className="border-b border-[#1A79D3]/20 bg-[#1A79D3]/10 px-4 sm:px-6 py-5">
+      <div className="relative z-10 rounded-[32px] border border-[#1A79D3]/20 bg-white shadow-2xl shadow-black/10 backdrop-blur-xl overflow-hidden">
+        <div className="border-b border-[#1A79D3]/20 bg-[#1A79D3]/5 px-4 sm:px-6 py-5">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-3xl border border-[#1A79D3]/30 bg-white/10 flex items-center justify-center shadow-[0_0_45px_rgba(26,121,211,0.25)]">
+              <div className="w-14 h-14 rounded-3xl border border-[#1A79D3]/30 bg-[#1A79D3]/10 flex items-center justify-center shadow-[0_0_45px_rgba(26,121,211,0.25)]">
                 <FaChartBar className="text-2xl text-[#3ea0ff]" />
               </div>
 
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 <h1 className="bg-gradient-to-r from-[#6fb5f4] via-[#1A79D3] to-[#3ea0ff] bg-clip-text text-2xl md:text-3xl font-black text-transparent">
                   Dashboard Overview
                 </h1>
-                <p className="text-sm text-slate-300 mt-1">
+                <p className="text-sm text-slate-600 mt-1">
                   Admin panel summary, charts, calendar and recent activity
                 </p>
               </div>
@@ -249,14 +249,14 @@ const Dashboard = () => {
                 key={card.title}
                 type="button"
                 onClick={() => navigate(card.to)}
-                className="cursor-pointer text-left rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#1A79D3]/70 hover:shadow-[0_0_35px_rgba(26,121,211,0.22)]"
+                className="cursor-pointer text-left rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#1A79D3]/70 hover:shadow-[0_0_35px_rgba(26,121,211,0.22)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm text-slate-300 font-medium">
+                    <p className="text-sm text-slate-600 font-medium">
                       {card.title}
                     </p>
-                    <h3 className="mt-3 text-2xl md:text-3xl font-black text-white break-words">
+                    <h3 className="mt-3 text-2xl md:text-3xl font-black text-slate-800 break-words">
                       {card.value}
                     </h3>
                   </div>
@@ -272,16 +272,16 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
+            <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-[#1A79D3]/20 flex items-center justify-center">
                   <FaChartPie className="text-xl text-[#3ea0ff]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-slate-800">
                     User Status Chart
                   </h2>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-600">
                     Active vs inactive users
                   </p>
                 </div>
@@ -294,11 +294,11 @@ const Dashboard = () => {
                     background: `conic-gradient(#1A79D3 0% ${activePercent}%, #ef4444 ${activePercent}% 100%)`,
                   }}
                 >
-                  <div className="absolute inset-[22px] rounded-full bg-[#050607]/95 border border-[#1A79D3]/20 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-black text-white">
+                  <div className="absolute inset-[22px] rounded-full bg-white border border-[#1A79D3]/20 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-black text-slate-800">
                       {totalUsersForPie}
                     </span>
-                    <span className="text-sm text-slate-300">Total Users</span>
+                    <span className="text-sm text-slate-600">Total Users</span>
                   </div>
                 </div>
 
@@ -321,29 +321,29 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
+            <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-[#1A79D3]/20 flex items-center justify-center">
                   <FaChartBar className="text-xl text-[#3ea0ff]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-slate-800">
                     Requests & Amount Chart
                   </h2>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-600">
                     Deposit / withdraw overview
                   </p>
                 </div>
               </div>
 
-              <div className="h-[320px] rounded-[28px] border border-[#1A79D3]/15 bg-black/30 p-4">
+              <div className="h-[320px] rounded-[28px] border border-[#1A79D3]/15 bg-slate-50 p-4">
                 <div className="h-full flex items-end justify-between gap-3">
                   {requestBars.map((bar) => (
                     <div
                       key={bar.label}
                       className="flex-1 h-full flex flex-col items-center justify-end gap-3"
                     >
-                      <div className="text-[11px] md:text-xs text-white font-semibold text-center break-words">
+                      <div className="text-[11px] md:text-xs text-slate-800 font-semibold text-center break-words">
                         {bar.value.toLocaleString("en-US")}
                       </div>
 
@@ -354,7 +354,7 @@ const Dashboard = () => {
                         />
                       </div>
 
-                      <div className="text-[10px] md:text-xs text-slate-300 text-center leading-tight min-h-[30px]">
+                      <div className="text-[10px] md:text-xs text-slate-600 text-center leading-tight min-h-[30px]">
                         {bar.label}
                       </div>
                     </div>
@@ -365,16 +365,16 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
+            <div className="xl:col-span-2 rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-[#1A79D3]/20 flex items-center justify-center">
                   <FaCalendarAlt className="text-xl text-[#3ea0ff]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-slate-800">
                     Real Time Calendar
                   </h2>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-600">
                     {calendarData.monthLabel}
                   </p>
                 </div>
@@ -404,7 +404,7 @@ const Dashboard = () => {
                         day
                           ? isToday
                             ? "border-[#3ea0ff] bg-gradient-to-br from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] text-white shadow-[0_0_30px_rgba(26,121,211,0.30)]"
-                            : "border-[#1A79D3]/20 bg-black/40 text-white"
+                            : "border-[#1A79D3]/20 bg-slate-50 text-slate-800"
                           : "border-transparent bg-transparent"
                       }`}
                     >
@@ -416,31 +416,31 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
+              <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-12 h-12 rounded-2xl bg-[#1A79D3]/20 flex items-center justify-center">
                     <FaClock className="text-xl text-[#3ea0ff]" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-xl font-bold text-slate-800">
                       Current Time
                     </h2>
-                    <p className="text-sm text-slate-300">Live date & time</p>
+                    <p className="text-sm text-slate-600">Live date & time</p>
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/40 p-5 text-center">
-                  <div className="text-3xl md:text-4xl font-black tracking-wide text-white">
+                <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 text-center">
+                  <div className="text-3xl md:text-4xl font-black tracking-wide text-slate-800">
                     {time}
                   </div>
-                  <div className="mt-3 text-sm md:text-base text-slate-300 leading-relaxed">
+                  <div className="mt-3 text-sm md:text-base text-slate-600 leading-relaxed">
                     {date}
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
-                <h2 className="text-xl font-bold text-white mb-5">
+              <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
+                <h2 className="text-xl font-bold text-slate-800 mb-5">
                   Dashboard Summary
                 </h2>
 
@@ -461,10 +461,10 @@ const Dashboard = () => {
                   ].map(([label, value]) => (
                     <div
                       key={label}
-                      className="rounded-2xl border border-[#1A79D3]/20 bg-black/40 px-4 py-3 flex items-center justify-between gap-3"
+                      className="rounded-2xl border border-[#1A79D3]/20 bg-slate-50 px-4 py-3 flex items-center justify-between gap-3"
                     >
-                      <span className="text-slate-300">{label}</span>
-                      <span className="font-bold text-white">{value}</span>
+                      <span className="text-slate-600">{label}</span>
+                      <span className="font-bold text-slate-800">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -479,10 +479,10 @@ const Dashboard = () => {
               items={summary?.latest?.users || []}
               render={(user) => (
                 <>
-                  <div className="font-semibold text-white">
+                  <div className="font-semibold text-slate-800">
                     {user?.userId || "N/A"}
                   </div>
-                  <div className="text-sm text-slate-300 mt-1 break-all">
+                  <div className="text-sm text-slate-600 mt-1 break-all">
                     {user?.phone || "No phone"} • {user?.role || "N/A"}
                   </div>
                   <div className="text-xs text-[#6fb5f4] mt-1">
@@ -499,10 +499,10 @@ const Dashboard = () => {
               items={summary?.latest?.deposits || []}
               render={(item) => (
                 <>
-                  <div className="font-semibold text-white">
+                  <div className="font-semibold text-slate-800">
                     {item?.user?.userId || item?.userIdentity || "Unknown User"}
                   </div>
-                  <div className="text-sm text-slate-300 mt-1">
+                  <div className="text-sm text-slate-600 mt-1">
                     Amount: {money(item?.amount)}
                   </div>
                   <div className="text-xs text-[#6fb5f4] mt-1 uppercase">
@@ -518,10 +518,10 @@ const Dashboard = () => {
               items={summary?.latest?.withdraws || []}
               render={(item) => (
                 <>
-                  <div className="font-semibold text-white">
+                  <div className="font-semibold text-slate-800">
                     {item?.user?.userId || "Unknown User"}
                   </div>
-                  <div className="text-sm text-slate-300 mt-1">
+                  <div className="text-sm text-slate-600 mt-1">
                     Amount: {money(item?.amount)}
                   </div>
                   <div className="text-xs text-[#6fb5f4] mt-1 uppercase">
@@ -539,43 +539,43 @@ const Dashboard = () => {
 
 const StatusRow = ({ label, value, percent, color, red = false }) => {
   return (
-    <div className="rounded-2xl border border-[#1A79D3]/20 bg-black/40 p-4">
+    <div className="rounded-2xl border border-[#1A79D3]/20 bg-slate-50 p-4">
       <div className="flex items-center justify-between">
         <span
           className={`${red ? "text-red-300" : "text-[#6fb5f4]"} font-medium`}
         >
           {label}
         </span>
-        <span className="text-white font-bold">{value}</span>
+        <span className="text-slate-800 font-bold">{value}</span>
       </div>
 
-      <div className="mt-3 h-3 rounded-full bg-white/10 overflow-hidden">
+      <div className="mt-3 h-3 rounded-full bg-slate-200 overflow-hidden">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${color}`}
           style={{ width: `${percent}%` }}
         />
       </div>
 
-      <div className="mt-2 text-xs text-slate-400">{percent}% of total</div>
+      <div className="mt-2 text-xs text-slate-500">{percent}% of total</div>
     </div>
   );
 };
 
 const LatestCard = ({ title, emptyText, items, render }) => {
   return (
-    <div className="rounded-[28px] border border-[#1A79D3]/20 bg-black/35 p-5 md:p-6 shadow-xl">
-      <h2 className="text-xl font-bold text-white mb-5">{title}</h2>
+    <div className="rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 md:p-6 shadow-xl">
+      <h2 className="text-xl font-bold text-slate-800 mb-5">{title}</h2>
 
       <div className="space-y-3">
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-[#1A79D3]/15 bg-black/40 p-4 text-slate-400 text-sm">
+          <div className="rounded-2xl border border-[#1A79D3]/15 bg-slate-50 p-4 text-slate-500 text-sm">
             {emptyText}
           </div>
         ) : (
           items.map((item, index) => (
             <div
               key={item?._id || index}
-              className="rounded-2xl border border-[#1A79D3]/15 bg-black/40 p-4 transition-all hover:border-[#1A79D3]/60"
+              className="rounded-2xl border border-[#1A79D3]/15 bg-slate-50 p-4 transition-all hover:border-[#1A79D3]/60"
             >
               {render(item)}
             </div>

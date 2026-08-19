@@ -268,7 +268,7 @@ const WithdrawRequestDetails = () => {
       return;
     }
 
-    navigate(`/all-user-details/${userMongoId}`);
+    navigate(`/single-user-details/${userMongoId}`);
   };
 
   if (loading) {

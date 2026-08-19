@@ -22,6 +22,8 @@ const AddSocialLink = () => {
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
+    nameBn: "",
+    nameEn: "",
     url: "",
     order: 0,
     status: "active",
@@ -82,6 +84,8 @@ const AddSocialLink = () => {
 
   const resetForm = () => {
     setForm({
+      nameBn: "",
+      nameEn: "",
       url: "",
       order: 0,
       status: "active",
@@ -117,6 +121,11 @@ const AddSocialLink = () => {
   };
 
   const validateForm = () => {
+    if (!form.nameBn.trim() || !form.nameEn.trim()) {
+      toast.error("Social link name (Bangla & English) is required");
+      return false;
+    }
+
     if (!form.url.trim()) {
       toast.error("Social link URL is required");
       return false;
@@ -144,6 +153,8 @@ const AddSocialLink = () => {
       setSubmitting(true);
 
       const fd = new FormData();
+      fd.append("nameBn", form.nameBn.trim());
+      fd.append("nameEn", form.nameEn.trim());
       fd.append("url", form.url.trim());
       fd.append("order", String(Number(form.order || 0)));
       fd.append("status", form.status || "active");
@@ -182,6 +193,8 @@ const AddSocialLink = () => {
     setExistingIcon(item?.iconUrl || "");
 
     setForm({
+      nameBn: item?.name?.bn || "",
+      nameEn: item?.name?.en || "",
       url: item?.url || "",
       order: item?.order ?? 0,
       status: item?.status === "inactive" ? "inactive" : "active",
@@ -220,6 +233,8 @@ const AddSocialLink = () => {
   const handleQuickToggle = async (item) => {
     try {
       const fd = new FormData();
+      fd.append("nameBn", item?.name?.bn || "");
+      fd.append("nameEn", item?.name?.en || "");
       fd.append("url", item?.url || "");
       fd.append("order", String(Number(item?.order || 0)));
       fd.append("status", item?.status === "active" ? "inactive" : "active");
@@ -321,6 +336,38 @@ const AddSocialLink = () => {
                   className="hidden"
                   onChange={handleIconChange}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-100">
+                    Name (Bangla)
+                  </label>
+
+                  <input
+                    type="text"
+                    name="nameBn"
+                    value={form.nameBn}
+                    onChange={handleChange}
+                    placeholder="যেমন: ফেসবুক"
+                    className="w-full rounded-2xl border border-blue-300/25 bg-black/50 px-4 py-3 text-white outline-none transition placeholder:text-blue-100/35 focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-100">
+                    Name (English)
+                  </label>
+
+                  <input
+                    type="text"
+                    name="nameEn"
+                    value={form.nameEn}
+                    onChange={handleChange}
+                    placeholder="e.g. Facebook"
+                    className="w-full rounded-2xl border border-blue-300/25 bg-black/50 px-4 py-3 text-white outline-none transition placeholder:text-blue-100/35 focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -502,6 +549,13 @@ const AddSocialLink = () => {
                         </div>
 
                         <div className="space-y-4 p-4">
+                          <div className="rounded-2xl border border-blue-300/15 bg-[#2f79c9]/10 p-3">
+                            <p className="text-xs text-blue-100/60">Name</p>
+                            <p className="mt-1 text-sm font-medium text-white">
+                              {item?.name?.bn || "-"} / {item?.name?.en || "-"}
+                            </p>
+                          </div>
+
                           <div className="rounded-2xl border border-blue-300/15 bg-[#2f79c9]/10 p-3">
                             <p className="text-xs text-blue-100/60">URL</p>
                             <p className="mt-1 break-all text-sm font-medium text-white">

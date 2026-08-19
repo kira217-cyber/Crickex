@@ -221,6 +221,31 @@ const CreateAdmin = () => {
         path: "/forget-password-modal-setting",
       },
       { key: "social-link", label: "Social Link", path: "/social-link" },
+      {
+        key: "download-header",
+        label: "Download App",
+        path: "/download-header",
+      },
+      {
+        key: "check-in-reward",
+        label: "Check-In Reward",
+        path: "/check-in-reward",
+      },
+      {
+        key: "wheel-of-fortune-reward",
+        label: "Wheel Of Fortune Reward",
+        path: "/wheel-of-fortune-reward",
+      },
+      {
+        key: "wheel-terms-condition",
+        label: "Wheel Terms & Conditions",
+        path: "/wheel-terms-condition",
+      },
+      {
+        key: "reward-history",
+        label: "Reward History",
+        path: "/reward-history",
+      },
 
       {
         key: "client-aff-site-identify",

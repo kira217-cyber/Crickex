@@ -28,6 +28,7 @@ import {
   FaHotjar,
   FaGift,
   FaLink,
+  FaDownload,
 } from "react-icons/fa";
 import { FaShareAlt } from "react-icons/fa";
 import {
@@ -76,6 +77,7 @@ const Sidebar = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
+  const [rewardOpen, setRewardOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
   const [affiliateOpen, setAffiliateOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -251,41 +253,47 @@ const Sidebar = () => {
 
   const gameItems = useMemo(
     () => [
-      {
-        key: "add-category",
-        to: "/add-category",
-        icon: <MdCategory />,
-        text: "Add Category",
-      },
-      {
-        key: "add-provider",
-        to: "/add-provider",
-        icon: <FaServer />,
-        text: "Add Provider",
-      },
-      {
-        key: "add-game",
-        to: "/add-game",
+      // {
+      //   key: "add-category",
+      //   to: "/add-category",
+      //   icon: <MdCategory />,
+      //   text: "Add Category",
+      // },
+      // {
+      //   key: "add-provider",
+      //   to: "/add-provider",
+      //   icon: <FaServer />,
+      //   text: "Add Provider",
+      // },
+      // {
+      //   key: "add-game",
+      //   to: "/add-game",
+      //   icon: <MdGames />,
+      //   text: "Add Game",
+      // },
+      // {
+      //   key: "add-sport-game",
+      //   to: "/add-sport-game",
+      //   icon: <MdGames />,
+      //   text: "Add Sport Game",
+      // },
+      // {
+      //   key: "add-popular-game",
+      //   to: "/add-popular-game",
+      //   icon: <MdGames />,
+      //   text: "Add Popular Game",
+      // },
+      // {
+      //   key: "add-hot-game",
+      //   to: "/add-hot-game",
+      //   icon: <FaHotjar />,
+      //   text: "Add Hot Game",
+      // },
+     {
+        key: "add-game-api-key",
+        to: "/add-game-api-key",
         icon: <MdGames />,
-        text: "Add Game",
-      },
-      {
-        key: "add-sport-game",
-        to: "/add-sport-game",
-        icon: <MdGames />,
-        text: "Add Sport Game",
-      },
-      {
-        key: "add-popular-game",
-        to: "/add-popular-game",
-        icon: <MdGames />,
-        text: "Add Popular Game",
-      },
-      {
-        key: "add-hot-game",
-        to: "/add-hot-game",
-        icon: <FaHotjar />,
-        text: "Add Hot Game",
+        text: "Add Game API Key",
       },
       {
         key: "all-game-history",
@@ -395,6 +403,42 @@ const Sidebar = () => {
         icon: <FaShareAlt />,
         text: "Social Link",
       },
+      {
+        key: "download-header",
+        to: "/download-header",
+        icon: <FaDownload />,
+        text: "Download App",
+      },
+    ],
+    [],
+  );
+
+  const rewardItems = useMemo(
+    () => [
+      {
+        key: "check-in-reward",
+        to: "/check-in-reward",
+        icon: <FaGift />,
+        text: "Check-In",
+      },
+      {
+        key: "wheel-of-fortune-reward",
+        to: "/wheel-of-fortune-reward",
+        icon: <FaGift />,
+        text: "Wheel Of Fortune",
+      },
+      {
+        key: "wheel-terms-condition",
+        to: "/wheel-terms-condition",
+        icon: <FaGift />,
+        text: "Wheel Terms & Conditions",
+      },
+      {
+        key: "reward-history",
+        to: "/reward-history",
+        icon: <FaHistory />,
+        text: "Reward History",
+      },
     ],
     [],
   );
@@ -491,18 +535,6 @@ const Sidebar = () => {
         icon: <IoMenuOutline />,
         text: "Affiliate Navbar Setting",
       },
-      // {
-      //   key: "affiliate-color-control",
-      //   to: "/affiliate-color-control",
-      //   icon: <FaPalette />,
-      //   text: "Color Control",
-      // },
-      // {
-      //   key: "affiliate-slider-control",
-      //   to: "/affiliate-slider-control",
-      //   icon: <FaSlidersH />,
-      //   text: "Slider Control",
-      // },
     ],
     [],
   );
@@ -534,6 +566,11 @@ const Sidebar = () => {
     [gameItems, permissions, isMother],
   );
 
+  const visibleRewardItems = useMemo(
+    () => rewardItems.filter((item) => canAccess(item.key)),
+    [rewardItems, permissions, isMother],
+  );
+
   const visibleClientSiteItems = useMemo(
     () => clientSiteItems.filter((item) => canAccess(item.key)),
     [clientSiteItems, permissions, isMother],
@@ -549,6 +586,7 @@ const Sidebar = () => {
     if (!visibleDepositItems.length) setDepositOpen(false);
     if (!visibleWithdrawItems.length) setWithdrawOpen(false);
     if (!visibleGameItems.length) setGameOpen(false);
+    if (!visibleRewardItems.length) setRewardOpen(false);
     if (!visibleClientSiteItems.length) setClientOpen(false);
     if (!visibleAffiliateSiteItems.length) setAffiliateOpen(false);
   }, [
@@ -556,6 +594,7 @@ const Sidebar = () => {
     visibleDepositItems.length,
     visibleWithdrawItems.length,
     visibleGameItems.length,
+    visibleRewardItems.length,
     visibleClientSiteItems.length,
     visibleAffiliateSiteItems.length,
   ]);
@@ -685,6 +724,17 @@ const Sidebar = () => {
                   open={gameOpen}
                   setOpen={setGameOpen}
                   items={visibleGameItems}
+                  onClose={() => setOpen(false)}
+                />
+              )}
+
+              {visibleRewardItems.length > 0 && (
+                <DropdownSection
+                  title="Reward"
+                  icon={<FaGift />}
+                  open={rewardOpen}
+                  setOpen={setRewardOpen}
+                  items={visibleRewardItems}
                   onClose={() => setOpen(false)}
                 />
               )}

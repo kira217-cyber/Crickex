@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Eye,
   EyeOff,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 
 import { adminLogin } from "../../features/auth/authAPI";
@@ -24,11 +24,14 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const loading = useSelector(selectAuthLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const from = location.state?.from?.pathname || "/";
+
+  const autoLoginDoneRef = useRef(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,38 +41,23 @@ const Login = () => {
     password: "",
   });
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, from]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.email.trim()) {
-      return toast.error("Email is required");
+  const doLogin = async ({ email, password, silent = false }) => {
+    if (!email.trim()) {
+      if (!silent) toast.error("Email is required");
+      return;
     }
 
-    if (!formData.password.trim()) {
-      return toast.error("Password is required");
+    if (!password.trim()) {
+      if (!silent) toast.error("Password is required");
+      return;
     }
 
     try {
       setIsSubmitting(true);
 
       const data = await adminLogin({
-        email: formData.email.trim(),
-        password: formData.password,
+        email: email.trim(),
+        password,
       });
 
       if (!data?.token || !data?.admin?.email) {
@@ -91,6 +79,58 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  useEffect(() => {
+    const autoLogin = searchParams.get("autoLogin");
+    const email = searchParams.get("email") || "";
+    const password = searchParams.get("password") || "";
+
+    if (
+      autoLogin === "1" &&
+      email &&
+      password &&
+      !isAuthenticated &&
+      !autoLoginDoneRef.current
+    ) {
+      autoLoginDoneRef.current = true;
+
+      setFormData({
+        email,
+        password,
+      });
+
+      doLogin({
+        email,
+        password,
+        silent: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await doLogin({
+      email: formData.email,
+      password: formData.password,
+    });
   };
 
   const buttonLoading = loading || isSubmitting;
@@ -116,7 +156,7 @@ const Login = () => {
             </div>
 
             <h1 className="bg-gradient-to-r from-[#6fb5f4] via-[#1A79D3] to-[#3ea0ff] bg-clip-text text-3xl font-black text-transparent md:text-4xl">
-               Admin
+              Admin
             </h1>
 
             <p className="mt-2 text-sm text-slate-300">

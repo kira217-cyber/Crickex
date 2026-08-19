@@ -212,6 +212,7 @@ const SingleUserGameHistory = () => {
               <thead className="bg-gradient-to-r from-[#1A79D3]/35 to-[#3ea0ff]/20 text-white">
                 <tr>
                   <Th>Date</Th>
+                  <Th>Game Name</Th>
                   <Th>Game UID</Th>
                   <Th>Round</Th>
                   <Th>Serial</Th>
@@ -227,13 +228,13 @@ const SingleUserGameHistory = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="10" className="p-6 text-center text-slate-300">
+                    <td colSpan="11" className="p-6 text-center text-slate-300">
                       Loading game history...
                     </td>
                   </tr>
                 ) : histories.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="p-6 text-center text-slate-300">
+                    <td colSpan="11" className="p-6 text-center text-slate-300">
                       No game history found.
                     </td>
                   </tr>
@@ -244,6 +245,9 @@ const SingleUserGameHistory = () => {
                       className="border-t border-[#1A79D3]/10 transition hover:bg-[#1A79D3]/10"
                     >
                       <Td>{formatDate(item.createdAt)}</Td>
+                      <Td className="font-semibold text-white">
+                        {item.game_name || "—"}
+                      </Td>
                       <Td>{item.game_uid || "—"}</Td>
                       <Td>{item.game_round || "—"}</Td>
                       <Td>{item.serial_number || "—"}</Td>

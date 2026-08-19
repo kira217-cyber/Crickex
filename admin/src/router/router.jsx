@@ -28,11 +28,15 @@ import AutoDepositHistory from "../pages/AutoDepositHistory/AutoDepositHistory";
 import AddWithdraw from "../pages/AddWithdraw/AddWithdraw";
 import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
 import WithdrawRequestDetails from "../pages/WithdrawRequestDetails/WithdrawRequestDetails";
-import GameCategory from "../pages/GameCategory/GameCategory";
-import GameProvider from "../pages/GameProvider/GameProvider";
-import Game from "../pages/Game/Game";
-import Sport from "../pages/Sport/Sport";
-import AddPopularGame from "../pages/AddPopularGame/AddPopularGame";
+
+// game router
+// import GameCategory from "../pages/GameCategory/GameCategory";
+// import GameProvider from "../pages/GameProvider/GameProvider";
+// import Game from "../pages/Game/Game";
+// import Sport from "../pages/Sport/Sport";
+// import AddPopularGame from "../pages/AddPopularGame/AddPopularGame";
+// import AddHotGame from "../pages/AddHotGame/AddHotGame";
+
 import AllGameHistory from "../pages/AllGameHistory/AllGameHistory";
 import AddPromotion from "../pages/AddPromotion/AddPromotion";
 import AddFavouriteBanner from "../pages/AddFavouriteBanner/AddFavouriteBanner";
@@ -40,7 +44,7 @@ import AddSlider from "../pages/AddSlider/AddSlider";
 import AddNotice from "../pages/AddNotice/AddNotice";
 import SiteIdentify from "../pages/SiteIdentify/SiteIdentify";
 import AffSiteIdentify from "../pages/AffSiteIdentify/AffSiteIdentify";
-import AddHotGame from "../pages/AddHotGame/AddHotGame";
+
 import FooterSetting from "../pages/FooterSetting/FooterSetting";
 import AllTurnOverHistory from "../pages/AllTurnOverHistory/AllTurnOverHistory";
 import NavbarColorSetting from "../pages/NavbarColorSetting/NavbarColorSetting";
@@ -55,6 +59,11 @@ import BottomNavigationColorSetting from "../pages/BottomNavigationColorSetting/
 import HomePageContentColorSetting from "../pages/HomePageContentColorSetting/HomePageContentColorSetting";
 import ForgetPasswordModalSetting from "../pages/ForgetPasswordModalSetting/ForgetPasswordModalSetting";
 import AddSocialLink from "../pages/AddSocialLink/AddSocialLink";
+import CheckInReward from "../pages/CheckInReward/CheckInReward";
+import WheelOfFortuneReward from "../pages/WheelOfFortuneReward/WheelOfFortuneReward";
+import WheelTermsCondition from "../pages/WheelTermsCondition/WheelTermsCondition";
+import RewardHistory from "../pages/RewardHistory/RewardHistory";
+import DownloadHeaderController from "../pages/DownloadHeaderController/DownloadHeaderController";
 import AffiliateRegisterSetting from "../pages/AffiliateRegisterSetting/AffiliateRegisterSetting";
 import AffiliateLoginSetting from "../pages/AffiliateLoginSetting/AffiliateLoginSetting";
 import AffiliateSliderSetting from "../pages/AffiliateSliderSetting/AffiliateSliderSetting";
@@ -69,6 +78,7 @@ import AffiliateReviewSetting from "../pages/AffiliateReviewSetting/AffiliateRev
 import AffiliateFooterSetting from "../pages/AffiliateFooterSetting/AffiliateFooterSetting";
 import AffiliateNavbarSetting from "../pages/AffiliateNavbarSetting/AffiliateNavbarSetting";
 import AddAffiliateSocialLink from "../pages/AddAffiliateSocialLink/AddAffiliateSocialLink";
+import AddGameApiKey from "../pages/AddGameApiKey/AddGameApiKey";
 
 export const routes = createBrowserRouter([
   {
@@ -265,51 +275,59 @@ export const routes = createBrowserRouter([
         ),
       },
 
+      // {
+      //   path: "add-category",
+      //   element: (
+      //     <PrivateRoute permKey="add-category">
+      //       <GameCategory />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "add-provider",
+      //   element: (
+      //     <PrivateRoute permKey="add-provider">
+      //       <GameProvider />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "add-game",
+      //   element: (
+      //     <PrivateRoute permKey="add-game">
+      //       <Game />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "add-sport-game",
+      //   element: (
+      //     <PrivateRoute permKey="add-sport-game">
+      //       <Sport />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "add-popular-game",
+      //   element: (
+      //     <PrivateRoute permKey="add-popular-game">
+      //       <AddPopularGame />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "add-hot-game",
+      //   element: (
+      //     <PrivateRoute permKey="add-hot-game">
+      //       <AddHotGame />
+      //     </PrivateRoute>
+      //   ),
+      // },
       {
-        path: "add-category",
+        path: "add-game-api-key",
         element: (
-          <PrivateRoute permKey="add-category">
-            <GameCategory />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "add-provider",
-        element: (
-          <PrivateRoute permKey="add-provider">
-            <GameProvider />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "add-game",
-        element: (
-          <PrivateRoute permKey="add-game">
-            <Game />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "add-sport-game",
-        element: (
-          <PrivateRoute permKey="add-sport-game">
-            <Sport />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "add-popular-game",
-        element: (
-          <PrivateRoute permKey="add-popular-game">
-            <AddPopularGame />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "add-hot-game",
-        element: (
-          <PrivateRoute permKey="add-hot-game">
-            <AddHotGame />
+          <PrivateRoute permKey="add-game-api-key">
+            <AddGameApiKey />
           </PrivateRoute>
         ),
       },
@@ -463,6 +481,46 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="social-link">
             <AddSocialLink />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "download-header",
+        element: (
+          <PrivateRoute permKey="download-header">
+            <DownloadHeaderController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "check-in-reward",
+        element: (
+          <PrivateRoute permKey="check-in-reward">
+            <CheckInReward />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "wheel-of-fortune-reward",
+        element: (
+          <PrivateRoute permKey="wheel-of-fortune-reward">
+            <WheelOfFortuneReward />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "wheel-terms-condition",
+        element: (
+          <PrivateRoute permKey="wheel-terms-condition">
+            <WheelTermsCondition />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "reward-history",
+        element: (
+          <PrivateRoute permKey="reward-history">
+            <RewardHistory />
           </PrivateRoute>
         ),
       },

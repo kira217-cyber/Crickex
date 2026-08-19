@@ -337,6 +337,7 @@ const AllGameHistory = () => {
                     "Time",
                     "User",
                     "Gameplay",
+                    "Game Name",
                     "Game UID",
                     "Round",
                     "Serial",
@@ -361,7 +362,7 @@ const AllGameHistory = () => {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan="12"
+                      colSpan="13"
                       className="px-5 py-10 text-center text-slate-300"
                     >
                       Loading game history...
@@ -370,7 +371,7 @@ const AllGameHistory = () => {
                 ) : isError ? (
                   <tr>
                     <td
-                      colSpan="12"
+                      colSpan="13"
                       className="px-5 py-10 text-center text-red-300"
                     >
                       Failed to load game history.
@@ -379,7 +380,7 @@ const AllGameHistory = () => {
                 ) : rows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="12"
+                      colSpan="13"
                       className="px-5 py-10 text-center text-slate-300"
                     >
                       No game history found.
@@ -426,6 +427,10 @@ const AllGameHistory = () => {
                         <div className="mt-1 text-xs text-slate-400">
                           {x.member_account || "-"}
                         </div>
+                      </td>
+
+                      <td className="max-w-[170px] break-all px-4 py-3 text-sm font-bold text-white">
+                        {x.game_name || "-"}
                       </td>
 
                       <td className="max-w-[170px] break-all px-4 py-3 text-xs text-slate-300">
@@ -518,8 +523,14 @@ const AllGameHistory = () => {
                   </div>
 
                   <div className="mt-2 break-all text-[14px] font-black text-white">
-                    {x.game_uid || "-"}
+                    {x.game_name || x.game_uid || "-"}
                   </div>
+
+                  {x.game_name && (
+                    <div className="mt-0.5 break-all text-[11px] text-slate-400">
+                      {x.game_uid || "-"}
+                    </div>
+                  )}
 
                   <button
                     type="button"
