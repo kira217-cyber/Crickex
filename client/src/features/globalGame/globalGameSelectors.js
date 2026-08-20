@@ -25,6 +25,12 @@ export const selectGameListLoading = (state) =>
   state.globalGame.gameListLoading;
 export const selectGameListError = (state) => state.globalGame.gameListError;
 
+export const selectSearchCatalog = (state) => state.globalGame.searchCatalog;
+export const selectSearchCatalogLoading = (state) =>
+  state.globalGame.searchCatalogLoading;
+export const selectSearchCatalogLoaded = (state) =>
+  state.globalGame.searchCatalogLoaded;
+
 export const selectPlayGame = (state) => state.globalGame.playGame;
 export const selectPlayGameLoading = (state) =>
   state.globalGame.playGameLoading;

@@ -6,6 +6,7 @@ import { useLanguage } from "../../Context/LanguageProvider";
 import {
   fetchGlobalGameData,
   fetchGameList,
+  fetchSearchCatalog,
 } from "../../features/globalGame/globalGameSlice";
 import {
   selectGameList,
@@ -15,6 +16,9 @@ import {
   selectGameCategories,
   selectGlobalGameLoading,
   selectGlobalGameLoaded,
+  selectSearchCatalog,
+  selectSearchCatalogLoading,
+  selectSearchCatalogLoaded,
 } from "../../features/globalGame/globalGameSelectors";
 import { selectHomePageContentColorSetting } from "../../features/global/globalSelectors";
 import JackpotBanner from "../../components/JackpotBanner/JackpotBanner";
@@ -81,6 +85,10 @@ const Games = () => {
   const loading = useSelector(selectGlobalGameLoading);
   const loaded = useSelector(selectGlobalGameLoaded);
 
+  const searchCatalog = useSelector(selectSearchCatalog);
+  const searchCatalogLoading = useSelector(selectSearchCatalogLoading);
+  const searchCatalogLoaded = useSelector(selectSearchCatalogLoaded);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -106,6 +114,29 @@ const Games = () => {
     );
   }, [dispatch, categoryId, providerDbId, page]);
 
+  const isSearching = Boolean(search.trim());
+
+  // Full catalog is only fetched the first time the user actually searches
+  // (once categories have loaded, since the fetch runs one request per
+  // category), then reused for every keystroke so search matches every
+  // game site-wide instead of just the currently loaded category page.
+  useEffect(() => {
+    if (
+      isSearching &&
+      loaded &&
+      !searchCatalogLoaded &&
+      !searchCatalogLoading
+    ) {
+      dispatch(fetchSearchCatalog());
+    }
+  }, [
+    isSearching,
+    loaded,
+    searchCatalogLoaded,
+    searchCatalogLoading,
+    dispatch,
+  ]);
+
   const filterKey = `${categoryId}|${providerDbId}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
 
@@ -127,16 +158,22 @@ const Games = () => {
     ? category?.categoryName?.bn || category?.categoryTitle?.bn || "গেমস"
     : category?.categoryName?.en || category?.categoryTitle?.en || "Games";
 
-  // categoryId/providerDbId filtering now happens server-side (fetchGameList
-  // above); this only refines the already-fetched page by filter/search.
+  // categoryId/providerDbId filtering happens server-side for the normal
+  // browse view (fetchGameList above). While searching, match against the
+  // full site-wide catalog (searchCatalog) instead, so results aren't
+  // limited to the currently loaded category page.
   const filteredGames = useMemo(() => {
-    let list = Array.isArray(games) ? games : [];
+    let list = isSearching
+      ? searchCatalog
+      : Array.isArray(games)
+        ? games
+        : [];
 
     if (filter) {
       list = list.filter((game) => Boolean(game?.[filter]));
     }
 
-    if (search.trim()) {
+    if (isSearching) {
       const q = search.trim().toLowerCase();
 
       list = list.filter((game) => {
@@ -158,10 +195,10 @@ const Games = () => {
     }
 
     return list;
-  }, [games, filter, search]);
+  }, [games, searchCatalog, isSearching, filter, search]);
 
-  const totalPages = gameListMeta?.totalPages || 1;
-  const totalGames = gameListMeta?.total || 0;
+  const totalPages = isSearching ? 1 : gameListMeta?.totalPages || 1;
+  const totalGames = isSearching ? filteredGames.length : gameListMeta?.total || 0;
   const paginatedGames = filteredGames;
 
   const pageNumbers = useMemo(() => {
@@ -206,7 +243,9 @@ const Games = () => {
   };
 
   const showProvidersSkeleton = loading || !loaded;
-  const showGamesSkeleton = gameListLoading;
+  const showGamesSkeleton = isSearching
+    ? !searchCatalogLoaded
+    : gameListLoading;
 
   return (
     <section
@@ -337,6 +376,17 @@ const Games = () => {
               e.currentTarget.style.borderColor = colors.inputBorder;
             }}
           />
+
+          {isSearching && searchCatalogLoading && !searchCatalogLoaded && (
+            <p
+              className="mt-1 text-[11px]"
+              style={{ color: colors.emptyText }}
+            >
+              {isBangla
+                ? "সব গেম লোড হচ্ছে... (শুধু প্রথমবার)"
+                : "Loading all games... (first time only)"}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-[8px] md:grid-cols-6 md:gap-[16px]">
@@ -428,7 +478,16 @@ const Games = () => {
           </div>
         )}
 
-        {!showGamesSkeleton && totalPages > 1 && (
+        {!showGamesSkeleton && isSearching && paginatedGames.length > 0 && (
+          <div
+            className="mt-3 text-center text-[12px]"
+            style={{ color: colors.emptyText }}
+          >
+            {totalGames} {isBangla ? "টি গেম পাওয়া গেছে" : "games found"}
+          </div>
+        )}
+
+        {!showGamesSkeleton && !isSearching && totalPages > 1 && (
           <div className="mt-5">
             <div className="flex flex-wrap items-center justify-center gap-[6px]">
               <button
