@@ -36,9 +36,11 @@ import {
 } from "../../features/global/globalSelectors";
 
 import AutoDepositModal from "../AutoDepositModal/AutoDepositModal";
+import AutoWithdrawModal from "../AutoWithdrawModal/AutoWithdrawModal";
 import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
 import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
 import AutoDepositModalHistory from "../AutoDepositModalHistory/AutoDepositModalHistory";
+import AutoWithdrawModalHistory from "../AutoWithdrawModalHistory/AutoWithdrawModalHistory";
 import WithdrawHistoryModal from "../WithdrawHistoryModal/WithdrawHistoryModal";
 import TurnoverHistoryModal from "../TurnoverHistoryModal/TurnoverHistoryModal";
 import BetHistoryModal from "../BetHistoryModal/BetHistoryModal";
@@ -189,6 +191,10 @@ const AccountModal = ({
     autoDepositHistory: isBangla
       ? "অটো ডিপোজিট হিস্টোরি"
       : "Auto Deposit History",
+    autoWithdraw: isBangla ? "অটো উইথড্র" : "Auto Withdraw",
+    autoWithdrawHistory: isBangla
+      ? "অটো উইথড্র হিস্টোরি"
+      : "Auto Withdraw History",
     myPL: isBangla ? "অটো ডিপোজিট হিস্টোরি" : "Auto Deposit History",
     turnover: isBangla ? "টার্নওভার" : "Turnover",
     referBonus: isBangla ? "রেফার বোনাস" : "Refer Bonus",
@@ -350,6 +356,11 @@ const AccountModal = ({
         action: () => setActiveModal("autoDepositHistory"),
       },
       {
+        title: t.autoWithdrawHistory,
+        icon: Landmark,
+        action: () => setActiveModal("autoWithdrawHistory"),
+      },
+      {
         title: t.turnover,
         icon: TrendingUp,
         action: () => setActiveModal("turnoverHistory"),
@@ -360,7 +371,7 @@ const AccountModal = ({
         action: () => setActiveModal("referBonus"),
       },
     ],
-    [t.autoDepositHistory, t.turnover, t.referBonus],
+    [t.autoDepositHistory, t.autoWithdrawHistory, t.turnover, t.referBonus],
   );
 
   const historyItems = useMemo(
@@ -824,6 +835,15 @@ const AccountModal = ({
         onDepositClick={() => setActiveModal("depositFunds")}
       />
 
+      <AutoWithdrawModal
+        open={activeModal === "autoWithdraw"}
+        onClose={() => setActiveModal("")}
+        onWithdrawClick={() => {
+          setActiveModal("");
+          handleWithdrawClick();
+        }}
+      />
+
       <DepositFundsModal
         open={activeModal === "depositFunds"}
         onClose={() => setActiveModal("")}
@@ -857,6 +877,17 @@ const AccountModal = ({
       >
         <AutoDepositModalHistory
           onBackToDeposit={() => setActiveModal("autoDeposit")}
+        />
+      </HistoryShellModal>
+
+      <HistoryShellModal
+        open={activeModal === "autoWithdrawHistory"}
+        title={t.autoWithdrawHistory}
+        onClose={() => setActiveModal("")}
+        colors={historyColors}
+      >
+        <AutoWithdrawModalHistory
+          onBackToWithdraw={() => setActiveModal("autoWithdraw")}
         />
       </HistoryShellModal>
 

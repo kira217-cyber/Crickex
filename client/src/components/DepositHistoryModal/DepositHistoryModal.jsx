@@ -20,6 +20,7 @@ import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import AutoDepositModalHistory from "../AutoDepositModalHistory/AutoDepositModalHistory";
+import AutoWithdrawModalHistory from "../AutoWithdrawModalHistory/AutoWithdrawModalHistory";
 import WithdrawHistoryModal from "../WithdrawHistoryModal/WithdrawHistoryModal";
 import TurnoverHistoryModal from "../TurnoverHistoryModal/TurnoverHistoryModal";
 import BetHistoryModal from "../BetHistoryModal/BetHistoryModal";
@@ -162,6 +163,9 @@ const DepositHistoryModal = ({ open, onClose, onBackToDeposit }) => {
     autoDepositHistory: isBangla
       ? "অটো ডিপোজিট হিস্টোরি"
       : "Auto Deposit History",
+    autoWithdrawHistory: isBangla
+      ? "অটো উইথড্র হিস্টোরি"
+      : "Auto Withdraw History",
     turnoverHistory: isBangla ? "টার্নওভার হিস্টোরি" : "Turnover History",
 
     subtitle: isBangla
@@ -217,6 +221,11 @@ const DepositHistoryModal = ({ open, onClose, onBackToDeposit }) => {
       key: "autoDeposit",
       label: t.autoDepositHistory,
       icon: <Landmark size={16} />,
+    },
+    {
+      key: "autoWithdraw",
+      label: t.autoWithdrawHistory,
+      icon: <BanknoteArrowDown size={16} />,
     },
     {
       key: "turnover",
@@ -761,6 +770,12 @@ const DepositHistoryModal = ({ open, onClose, onBackToDeposit }) => {
                 onBackToDeposit={() => {
                   onClose?.();
                   onBackToDeposit?.();
+                }}
+              />
+            ) : activeTab === "autoWithdraw" ? (
+              <AutoWithdrawModalHistory
+                onBackToWithdraw={() => {
+                  onClose?.();
                 }}
               />
             ) : activeTab === "withdraw" ? (

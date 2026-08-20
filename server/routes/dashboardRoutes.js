@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import DepositRequest from "../models/DepositRequest.js";
 import AutoDeposit from "../models/AutoDeposit.js";
 import WithdrawRequest from "../models/WithdrawRequest.js";
+import AutoWithdraw from "../models/AutoWithdraw.js";
 import Game from "../models/Game.js";
 import { protectAdmin } from "../middleware/protectAdmin.js";
 import { successResponse, errorResponse } from "../utils/response.js";
@@ -47,6 +48,9 @@ router.get("/summary", protectAdmin, async (req, res) => {
       pendingWithdrawRequest,
       approvedWithdrawAmount,
 
+      reviewAutoWithdrawCount,
+      reviewAutoWithdrawAmount,
+
       latestUsers,
       latestDeposits,
       latestAutoDeposits,
@@ -68,6 +72,9 @@ router.get("/summary", protectAdmin, async (req, res) => {
 
       WithdrawRequest.countDocuments({ status: "pending" }),
       sumField(WithdrawRequest, { status: "approved" }, "amount"),
+
+      AutoWithdraw.countDocuments({ status: "REVIEW" }),
+      sumField(AutoWithdraw, { status: "REVIEW" }, "amount"),
 
       User.find({})
         .sort({ createdAt: -1 })
@@ -113,6 +120,8 @@ router.get("/summary", protectAdmin, async (req, res) => {
         allWithdrawBalances: approvedWithdrawAmount,
         pendingDepositRequest: pendingDepositRequest + pendingAutoDepositCount,
         pendingWithdrawRequest,
+        reviewAutoWithdrawRequest: reviewAutoWithdrawCount,
+        reviewAutoWithdrawAmount,
       },
 
       chart: {

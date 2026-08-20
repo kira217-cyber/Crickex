@@ -87,7 +87,7 @@ const walletTypes = [
   // { key: "merchant", bn: "মার্চেন্ট", en: "Merchant" },
 ];
 
-const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
+const WithdrawModal = ({ open, onClose, onHistoryClick, onAutoWithdrawClick }) => {
   const { isBangla, language } = useLanguage();
 
   const isAuthenticated = useSelector(selectIsAuth);
@@ -127,7 +127,7 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
   const t = {
     title: isBangla ? "উইথড্র" : "Withdraw",
     history: isBangla ? "হিস্টোরি" : "History",
-    deposit: isBangla ? "ডিপোজিট" : "Deposit",
+    autoWithdraw: isBangla ? "অটো উইথড্র" : "Auto Withdraw",
     loading: isBangla ? "লোড হচ্ছে..." : "Loading...",
     loginRequired: isBangla
       ? "উইথড্র করতে আগে লগইন করুন"
@@ -502,14 +502,14 @@ const WithdrawModal = ({ open, onClose, onHistoryClick, onDepositClick }) => {
             >
               <button
                 type="button"
-                onClick={onDepositClick}
+                onClick={onAutoWithdrawClick}
                 className="h-[34px] flex-1 cursor-pointer rounded-[3px] text-[13px] font-bold"
                 style={{
                   backgroundColor: colors.inactiveTabBg,
                   color: colors.inactiveTabText,
                 }}
               >
-                {t.deposit}
+                {t.autoWithdraw}
               </button>
 
               <button

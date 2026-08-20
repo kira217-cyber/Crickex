@@ -32,6 +32,7 @@ import api from "../../api/axios";
 import RegisterModal from "../RegisterModal/RegisterModal";
 import LoginModal from "../LoginModal/LoginModal";
 import AutoDepositModal from "../AutoDepositModal/AutoDepositModal";
+import AutoWithdrawModal from "../AutoWithdrawModal/AutoWithdrawModal";
 import DepositFundsModal from "../DepositFundsModal/DepositFundsModal";
 import DepositConfirmModal from "../DepositConfirmModal/DepositConfirmModal";
 import DepositHistoryModal from "../DepositHistoryModal/DepositHistoryModal";
@@ -124,6 +125,7 @@ const Navber = ({ setOpen, desktopOpen }) => {
   const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
   const [openPasswordChange, setOpenPasswordChange] = useState(false);
   const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [openAutoWithdraw, setOpenAutoWithdraw] = useState(false);
   const [openForgetPassword, setOpenForgetPassword] = useState(false);
   const [openReferRedeem, setOpenReferRedeem] = useState(false);
 
@@ -182,6 +184,7 @@ const Navber = ({ setOpen, desktopOpen }) => {
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
     setOpenWithdraw(false);
+    setOpenAutoWithdraw(false);
     setOpenForgetPassword(false);
     setOpenReferRedeem(false);
   };
@@ -305,6 +308,19 @@ const Navber = ({ setOpen, desktopOpen }) => {
     setOpenWithdraw(true);
   };
 
+  const openAutoWithdrawModal = () => {
+    setOpenProfileMenu(false);
+
+    if (!isAuth) {
+      closeAllModals();
+      setOpenLogin(true);
+      return;
+    }
+
+    closeAllModals();
+    setOpenAutoWithdraw(true);
+  };
+
   const texts = {
     signup: isBangla ? "সাইন আপ" : "Sign Up",
     login: isBangla ? "লগইন" : "Login",
@@ -317,6 +333,7 @@ const Navber = ({ setOpen, desktopOpen }) => {
     vipPoints: isBangla ? "ভিআইপি পয়েন্ট" : "VIP Points",
     bonusWallet: isBangla ? "বোনাস ওয়ালেট" : "Bonus Wallet",
     withdrawal: isBangla ? "উইথড্রয়াল" : "Withdrawal",
+    autoWithdrawal: isBangla ? "অটো উইথড্র" : "Auto Withdraw",
     referBonus: isBangla ? "রেফার বোনাস" : "Refer Bonus",
     transaction: isBangla ? "ট্রানজেকশন রেকর্ডস" : "Transaction Records",
     personalInfo: isBangla ? "পার্সোনাল ইনফো" : "Personal Info",
@@ -383,6 +400,7 @@ const Navber = ({ setOpen, desktopOpen }) => {
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
     setOpenWithdraw(false);
+    setOpenAutoWithdraw(false);
     setOpenForgetPassword(false);
     setOpenReferRedeem(false);
 
@@ -909,6 +927,15 @@ const Navber = ({ setOpen, desktopOpen }) => {
         onClose={() => setOpenPasswordChange(false)}
       />
 
+      <AutoWithdrawModal
+        open={openAutoWithdraw}
+        onClose={() => setOpenAutoWithdraw(false)}
+        onWithdrawClick={() => {
+          setOpenAutoWithdraw(false);
+          setOpenWithdraw(true);
+        }}
+      />
+
       <AutoDepositModal
         open={openAutoDeposit}
         onClose={() => setOpenAutoDeposit(false)}
@@ -954,9 +981,9 @@ const Navber = ({ setOpen, desktopOpen }) => {
       <WithdrawModal
         open={openWithdraw}
         onClose={() => setOpenWithdraw(false)}
-        onDepositClick={() => {
+        onAutoWithdrawClick={() => {
           setOpenWithdraw(false);
-          setOpenAutoDeposit(true);
+          setOpenAutoWithdraw(true);
         }}
       />
     </>

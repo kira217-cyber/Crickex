@@ -241,6 +241,18 @@ const Sidebar = () => {
         icon: <FaClipboardList />,
         text: "Aff Withdraw Request",
       },
+      {
+        key: "auto-withdraw-settings",
+        to: "/auto-withdraw-settings",
+        icon: <FaMoneyBillWave />,
+        text: "Auto Withdraw",
+      },
+      {
+        key: "auto-withdraw-history",
+        to: "/auto-withdraw-history",
+        icon: <FaReceipt />,
+        text: "Auto Withdraw History",
+      },
       // {
       //   key: "withdraw-history",
       //   to: "/withdraw-history",

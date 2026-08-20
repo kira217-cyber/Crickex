@@ -118,6 +118,16 @@ const CreateAdmin = () => {
         label: "Aff Withdraw Request Details",
         path: "/aff-withdraw-requests-details/:id",
       },
+      {
+        key: "auto-withdraw-settings",
+        label: "Auto Withdraw",
+        path: "/auto-withdraw-settings",
+      },
+      {
+        key: "auto-withdraw-history",
+        label: "Auto Withdraw History",
+        path: "/auto-withdraw-history",
+      },
 
       { key: "add-category", label: "Add Category", path: "/add-category" },
       { key: "add-provider", label: "Add Provider", path: "/add-provider" },

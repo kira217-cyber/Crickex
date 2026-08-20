@@ -18,6 +18,7 @@ import {
 import { api } from "../../api/axios";
 import SingleUserManualDepositHistory from "../../components/SingleUserManualDepositHistory/SingleUserManualDepositHistory";
 import SingleUserAutoDepositHistory from "../../components/SingleUserAutoDepositHistory/SingleUserAutoDepositHistory";
+import SingleUserAutoWithdrawHistory from "../../components/SingleUserAutoWithdrawHistory/SingleUserAutoWithdrawHistory";
 import SingleUserWithdrawHistory from "../../components/SingleUserWithdrawHistory/SingleUserWithdrawHistory";
 import SingleUserGameHistory from "../../components/SingleUserGameHistory/SingleUserGameHistory";
 import SingleUserTurnOverHistory from "../../components/SingleUserTurnOverHistory/SingleUserTurnOverHistory";
@@ -674,6 +675,8 @@ const SingleUserDetails = () => {
       <SingleUserGameHistory userId={id} />
       <SingleUserManualDepositHistory userId={id} />
       <SingleUserAutoDepositHistory userId={id} />
+
+      <SingleUserAutoWithdrawHistory userId={id} />
       <SingleUserTurnOverHistory userId={id} />
       <SingleUserWithdrawHistory userId={id} />
     </>

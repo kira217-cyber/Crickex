@@ -5,6 +5,7 @@ import {
   FaUserFriends,
   FaGamepad,
   FaWallet,
+  FaMoneyCheckAlt,
   FaHourglassHalf,
   FaArrowCircleDown,
   FaArrowCircleUp,
@@ -41,6 +42,8 @@ const Dashboard = () => {
       pendingDepositRequest: 0,
       allWithdrawBalances: 0,
       pendingWithdrawRequest: 0,
+      reviewAutoWithdrawRequest: 0,
+      reviewAutoWithdrawAmount: 0,
       allGames: 0,
       activeGames: 0,
     },
@@ -129,6 +132,14 @@ const Dashboard = () => {
         value: c.pendingWithdrawRequest || 0,
         icon: <FaWallet />,
         to: "/withdraw-requests",
+      },
+      {
+        title: "Auto Withdraw Review",
+        value: c.reviewAutoWithdrawRequest || 0,
+        icon: <FaMoneyCheckAlt />,
+        to: "/auto-withdraw-history",
+        highlight: (c.reviewAutoWithdrawRequest || 0) > 0,
+        sub: money(c.reviewAutoWithdrawAmount),
       },
       {
         title: "All Games",
@@ -249,7 +260,11 @@ const Dashboard = () => {
                 key={card.title}
                 type="button"
                 onClick={() => navigate(card.to)}
-                className="cursor-pointer text-left rounded-[28px] border border-[#1A79D3]/20 bg-slate-50 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#1A79D3]/70 hover:shadow-[0_0_35px_rgba(26,121,211,0.22)]"
+                className={`cursor-pointer text-left rounded-[28px] border bg-slate-50 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_35px_rgba(26,121,211,0.22)] ${
+                  card.highlight
+                    ? "border-amber-400/70 ring-2 ring-amber-300/50 hover:border-amber-400"
+                    : "border-[#1A79D3]/20 hover:border-[#1A79D3]/70"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -259,14 +274,32 @@ const Dashboard = () => {
                     <h3 className="mt-3 text-2xl md:text-3xl font-black text-slate-800 break-words">
                       {card.value}
                     </h3>
+
+                    {card.sub ? (
+                      <p className="mt-2 text-xs font-bold text-slate-500">
+                        {card.sub}
+                      </p>
+                    ) : null}
                   </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] flex items-center justify-center text-white text-2xl shadow-[0_12px_35px_rgba(26,121,211,0.28)]">
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl ${
+                      card.highlight
+                        ? "bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 shadow-[0_12px_35px_rgba(245,158,11,0.35)]"
+                        : "bg-gradient-to-br from-[#3ea0ff] via-[#1A79D3] to-[#0d5fa8] shadow-[0_12px_35px_rgba(26,121,211,0.28)]"
+                    }`}
+                  >
                     {card.icon}
                   </div>
                 </div>
 
-                <div className="mt-5 text-xs text-[#6fb5f4]">Click to open</div>
+                <div
+                  className={`mt-5 text-xs font-bold ${
+                    card.highlight ? "text-amber-600" : "text-[#6fb5f4]"
+                  }`}
+                >
+                  {card.highlight ? "Waiting for review — click to open" : "Click to open"}
+                </div>
               </button>
             ))}
           </div>

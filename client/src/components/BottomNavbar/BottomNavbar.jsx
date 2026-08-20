@@ -27,6 +27,7 @@ import AccountModal from "../AccountModal/AccountModal";
 import PersonalInfoModal from "../PersonalInfoModal/PersonalInfoModal";
 import PasswordChangeModal from "../PasswordChangeModal/PasswordChangeModal";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
+import AutoWithdrawModal from "../AutoWithdrawModal/AutoWithdrawModal";
 import ForgetPasswordModal from "../ForgetPasswordModal/ForgetPasswordModal";
 
 const flagUrl = {
@@ -109,6 +110,7 @@ const BottomNavbar = () => {
   const [openDepositConfirm, setOpenDepositConfirm] = useState(false);
   const [openDepositHistory, setOpenDepositHistory] = useState(false);
   const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [openAutoWithdraw, setOpenAutoWithdraw] = useState(false);
   const [openPersonalInfo, setOpenPersonalInfo] = useState(false);
   const [openPasswordChange, setOpenPasswordChange] = useState(false);
   const [openForgetPassword, setOpenForgetPassword] = useState(false);
@@ -129,6 +131,7 @@ const BottomNavbar = () => {
     setOpenDepositConfirm(false);
     setOpenDepositHistory(false);
     setOpenWithdraw(false);
+    setOpenAutoWithdraw(false);
     setOpenPersonalInfo(false);
     setOpenPasswordChange(false);
     setOpenForgetPassword(false);
@@ -578,9 +581,18 @@ const BottomNavbar = () => {
       <WithdrawModal
         open={openWithdraw}
         onClose={() => setOpenWithdraw(false)}
-        onDepositClick={() => {
+        onAutoWithdrawClick={() => {
           closeChildModals();
-          setOpenDepositFunds(true);
+          setOpenAutoWithdraw(true);
+        }}
+      />
+
+      <AutoWithdrawModal
+        open={openAutoWithdraw}
+        onClose={() => setOpenAutoWithdraw(false)}
+        onWithdrawClick={() => {
+          closeChildModals();
+          setOpenWithdraw(true);
         }}
       />
 
