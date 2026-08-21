@@ -10,6 +10,13 @@ import PopularGame from "../models/PopularGame.js";
 import Sport from "../models/Sport.js";
 
 import { successResponse, errorResponse } from "../utils/response.js";
+import {
+  getHiddenGameUIds,
+  isListableGame,
+  isListableFeature,
+  getFilteredCatalog,
+  paginate,
+} from "../services/gameVisibilityService.js";
 
 const router = express.Router();
 
@@ -343,7 +350,17 @@ router.get("/game-data", async (req, res) => {
     });
 
     const reducedGames = Array.from(neededGames.values());
-    const formattedGames = await attachOracleDataToGames(req, reducedGames);
+    const enrichedGames = await attachOracleDataToGames(req, reducedGames);
+
+    // Name and artwork only exist after Oracle enrichment, so the filter runs
+    // here rather than before the per-category cap. A category may therefore
+    // show slightly fewer than INITIAL_LIST_LIMIT games on first paint; the
+    // rest arrive through /game-list, which filters the same way.
+    const hiddenGameUIds = await getHiddenGameUIds();
+    const formattedGames = enrichedGames.filter((game) =>
+      isListableGame(game, hiddenGameUIds),
+    );
+
     const gameMap = createGameMap(formattedGames);
 
     const gamesByCategory = {};
@@ -395,15 +412,19 @@ router.get("/game-data", async (req, res) => {
       ),
       games: formattedGames,
 
-      hotGames: cappedHotGames.map((item) => {
-        const key = String(item.gameId || "");
-        return formatHotGame(req, item, gameMap[key] || null);
-      }),
+      hotGames: cappedHotGames
+        .map((item) => {
+          const key = String(item.gameId || "");
+          return formatHotGame(req, item, gameMap[key] || null);
+        })
+        .filter((item) => isListableFeature(item, hiddenGameUIds)),
 
-      popularGames: cappedPopularGames.map((item) => {
-        const key = String(item.gameId || "");
-        return formatPopularGame(req, item, gameMap[key] || null);
-      }),
+      popularGames: cappedPopularGames
+        .map((item) => {
+          const key = String(item.gameId || "");
+          return formatPopularGame(req, item, gameMap[key] || null);
+        })
+        .filter((item) => isListableFeature(item, hiddenGameUIds)),
 
       sports: cappedSports.map((item) => formatSport(req, item)),
 
@@ -462,32 +483,34 @@ router.get("/game-list", async (req, res) => {
 
     const pageNum = Math.max(Number(page) || 1, 1);
     const limitNum = Math.max(Number(limit) || 24, 1);
-    const skip = (pageNum - 1) * limitNum;
 
-    const [games, total] = await Promise.all([
-      Game.find(query)
-        .populate("categoryId", "categoryName categoryTitle iconImage status")
-        .populate(
-          "providerDbId",
-          "providerName providerCode providerIcon status isHome",
-        )
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum),
+    // Name and artwork only exist after Oracle enrichment, so a game cannot be
+    // judged by a Mongo query alone. Enrich and filter the whole selection
+    // once, cache it, then page over what is left — paging the raw collection
+    // first would return short pages and a total counting hidden games.
+    const visibleGames = await getFilteredCatalog(
+      `local:${categoryId}|${providerDbId}`,
+      async () => {
+        const rows = await Game.find(query)
+          .populate("categoryId", "categoryName categoryTitle iconImage status")
+          .populate(
+            "providerDbId",
+            "providerName providerCode providerIcon status isHome",
+          )
+          .sort({ createdAt: -1 });
 
-      Game.countDocuments(query),
-    ]);
+        const formatted = await attachOracleDataToGames(req, rows);
+        const hidden = await getHiddenGameUIds();
 
-    const formattedGames = await attachOracleDataToGames(req, games);
+        return formatted.filter((game) => isListableGame(game, hidden));
+      },
+    );
+
+    const { games: pageGames, meta } = paginate(visibleGames, pageNum, limitNum);
 
     return successResponse(res, "Games loaded successfully", {
-      games: formattedGames,
-      meta: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum) || 1,
-      },
+      games: pageGames,
+      meta,
     });
   } catch (error) {
     return errorResponse(res, error.message || "Failed to load games", 500);

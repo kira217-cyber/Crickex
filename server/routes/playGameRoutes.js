@@ -3,6 +3,7 @@ import axios from "axios";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
+import { recordLaunchOutcome } from "../services/gameVisibilityService.js";
 
 const router = express.Router();
 
@@ -160,12 +161,16 @@ router.post("/playgame", requireAuth, async (req, res) => {
     const gameUrl = extractLaunchUrl(response.data);
 
     if (!gameUrl || typeof gameUrl !== "string") {
+      await recordLaunchOutcome(gameUId, false, "No launch_url received");
+
       return res.status(502).json({
         success: false,
         message: "No launch_url received from Oracle API",
         error: response.data,
       });
     }
+
+    await recordLaunchOutcome(gameUId, true);
 
     return res.json({
       success: true,
@@ -186,6 +191,12 @@ router.post("/playgame", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("PlayGame API Error:", error.response?.data || error.message);
+
+    await recordLaunchOutcome(
+      String(req.body?.game_uid || req.body?.gameID || req.body?.gameId || ""),
+      false,
+      error?.response?.data?.message || error?.message,
+    );
 
     return res.status(error.response?.status || 500).json({
       success: false,

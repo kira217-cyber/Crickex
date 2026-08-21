@@ -4,6 +4,14 @@ import axios from "axios";
 import GameApiKeySetting from "../models/GameApiKeySetting.js";
 import { protectAdmin } from "../middleware/protectAdmin.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import {
+  getHiddenGameUIds,
+  filterGameDataPayload,
+  isListableGame,
+  getFilteredCatalog,
+  paginate,
+  runInBatches,
+} from "../services/gameVisibilityService.js";
 
 const router = express.Router();
 
@@ -374,7 +382,11 @@ router.get("/client/game-data", async (req, res) => {
       },
     );
 
-    const cappedPayload = capGameDataPayload(response.data);
+    // Filter before capping: capping first would spend the per-category
+    // budget on unplayable games and push good ones out of the list.
+    const hidden = await getHiddenGameUIds();
+    const visiblePayload = filterGameDataPayload(response.data, hidden);
+    const cappedPayload = capGameDataPayload(visiblePayload);
 
     return res.status(response.status || 200).json(cappedPayload);
   } catch (error) {
@@ -389,8 +401,101 @@ router.get("/client/game-data", async (req, res) => {
 });
 
 /* CLIENT PROXY: GAME LIST */
+
+// Master pages the catalogue before we get to filter it, so filtering a single
+// page leaves gaps and a total that counts games the player never sees. Load
+// the whole category once, filter it, cache it, and page over the result.
+const MASTER_PAGE_LIMIT = 24;
+const MASTER_MAX_PAGES = 400;
+
+const loadVisibleCategoryGames = async ({ setting, baseUrl, query }) => {
+  const hidden = await getHiddenGameUIds();
+
+  const fetchPage = async (page) => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/master/cx-global/client/game-list`,
+        {
+          params: { ...query, page, limit: MASTER_PAGE_LIMIT },
+          timeout: 30000,
+          headers: {
+            "x-api-key": setting.apiKey,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = response?.data?.data || {};
+
+      return {
+        games: Array.isArray(data.games) ? data.games : [],
+        totalPages: Number(data?.meta?.totalPages || 1),
+      };
+    } catch {
+      return { games: [], totalPages: 1 };
+    }
+  };
+
+  const first = await fetchPage(1);
+  const totalPages = Math.min(first.totalPages, MASTER_MAX_PAGES);
+
+  const restPages = [];
+  for (let page = 2; page <= totalPages; page += 1) restPages.push(page);
+
+  const rest = await runInBatches(restPages, fetchPage, 12);
+
+  return [first, ...rest]
+    .flatMap((entry) => entry.games)
+    .filter((game) => isListableGame(game, hidden));
+};
+
 router.get("/client/game-list", async (req, res) => {
-  return proxyMasterGet(req, res, "/api/master/cx-global/client/game-list");
+  try {
+    const { setting, error, status } = await getValidSetting();
+
+    if (error) return errorResponse(res, error, status);
+
+    const masterApiBaseUrl = getMasterApiBaseUrl();
+
+    if (!masterApiBaseUrl) {
+      return errorResponse(res, "MASTER_API_URL is missing in .env", 500);
+    }
+
+    const categoryId = String(req.query?.categoryId || "");
+    const providerDbId = String(req.query?.providerDbId || "");
+
+    const page = Math.max(Number(req.query?.page) || 1, 1);
+    const limit = Math.max(Number(req.query?.limit) || 24, 1);
+
+    const games = await getFilteredCatalog(
+      `proxy:${categoryId}|${providerDbId}`,
+      () =>
+        loadVisibleCategoryGames({
+          setting,
+          baseUrl: masterApiBaseUrl,
+          query: {
+            ...(categoryId ? { categoryId } : {}),
+            ...(providerDbId ? { providerDbId } : {}),
+          },
+        }),
+    );
+
+    const { games: pageGames, meta } = paginate(games, page, limit);
+
+    return res.json({
+      success: true,
+      message: "Games loaded successfully",
+      data: { games: pageGames, meta },
+    });
+  } catch (error) {
+    return errorResponse(
+      res,
+      error?.response?.data?.message ||
+        error.message ||
+        "Master API request failed.",
+      error?.response?.status || 500,
+    );
+  }
 });
 
 /* CLIENT PROXY: PLAY GAME DETAILS */
