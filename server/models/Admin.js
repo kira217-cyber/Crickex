@@ -18,7 +18,9 @@ const adminSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["mother", "sub"],
+      // "viewer" can reach every admin screen but is blocked from any write,
+      // including editing its own profile. See protectAdmin.
+      enum: ["mother", "sub", "viewer"],
       default: "sub",
     },
 

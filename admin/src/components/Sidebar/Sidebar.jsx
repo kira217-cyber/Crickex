@@ -82,11 +82,14 @@ const Sidebar = () => {
   const [affiliateOpen, setAffiliateOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
-  const adminRole = admin?.role === "mother" ? "mother" : "sub";
+  const adminRole = ["mother", "viewer"].includes(admin?.role)
+    ? admin.role
+    : "sub";
   const permissions = Array.isArray(admin?.permissions)
     ? admin.permissions
     : [];
   const isMother = adminRole === "mother";
+  const isViewer = adminRole === "viewer";
 
   useEffect(() => {
     const handleResize = () => {
@@ -102,7 +105,8 @@ const Sidebar = () => {
   }, []);
 
   const canAccess = (key) => {
-    if (isMother) return true;
+    // A viewer is read-only, so there is nothing to gate per page.
+    if (isMother || isViewer) return true;
     return permissions.includes(key);
   };
 
@@ -553,34 +557,34 @@ const Sidebar = () => {
 
   const visibleMenuItems = useMemo(() => {
     return menuItems.filter((item) => {
-      if (item.key === "__mother__") return isMother;
+      if (item.key === "__mother__") return isMother || isViewer;
       return canAccess(item.key);
     });
-  }, [menuItems, isMother, permissions]);
+  }, [menuItems, isMother, isViewer, permissions]);
 
   const visibleUserItems = useMemo(
     () => userItems.filter((item) => canAccess(item.key)),
-    [userItems, permissions, isMother],
+    [userItems, permissions, isMother, isViewer],
   );
 
   const visibleDepositItems = useMemo(
     () => depositItems.filter((item) => canAccess(item.key)),
-    [depositItems, permissions, isMother],
+    [depositItems, permissions, isMother, isViewer],
   );
 
   const visibleWithdrawItems = useMemo(
     () => withdrawItems.filter((item) => canAccess(item.key)),
-    [withdrawItems, permissions, isMother],
+    [withdrawItems, permissions, isMother, isViewer],
   );
 
   const visibleGameItems = useMemo(
     () => gameItems.filter((item) => canAccess(item.key)),
-    [gameItems, permissions, isMother],
+    [gameItems, permissions, isMother, isViewer],
   );
 
   const visibleRewardItems = useMemo(
     () => rewardItems.filter((item) => canAccess(item.key)),
-    [rewardItems, permissions, isMother],
+    [rewardItems, permissions, isMother, isViewer],
   );
 
   const visibleClientSiteItems = useMemo(
@@ -659,8 +663,18 @@ const Sidebar = () => {
                     ADMIN
                   </h2>
                   <p className="text-sm text-blue-100/80 font-medium">
-                    {isMother ? "Mother Panel" : "Sub Admin Panel"}
+                    {isMother
+                      ? "Mother Panel"
+                      : isViewer
+                        ? "View Only Panel"
+                        : "Sub Admin Panel"}
                   </p>
+
+                  {isViewer && (
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-200">
+                      Read only
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

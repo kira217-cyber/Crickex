@@ -230,9 +230,15 @@ router.post("/create-admin", protectAdmin, requireMother, async (req, res) => {
     const newAdmin = await Admin.create({
       email: normalizedEmail,
       password: hashedPassword,
-      role: role === "mother" ? "mother" : "sub",
+      role: ["mother", "viewer"].includes(role) ? role : "sub",
+      // mother and viewer both reach every screen, so neither carries a
+      // per-page permission list.
       permissions:
-        role === "mother" ? [] : Array.isArray(permissions) ? permissions : [],
+        role === "mother" || role === "viewer"
+          ? []
+          : Array.isArray(permissions)
+            ? permissions
+            : [],
     });
 
     return successResponse(

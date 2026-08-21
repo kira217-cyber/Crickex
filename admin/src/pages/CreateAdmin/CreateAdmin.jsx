@@ -579,11 +579,17 @@ const CreateAdmin = () => {
                 className="w-full cursor-pointer rounded-2xl border border-[#1A79D3]/20 bg-black/80 px-4 py-3 text-sm text-white outline-none transition focus:border-[#1A79D3]/70 focus:ring-2 focus:ring-[#1A79D3]/20"
               >
                 <option value="sub">Sub Admin</option>
+                <option value="viewer">View Only Admin</option>
                 <option value="mother">Mother Admin</option>
               </select>
+
+              <p className="mt-2 text-xs text-slate-400">
+                A View Only admin can open every page but cannot create, edit
+                or delete anything, not even its own profile.
+              </p>
             </div>
 
-            {role !== "mother" && (
+            {role === "sub" && (
               <PermissionGrid
                 title="Permissions"
                 allPerms={allPerms}
@@ -671,11 +677,13 @@ const CreateAdmin = () => {
                           <span className="font-bold text-[#3ea0ff]">
                             {admin.role === "mother"
                               ? "Mother Admin"
-                              : "Sub Admin"}
+                              : admin.role === "viewer"
+                                ? "View Only Admin"
+                                : "Sub Admin"}
                           </span>
                         </p>
 
-                        {admin.role !== "mother" && (
+                        {admin.role === "sub" && (
                           <p className="mt-1 max-w-3xl break-words text-sm text-slate-400">
                             Permissions:{" "}
                             {Array.isArray(admin.permissions) &&
@@ -751,6 +759,7 @@ const CreateAdmin = () => {
                             className="w-full cursor-pointer rounded-2xl border border-[#1A79D3]/20 bg-black/80 px-4 py-3 text-sm text-white outline-none transition focus:border-[#1A79D3]/70 focus:ring-2 focus:ring-[#1A79D3]/20"
                           >
                             <option value="sub">Sub Admin</option>
+                            <option value="viewer">View Only Admin</option>
                             <option value="mother">Mother Admin</option>
                           </select>
                         </div>
@@ -787,7 +796,7 @@ const CreateAdmin = () => {
                           </div>
                         </div>
 
-                        {editRole !== "mother" && (
+                        {editRole === "sub" && (
                           <div className="md:col-span-2">
                             <PermissionGrid
                               title="Edit Permissions"

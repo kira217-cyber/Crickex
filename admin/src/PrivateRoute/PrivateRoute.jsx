@@ -30,6 +30,12 @@ const PrivateRoute = ({ children, motherOnly = false, permKey = null }) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  // A viewer sees every screen; writes are refused by the server and by the
+  // axios layer, so there is nothing to protect per route.
+  if (role === "viewer") {
+    return children;
+  }
+
   if (motherOnly) {
     if (role !== "mother") {
       return <Navigate to="/" replace />;

@@ -38,6 +38,17 @@ export const protectAdmin = async (req, res, next) => {
 
     req.admin = admin;
 
+    // A viewer is read-only everywhere. Enforcing it here rather than route by
+    // route means a new admin route is safe by default instead of open by
+    // default. Every admin write in this codebase is a non-GET request.
+    if (admin.role === "viewer" && req.method !== "GET") {
+      return res.status(403).json({
+        success: false,
+        code: "VIEW_ONLY_ADMIN",
+        message: "You can Only Read Not Allow Any Oparation",
+      });
+    }
+
     next();
   } catch (error) {
     console.log("JWT ERROR:", error);
