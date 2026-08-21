@@ -141,12 +141,12 @@ const Dashboard = () => {
         highlight: (c.reviewAutoWithdrawRequest || 0) > 0,
         sub: money(c.reviewAutoWithdrawAmount),
       },
-      {
-        title: "All Games",
-        value: c.allGames || 0,
-        icon: <FaGamepad />,
-        to: "/add-game",
-      },
+      // {
+      //   title: "All Games",
+      //   value: c.allGames || 0,
+      //   icon: <FaGamepad />,
+      //   to: "/add-game",
+      // },
     ];
   }, [summary]);
 
@@ -481,8 +481,8 @@ const Dashboard = () => {
                   {[
                     ["Total Users", summary?.cards?.allUsers || 0],
                     ["Affiliate Users", summary?.cards?.allAffiliateUsers || 0],
-                    ["Total Games", summary?.cards?.allGames || 0],
-                    ["Active Games", summary?.cards?.activeGames || 0],
+                    // ["Total Games", summary?.cards?.allGames || 0],
+                    // ["Active Games", summary?.cards?.activeGames || 0],
                     [
                       "Pending Deposits",
                       summary?.cards?.pendingDepositRequest || 0,

@@ -134,7 +134,7 @@ async function refundOnce(withdrawId) {
       refunded: false,
     },
     { $set: { refunded: true } },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   if (!claimed) return false;
@@ -618,7 +618,7 @@ router.post("/create", protectUser, async (req, res) => {
     const debited = await User.findOneAndUpdate(
       { _id: userId, balance: { $gte: amount } },
       { $inc: { balance: -amount } },
-      { new: true },
+      { returnDocument: "after" },
     );
 
     if (!debited) {

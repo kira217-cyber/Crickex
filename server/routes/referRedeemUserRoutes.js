@@ -207,7 +207,7 @@ router.post("/redeem", async (req, res) => {
         },
       },
       {
-        new: false,
+        returnDocument: "before",
       },
     );
 

@@ -173,7 +173,7 @@ export const recordLaunchOutcome = async (gameUId, ok, errorText = "") => {
             lastError: "",
           },
         },
-        { upsert: true, new: false },
+        { upsert: true, returnDocument: "before" },
       );
 
       if (before?.hidden) {
@@ -192,7 +192,7 @@ export const recordLaunchOutcome = async (gameUId, ok, errorText = "") => {
           lastError: str(errorText).slice(0, 300),
         },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: "after" },
     );
 
     if (after && !after.hidden && after.failCount >= HIDE_AFTER_FAILURES) {
