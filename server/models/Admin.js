@@ -28,6 +28,20 @@ const adminSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+
+    /**
+     * Readable copy of a viewer account's password, kept only so the login
+     * page can show the demo credentials. `password` above stays hashed and is
+     * still the one that authenticates.
+     *
+     * Set for "viewer" accounts only, and deliberately so: those credentials
+     * are meant to be public and the account cannot change anything. Never
+     * populate this for a mother or sub admin.
+     */
+    demoPassword: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

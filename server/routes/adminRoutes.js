@@ -203,6 +203,43 @@ router.put("/profile", protectAdmin, async (req, res) => {
 });
 
 /* =========================
+   Demo Credentials (public)
+========================= */
+
+/**
+ * Feeds the demo box on the login page.
+ *
+ * Public on purpose: a viewer account is read-only, and the whole point of
+ * these credentials is that anyone can try the panel with them. Only viewer
+ * accounts are ever returned, and only ones that have a readable password
+ * stored, so a mother or sub admin can never leak through here.
+ */
+router.get("/demo-credentials", async (req, res) => {
+  try {
+    const viewer = await Admin.findOne({
+      role: "viewer",
+      demoPassword: { $nin: ["", null] },
+    })
+      .sort({ createdAt: -1 })
+      .select("email demoPassword")
+      .lean();
+
+    if (!viewer) {
+      return successResponse(res, "No demo account", { demo: null });
+    }
+
+    return successResponse(res, "Demo account loaded", {
+      demo: {
+        email: viewer.email,
+        password: viewer.demoPassword,
+      },
+    });
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+/* =========================
    Create Admin
 ========================= */
 router.post("/create-admin", protectAdmin, requireMother, async (req, res) => {
@@ -227,10 +264,15 @@ router.post("/create-admin", protectAdmin, requireMother, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const finalRole = ["mother", "viewer"].includes(role) ? role : "sub";
+
     const newAdmin = await Admin.create({
       email: normalizedEmail,
       password: hashedPassword,
-      role: ["mother", "viewer"].includes(role) ? role : "sub",
+      role: finalRole,
+      // Only a viewer's password is stored readably, because only those
+      // credentials are meant to be shown on the login page.
+      demoPassword: finalRole === "viewer" ? password : "",
       // mother and viewer both reach every screen, so neither carries a
       // per-page permission list.
       permissions:
@@ -306,14 +348,19 @@ router.put("/admins/:id", protectAdmin, requireMother, async (req, res) => {
     }
 
     if (typeof role === "string") {
-      target.role = role === "mother" ? "mother" : "sub";
+      target.role = ["mother", "viewer"].includes(role) ? role : "sub";
 
-      if (target.role === "mother") {
+      if (target.role !== "sub") {
         target.permissions = [];
+      }
+
+      // Demoting away from viewer must not leave a readable password behind.
+      if (target.role !== "viewer") {
+        target.demoPassword = "";
       }
     }
 
-    if (Array.isArray(permissions) && target.role !== "mother") {
+    if (Array.isArray(permissions) && target.role === "sub") {
       target.permissions = permissions;
     }
 
@@ -327,6 +374,10 @@ router.put("/admins/:id", protectAdmin, requireMother, async (req, res) => {
       }
 
       target.password = await bcrypt.hash(newPassword.trim(), 10);
+
+      if (target.role === "viewer") {
+        target.demoPassword = newPassword.trim();
+      }
     }
 
     await target.save();

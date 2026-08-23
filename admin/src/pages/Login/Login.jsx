@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 
+import { api } from "../../api/axios";
 import { adminLogin } from "../../features/auth/authAPI";
 import { setCredentials } from "../../features/auth/authSlice";
 import {
@@ -40,6 +41,8 @@ const Login = () => {
     email: "",
     password: "",
   });
+
+  const [demo, setDemo] = useState(null);
 
   const doLogin = async ({ email, password, silent = false }) => {
     if (!email.trim()) {
@@ -115,6 +118,34 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, from]);
 
+  // Credentials of the view-only account, shown so anyone can try the panel.
+  // The box stays hidden until a viewer account actually exists.
+  useEffect(() => {
+    let cancelled = false;
+
+    api
+      .get("/api/admin/demo-credentials")
+      .then(({ data }) => {
+        if (!cancelled) setDemo(data?.data?.demo || null);
+      })
+      .catch(() => {
+        if (!cancelled) setDemo(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const copyValue = async (value, label) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copied`);
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -176,6 +207,44 @@ const Login = () => {
                 </p>
               </div>
             </div>
+
+            {demo && (
+              <div className="mb-6 rounded-2xl border-2 border-red-500 bg-black/40 px-4 py-4">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="text-sm font-black text-[#3ea0ff]">
+                    DEMO E-Mail :
+                  </span>
+
+                  <span className="text-sm text-slate-200">{demo.email}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => copyValue(demo.email, "Email")}
+                    className="ml-auto cursor-pointer rounded-md bg-[#1A79D3] px-3 py-1 text-xs font-bold text-white transition hover:bg-[#3ea0ff]"
+                  >
+                    Copy
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="text-sm font-black text-[#3ea0ff]">
+                    DEMO Password :
+                  </span>
+
+                  <span className="text-sm text-slate-200">
+                    {demo.password}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => copyValue(demo.password, "Password")}
+                    className="ml-auto cursor-pointer rounded-md bg-[#1A79D3] px-3 py-1 text-xs font-bold text-white transition hover:bg-[#3ea0ff]"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
